@@ -1,0 +1,11 @@
+/* register.scss */
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+  margin: auto;
+}
+
+input, button {
+  margin: 8px 0;
+}
