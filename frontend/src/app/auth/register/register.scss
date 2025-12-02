@@ -1,3 +1,10 @@
+:host {
+    display: block;
+    --color-primary: #84cc16; /* Verde vibrant (Tailwind green-500) */
+    --color-primary-dark: #65a30d; /* Verde mai închis (Tailwind lime-600) */
+    --color-background: #ecfdf5; /* Foarte deschis verde pal (Tailwind green-50) */
+    font-family: 'Inter', sans-serif;
+}
 .main-container {
   display: flex;
   justify-content: center;

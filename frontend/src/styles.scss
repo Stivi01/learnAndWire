@@ -1,1 +1,32 @@
-/* You can add global styles to this file, and also import other style files */
+/* Reset global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+.app-layout {
+  display: flex;         /* Sidebar + content stau orizontal */
+  min-height: 100vh;     /* Ocupă tot viewport-ul */
+}
+
+/* Sidebar */
+app-navbar {
+  width: 250px;           /* lățimea sidebar-ului */
+  flex-shrink: 0;         /* nu se micșorează */
+  height: 100vh;          /* ocupă întreaga înălțime */
+  position: sticky;       /* rămâne fixat */
+  top: 0;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;               /* ocupă restul spațiului */
+  background-color: #f3f4f6;
+  padding: 2rem;
+  overflow-y: auto;      /* scroll dacă e mai lung decât viewport-ul */
+}

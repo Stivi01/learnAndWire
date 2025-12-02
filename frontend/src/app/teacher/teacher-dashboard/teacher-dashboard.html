@@ -1,46 +1,21 @@
 <div class="dashboard-container">
-  <!-- Main content -->
   <div class="dashboard-content">
-    <h1>Welcome, Professor!</h1>
+    <h1>Bun venit, Profesor!</h1>
 
     <div class="grid-cards">
       <div class="card">
-        <h2>Total Courses</h2>
-        <p>12</p>
+        <h2>Total Cursuri</h2>
+        <p>{{ totalCourses }}</p>
       </div>
       <div class="card">
-        <h2>Pending Assignments</h2>
-        <p>5</p>
+        <h2>Teme Pendinte</h2>
+        <p>{{ pendingAssignments }}</p>
       </div>
       <div class="card">
-        <h2>Students Enrolled</h2>
-        <p>120</p>
+        <h2>Studenți Înscriși</h2>
+        <p>{{ studentsEnrolled }}</p>
       </div>
     </div>
 
-    <div>
-      <h2>Recent Courses</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Course Title</th>
-            <th>Description</th>
-            <th>Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Angular Basics</td>
-            <td>Intro to Angular 17</td>
-            <td>2025-12-01</td>
-          </tr>
-          <tr>
-            <td>Advanced SQL</td>
-            <td>Queries and optimization</td>
-            <td>2025-11-25</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    <div class="recent-section">
+      <h2>Cursuri Recente</h2>

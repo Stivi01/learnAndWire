@@ -1,11 +1,55 @@
-<nav>
-  <ul>
-    <li *ngIf="role === 'profesor'">Dashboard Profesor</li>
-    <li *ngIf="role === 'student'">Dashboard Student</li>
-    <li>Profile</li>
-    <li>Settings</li>
-    <li class="logout">
-      <button (click)="logout()">Logout</button>
+<nav class="sidebar">
+
+  <!-- Logo -->
+  <div class="logo-box">
+    <span class="logo-text">Learn&Wire</span>
+  </div>
+
+  <!-- User -->
+  <div class="user-box">
+    <img src="assets/avatar-default.png" alt="avatar" class="avatar">
+    <div class="user-info">
+      <p class="name">{{ user?.firstName }} {{ user?.lastName }}</p>
+      <p class="role">{{ user?.role }}</p>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <ul class="menu">
+
+    <li routerLink="/dashboard" routerLinkActive="active">
+      <i class="fas fa-th-large"></i>
+      Acasa
     </li>
+
+    <!-- PROFESOR -->
+    <li *ngIf="role === 'profesor' || role === 'student'" routerLink="/my-classes" routerLinkActive="active">
+      <i class="fas fa-home"></i>
+      Clasa mea
+    </li>
+
+    <!-- STUDENT -->
+    <li *ngIf="role === 'student'" routerLink="/my-grades" routerLinkActive="active">
+      <i class="fas fa-list-ul"></i>
+      Notele mele
+    </li>
+
+    <li routerLink="/schedule" routerLinkActive="active">
+      <i class="fas fa-calendar-alt"></i>
+      Calendar
+    </li>
+
+    <li routerLink="/settings" routerLinkActive="active">
+      <i class="fas fa-cog"></i>
+      Setari
+    </li>
+
   </ul>
+
+  <!-- LOGOUT -->
+  <div class="logout-box" (click)="logout()">
+    <i class="fas fa-sign-out-alt"></i>
+    Log out
+  </div>
+
 </nav>

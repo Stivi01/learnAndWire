@@ -1,67 +1,65 @@
 .dashboard-container {
-  display: flex;       /* flex pe orizontală */
-  min-height: 100vh;   /* ocupă toată înălțimea ecranului */
-}
-
-/* Sidebar are width fix deja în NavbarComponent */
-.dashboard-content {
-  flex: 1;             /* ocupă tot restul spațiului */
-  padding: 2rem;
+  display: flex;
+  min-height: 100vh;
   background-color: #f3f4f6;
-  overflow-y: auto;    /* scroll dacă e conținut mare */
 }
 
-/* Grid-ul cu card-uri */
+.dashboard-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #22c55e; /* accent verde */
+}
+
 .grid-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-/* Card-uri */
 .card {
   background-color: #ffffff;
+  border-radius: 12px;
   padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #65a30d; /* verde mai închis */
+  }
+  p {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
 }
 
-.card h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+.recent-section {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.card p {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-/* Tabel recent courses */
 table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #ffffff;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-thead tr {
-  background-color: #e5e7eb;
-  text-align: left;
 }
 
 th, td {
-  padding: 0.75rem 1rem;
+  text-align: left;
+  padding: 0.75rem;
+}
+
+thead {
+  background-color: #d1fae5;
 }
 
 tbody tr:nth-child(even) {
   background-color: #f9fafb;
-}
-
-tbody tr:hover {
-  background-color: #f3f4f6;
 }

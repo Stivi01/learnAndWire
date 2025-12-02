@@ -11,14 +11,17 @@ import { CommonModule } from '@angular/common';
   styleUrl: './navbar.scss',
 })
 export class Navbar {
-  @Input() role: 'student' | 'profesor' | null = null;
-  constructor(public auth: AuthService, private router: Router) {}
+  @Input() role: string | null = null;
+  user: any = null;
 
-    navigate(route: string) {
-      this.router.navigate([`/${route}`]);
-    }
-    logout() {
-      this.auth.logout();
-      this.router.navigate(['/login']);
-    }
+  constructor(private auth: AuthService, private router: Router) {}
+
+  ngOnInit() {
+    this.user = this.auth.getUser();
+  }
+
+  logout() {
+    this.auth.logout();
+    this.router.navigate(['/login']);
+  }
 }
