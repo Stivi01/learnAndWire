@@ -21,16 +21,27 @@ export class Register {
   ) { }
 
   register() {
-    const data = { email: this.email, password: this.password };
-    this.auth.register(data).subscribe({
-      next: (res) => {
-        alert('Cont creat cu succes!');
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        console.error(err);
-        alert('Înregistrare eșuată!');
-      }
-    });
+    const emailLower = this.email.trim().toLowerCase();
+    let role = '';
+    if (emailLower.endsWith('@stud.etti.upb.ro')) {
+      role = 'student';
+    } else if (emailLower.endsWith('@etti.upb.ro')) {
+      role = 'profesor';
+    } else {
+      alert('Email invalid — trebuie @stud.etti.upb.ro sau @etti.upb.ro');
+      return;
+    }
+
+    this.auth.register({ email: this.email, password: this.password, role })
+      .subscribe({
+        next: () => {
+          alert('Cont creat cu succes, te poti loga.');
+          this.router.navigate(['/login']);
+        },
+        error: err => {
+          console.error(err);
+          alert('Eroare la creare cont');
+        }
+      });
   }
 }

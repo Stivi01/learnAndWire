@@ -15,21 +15,37 @@ export class Login {
 
   email = '';
   password = '';
+  loading = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   login() {
-    const data = { email: this.email, password: this.password };
-
-    this.auth.login(data).subscribe({
-      next: (res) => {
-        this.auth.saveToken(res.token);
-        this.router.navigate(['/']);
-      },
-      error: (err) => {
-        console.error(err);
-        alert('Login esuat');
-      }
-    });
+    this.loading = true;
+    this.auth.login({ email: this.email, password: this.password })
+      .subscribe({
+        next: (res) => {
+          this.loading = false;
+          // server trimite { token, user }
+          if (res?.user) {
+            this.auth.saveUser(res.user);
+          }
+          alert('Autentificare reușită!');
+          // redirect în funcție de rol
+          const role = res?.user?.role || '';
+          if (role === 'Profesor' || role === 'profesor') {
+            this.router.navigate(['/teacher-dashboard']); // ajustează ruta
+          } else {
+            this.router.navigate(['/student-dashboard']);   // ajustează ruta
+          }
+        },
+        error: (err) => {
+          this.loading = false;
+          console.error('Login error:', err);
+          alert(err?.error?.message || 'Eroare la autentificare');
+        }
+      });
   }
 }
