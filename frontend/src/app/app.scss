@@ -1,0 +1,16 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+app-navbar {
+  width: 16rem; /* lățimea sidebar-ului */
+  flex-shrink: 0;
+}
+
+.main-content {
+  flex: 1;             /* ocupă restul spațiului */
+  background-color: #f3f4f6;
+  padding: 2rem;
+  overflow-y: auto;    /* scroll dacă e conținut mare */
+}

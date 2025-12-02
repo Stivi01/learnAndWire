@@ -50,4 +50,15 @@ export class AuthService {
     const u = localStorage.getItem('user');
     return u ? JSON.parse(u) : null;
   }
+  getRoleFromToken(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      return decoded?.role || null;
+    } catch (e) {
+      return null;
+    }
+  }
 }
