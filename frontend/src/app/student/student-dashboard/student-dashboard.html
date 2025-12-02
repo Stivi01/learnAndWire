@@ -3,7 +3,6 @@
   <!-- HEADER -->
   <header class="topbar">
     <h1 class="greeting">HELLO, {{ userName().toUpperCase() }}!</h1>
-
     <div class="search-wrapper">
       <input class="search-input" type="search" placeholder="Search"/>
       <svg class="search-icon" viewBox="0 0 24 24">
@@ -12,13 +11,12 @@
     </div>
   </header>
 
-  <!-- MAIN GRID -->
   <main class="main-grid">
 
-    <!-- LEFT/CENTER (3fr) -->
+    <!-- LEFT GRID -->
     <section class="left-grid">
 
-      <!-- LINKED TEACHERS -->
+      <!-- TEACHERS -->
       <div class="card card-teachers">
         <h2>Linked Teachers</h2>
         <div *ngFor="let t of teachers()" class="teacher-item">
@@ -36,7 +34,7 @@
         <a class="see-more" href="#">See more &gt;</a>
       </div>
 
-      <!-- UPCOMING EVENTS -->
+      <!-- EVENTS -->
       <div class="card card-events">
         <h2>Upcoming events</h2>
         <div *ngFor="let e of events()" class="event-item">
@@ -52,91 +50,78 @@
         <a class="see-more" href="#">See more &gt;</a>
       </div>
 
-      <!-- MY SCHEDULE & CALENDAR (big lavender block) -->
+      <!-- CALENDAR & SCHEDULE -->
       <div class="card card-schedule lavender">
         <h2>My schedule</h2>
-
         <div class="schedule-inner">
-          <!-- calendar -->
+          <!-- Calendar -->
           <div class="calendar-box">
             <div class="calendar-header">
-              <button class="cal-nav">&lt;</button>
-              <div class="month">May 2025</div>
-              <button class="cal-nav">&gt;</button>
+              <button class="cal-nav" (click)="prevMonth()">&lt;</button>
+              <div class="month">{{ monthName() }}</div>
+              <button class="cal-nav" (click)="nextMonth()">&gt;</button>
             </div>
 
             <div class="calendar-grid-week">
-              <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+              <div *ngFor="let wd of weekdays">{{ wd }}</div>
             </div>
 
             <div class="calendar-grid-days">
-              <!-- replicate same days used in mock -->
-              <div class="calendar-day"></div><div class="calendar-day"></div>
-              <div class="calendar-day">1</div><div class="calendar-day">2</div><div class="calendar-day">3</div>
-              <div class="calendar-day highlight">4</div><div class="calendar-day highlight">5</div>
-
-              <div class="calendar-day">6</div><div class="calendar-day">7</div><div class="calendar-day">8</div><div class="calendar-day">9</div><div class="calendar-day">10</div>
-              <div class="calendar-day highlight">11</div><div class="calendar-day highlight">12</div>
-
-              <div class="calendar-day">13</div><div class="calendar-day">14</div><div class="calendar-day">15</div><div class="calendar-day">16</div>
-              <div class="calendar-day selected">17</div><div class="calendar-day">18</div><div class="calendar-day highlight">19</div>
-
-              <div class="calendar-day">20</div><div class="calendar-day">21</div><div class="calendar-day">22</div><div class="calendar-day">23</div>
-              <div class="calendar-day highlight">24</div><div class="calendar-day highlight">25</div><div class="calendar-day highlight">26</div>
-
-              <div class="calendar-day">27</div><div class="calendar-day">28</div><div class="calendar-day">29</div><div class="calendar-day">30</div><div class="calendar-day">31</div>
-            </div>
-          </div>
-
-          <!-- schedule list -->
-          <div class="schedule-list">
-            <div *ngFor="let l of dailyLessons()" class="schedule-item">
-              <div class="schedule-day">{{ l.day }}</div>
-              <div class="schedule-card">
-                <div class="lesson-title">{{ l.title }}</div>
-                <div class="lesson-time">{{ l.time }}</div>
+              <div *ngFor="let d of days"
+                   class="calendar-day"
+                   [class.empty]="d === 0"
+                   [class.selected]="d === selectedDay() || dayHasLesson(d)"
+                   (click)="selectDay(d)">
+                {{ d !== 0 ? d : '' }}
               </div>
             </div>
           </div>
+
+          <!-- Schedule list -->
+          <div class="schedule-list">
+                <h3>Lecții pentru {{ selectedDay() || dailyLessons()[0]?.day }}/{{ currentMonth().getMonth() + 1 }}</h3>
+                <div *ngFor="let l of lessonsForSelectedDay()" class="schedule-item">
+                <div class="schedule-card">
+                <div class="lesson-title">{{ l.title }}</div>
+                <div class="lesson-time">{{ l.time }} - {{ l.day }}/{{ currentMonth().getMonth() + 1 }}</div>
+                </div>
+          </div>
+        <div *ngIf="lessonsForSelectedDay().length === 0">Nu există lecții pentru această zi.</div>
+        </div>
         </div>
       </div>
-
     </section>
 
-    <!-- RIGHT (1fr) -->
+    <!-- RIGHT COLUMN -->
     <aside class="right-column">
-
       <div class="card card-purple">
         <h2>Attendance</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(attendance(), '#FF6B9A') }" style="--value: 60deg;">
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(attendance(), '#FF6B9A') }">
             <span>{{ attendance() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
       </div>
-
       <div class="card card-purple">
         <h2>Homework</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homework(), '#68E0C6') }" style="--value: 324deg;">
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homework(), '#68E0C6') }">
             <span>{{ homework() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
       </div>
-
       <div class="card card-purple">
         <h2>Rating</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(rating(), '#FFD36B') }" style="--value: 270deg;">
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(rating(), '#FFD36B') }">
             <span>{{ rating() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
         <a class="see-more white" href="#">See more &gt;</a>
       </div>
-
     </aside>
   </main>
 </div>
