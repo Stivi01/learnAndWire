@@ -1,24 +1,47 @@
-<!-- src/app/auth/login.html -->
-<div class="login-card">
-  <h2>Autentificare</h2>
+<div class="main-container">
+  <div class="auth-card-wrapper">
+    <div class="auth-card">
+      <!-- Coloana 1: Ilustrație -->
+      <div class="illustration-panel">
+        <div class="clock-icon">📚</div>
+        <div class="plant-icon">💻</div>
+        <div class="character-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6"/>
+            <path d="M10 14L21 3"/>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          </svg>
+          <p class="text-xs text-gray-700 mt-2 font-medium">Acces securizat la resursele educaționale.</p>
+        </div>
+      </div>
 
-  <form (ngSubmit)="login()" #f="ngForm">
-    <div class="form-group">
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" required [(ngModel)]="email" />
+      <!-- Coloana 2: Formular -->
+      <div class="form-panel">
+        <div class="logo-area">Learn&Wire</div>
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6">Autentificare</h1>
+
+        <!-- Toast -->
+        <div *ngIf="showToast" [ngClass]="toastType === 'success' ? 'toast-success' : 'toast-error'">
+          {{ toastMessage }}
+        </div>
+
+        <form (ngSubmit)="login()" class="space-y-4">
+          <input type="email" [(ngModel)]="email" name="email" placeholder="Adresa de Email" class="input-field" [disabled]="loading" required/>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="Parolă" class="input-field" [disabled]="loading" required/>
+
+          <button type="submit" [disabled]="loading" class="submit-button">
+            {{ loading ? 'Se autentifică...' : 'Loghează-te' }}
+          </button>
+        </form>
+
+        <p class="text-xs text-center text-gray-500 mt-4">
+          Ai uitat parola? <a href="#" class="text-green-600 font-medium hover:underline">Resetează</a>
+        </p>
+
+        <p class="switch mt-6">
+          Nu ai cont? <a routerLink="/register" class="font-bold text-green-600 hover:text-green-700">Înregistrează-te</a>
+        </p>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="password">Parola</label>
-      <input id="password" name="password" type="password" required [(ngModel)]="password" />
-    </div>
-
-    <button type="submit" [disabled]="loading || !email || !password">
-      {{ loading ? 'Se autentifică...' : 'Autentificare' }}
-    </button>
-  </form>
-
-  <p>
-    Nu ai cont? <a routerLink="/register">Înregistrare</a>
-  </p>
+  </div>
 </div>

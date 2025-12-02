@@ -1,7 +1,10 @@
-<div class="app-layout">
-<app-navbar *ngIf="auth.isLoggedIn()" [role]="auth.getUser()?.role"></app-navbar>
-<div class="main-content">
-<router-outlet></router-outlet></div>
-
+<div *ngIf="auth.isLoggedIn(); else authPages" class="app-layout">
+  <app-navbar [role]="auth.getUser()?.role?.toLowerCase()"></app-navbar>
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
 </div>
 
+<ng-template #authPages>
+  <router-outlet></router-outlet>
+</ng-template>

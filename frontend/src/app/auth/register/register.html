@@ -1,9 +1,51 @@
-<h2>Register</h2>
+<div class="main-container">
+  <div class="auth-card-wrapper">
+    <div class="auth-card">
+      <!-- Ilustrație -->
+      <div class="illustration-panel">
+        <div class="character-placeholder">
+          <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.8-.7-1.5-1.5-1.5h-1.5c-1.1 0-2-.9-2-2V7c0-1.1-.9-2-2-2h-3c-1.1 0-2 .9-2 2v2c0 1.1-.9 2-2 2H4.5C3.7 11 3 11.7 3 12.5v3c0 .6.4 1 1 1h2"/>
+            <path d="M12 5V2"/>
+            <path d="M19 17v4"/>
+            <path d="M5 17v4"/>
+            <path d="M12 17v4"/>
+          </svg>
+          <p class="text-xs text-gray-700 mt-2 font-medium">Lucrăm pentru a conecta studenții la educație!</p>
+        </div>
+      </div>
 
-<form (ngSubmit)="register()">
-  <input type="email" placeholder="Email" [(ngModel)]="email" name="email" required />
-  <input type="password" placeholder="Password" [(ngModel)]="password" name="password" required />
-  <button type="submit">Register</button>
-</form>
+      <!-- Formular -->
+      <div class="form-panel">
+        <div class="logo-area">Learn&Wire</div>
+        <h1 class="text-3xl font-bold mb-6">Creează Cont</h1>
 
-<p>Ai deja cont? <a routerLink="/login">Login</a></p>
+        <!-- Toast -->
+        <div *ngIf="showToast" [ngClass]="toastType === 'success' ? 'toast-success' : 'toast-error'">
+          {{ toastMessage }}
+        </div>
+
+        <form (ngSubmit)="register()" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" [(ngModel)]="firstName" name="firstName" placeholder="Prenume" [disabled]="loading" class="input-field"/>
+            <input type="text" [(ngModel)]="lastName" name="lastName" placeholder="Nume" [disabled]="loading" class="input-field"/>
+          </div>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="Email" [disabled]="loading" class="input-field" (ngModelChange)="checkRole()"/>
+          <input type="password" [(ngModel)]="password" name="password" placeholder="Parolă" [disabled]="loading" class="input-field"/>
+
+          <div *ngIf="roleDisplay" class="role-indicator">
+            Rol detectat: {{ roleDisplay === 'profesor' ? 'Profesor' : 'Student' }}
+          </div>
+
+          <button type="submit" [disabled]="loading" class="submit-button">
+            {{ loading ? 'Se creează contul...' : 'Creează Cont' }}
+          </button>
+        </form>
+
+        <p class="switch mt-4">
+          Ai deja cont? <a routerLink="/login" class="font-bold text-green-600">Loghează-te</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,11 @@
 <nav>
   <ul>
-    <li *ngIf="role === 'Profesor'">Dashboard Profesor</li>
-    <li *ngIf="role === 'Student'">Dashboard Student</li>
+    <li *ngIf="role === 'profesor'">Dashboard Profesor</li>
+    <li *ngIf="role === 'student'">Dashboard Student</li>
     <li>Profile</li>
     <li>Settings</li>
-    <li>Logout</li>
+    <li class="logout">
+      <button (click)="logout()">Logout</button>
+    </li>
   </ul>
 </nav>

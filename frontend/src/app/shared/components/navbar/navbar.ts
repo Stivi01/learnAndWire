@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './navbar.scss',
 })
 export class Navbar {
-  @Input() role: 'Student' | 'Profesor' | null = null;
+  @Input() role: 'student' | 'profesor' | null = null;
   constructor(public auth: AuthService, private router: Router) {}
 
     navigate(route: string) {
