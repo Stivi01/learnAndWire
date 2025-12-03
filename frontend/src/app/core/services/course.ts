@@ -11,14 +11,25 @@ export class Course {
   constructor(private http: HttpClient) { }
 
   // 1️⃣ Preluare cursuri pentru profesor
-  getCoursesByTeacher(teacherId: number): Observable<Course[]> {
-    return this.http.get<Course[]>(`${this.apiUrl}/courses?createdBy=${teacherId}`);
+  getCoursesByTeacher(teacherId: number, token?: string): Observable<Course[]> {
+    const httpOptions = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+    return this.http.get<Course[]>(`${this.apiUrl}/courses?createdBy=${teacherId}`, httpOptions);
   }
+
 
   // 2️⃣ Creare curs
   createCourse(courseData: any, headers?: any) {
     return this.http.post(`${this.apiUrl}/courses`, courseData, { headers });
   }
+
+  getMyCourses(): Observable<Course[]> {
+    const token = localStorage.getItem('token');
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.get<Course[]>(`${this.apiUrl}/courses`, { headers });
+  }
+
 
 
   // 3️⃣ Editare curs

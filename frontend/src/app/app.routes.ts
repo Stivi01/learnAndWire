@@ -36,6 +36,13 @@ export const routes: Routes = [
     loadComponent: () => import('./teacher/course-form/course-form')
                         .then(m => m.CourseForm)
   },
+  {
+    path: 'teacher/my-classes',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/my-classes/my-classes').then(m => m.MyClasses)
+  },
+
 
 
     { path: '', redirectTo: '/login', pathMatch: 'full' },

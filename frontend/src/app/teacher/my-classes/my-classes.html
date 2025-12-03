@@ -1,1 +1,29 @@
-<p>my-classes works!</p>
+<div class="my-classes-container">
+  <h2>Cursurile mele</h2>
+
+  <div *ngIf="loading()">
+    Se încarcă cursurile...
+  </div>
+
+  <div *ngIf="error()">
+    {{ error() }}
+  </div>
+
+  <button routerLink="/teacher/course-form" class="btn-add-course">Adaugă curs nou</button>
+
+  <div class="courses-list" *ngIf="!loading() && courses().length > 0">
+    <div class="course-card" *ngFor="let course of courses()">
+      <h3>{{ course.Title }}</h3>
+      <p>{{ course.Description }}</p>
+      <p><strong>Creat la:</strong> {{ course.CreatedAt | date:'short' }}</p>
+      <p><strong>Status:</strong> {{ course.IsPublished ? 'Publicat' : 'Draft' }}</p>
+
+      <button (click)="editCourse(course.Id)">Editează</button>
+      <button (click)="inviteStudents(course.Id)">Invită studenți</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading() && courses().length === 0">
+    Nu ai creat niciun curs încă.
+  </div>
+</div>

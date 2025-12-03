@@ -43,4 +43,12 @@ export class Navbar {
   navigateToCourseForm() {
     this.router.navigate(['/teacher/course-form']);
   }
+  navigateToMyClasses() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/my-classes']);
+    } else if (this.role === 'Student') {
+      this.router.navigate(['/student/my-classes']); // dacă vrei să faci și pentru student
+    }
+  }
+
 }

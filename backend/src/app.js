@@ -327,6 +327,39 @@ app.post('/api/course-enrollments', protect, restrictTo('Profesor'), async (req,
   }
 });
 
+app.get('/api/student/courses', protect, restrictTo('Student'), async (req, res) => {
+  try {
+    const result = await sqlPool.query`
+      SELECT c.* FROM Courses c
+      INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
+      WHERE ce.StudentId = ${req.user.id}
+      ORDER BY c.CreatedAt DESC
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea cursurilor studentului.' });
+  }
+});
+
+app.get('/api/courses/:id/students', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = req.params.id;
+  try {
+    const result = await sqlPool.query`
+      SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear
+      FROM Users u
+      INNER JOIN CourseEnrollments ce ON ce.StudentId = u.Id
+      WHERE ce.CourseId = ${courseId}
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea studenților cursului.' });
+  }
+});
+
+
+
 
 
 

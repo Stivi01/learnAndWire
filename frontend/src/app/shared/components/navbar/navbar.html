@@ -28,7 +28,7 @@
     </li>
 
     <!-- PROFESOR -->
-    <li *ngIf="role === 'Profesor' || role === 'Student'" routerLink="/my-classes" routerLinkActive="active">
+    <li *ngIf="role === 'Profesor' || role === 'Student'" (click)="navigateToMyClasses()">
       <i class="fas fa-home"></i>
       Clasa mea
     </li>
