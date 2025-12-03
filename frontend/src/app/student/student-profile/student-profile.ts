@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StudentProfileData, User } from '../../core/services/user';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-student-profile',
@@ -12,6 +13,7 @@ import { StudentProfileData, User } from '../../core/services/user';
 })
 export class StudentProfile {
 private userService = inject(User);
+private authService = inject(AuthService);
 
   profile = signal<StudentProfileData>({
     firstName: '',
@@ -57,6 +59,7 @@ private userService = inject(User);
   this.userService.uploadAvatar(formData).subscribe({
     next: (res) => {
       this.profile.set({ ...this.profile(), avatar: res.avatar });
+      this.authService.updateUserAvatar(res.avatar || '');
       this.successMessage.set('Avatar actualizat!');
     },
     error: () => {

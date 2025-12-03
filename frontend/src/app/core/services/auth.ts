@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface UserInfo{
   firstName: string;
@@ -18,18 +18,46 @@ export class AuthService {
 
   private apiUrl = 'http://localhost:3000/api/auth';
 
-  constructor(private http: HttpClient) {}
+  private currentUserSubject = new BehaviorSubject<UserInfo | null>(this.getStoredUser());
+  public currentUser$ = this.currentUserSubject.asObservable(); // Observable public
+
+  constructor(private http: HttpClient) {
+    this.initializeUser();
+  }
+
+  private initializeUser() {
+    // Sincronizează subiectul la început
+    const user = this.getStoredUser();
+    this.currentUserSubject.next(user);
+  }
 
   login(credentials: { email: string; password: string; }): Observable<any> {
-    return this.http.post<{ token: string, user: any }>(`${this.apiUrl}/login`, credentials)
-      .pipe(
-        tap(response => {
-          if (response?.token) {
-            this.saveToken(response.token);
-          }
-        })
-      );
-  }
+    return this.http.post<{ token: string, user: UserInfo }>(`${this.apiUrl}/login`, credentials) // 👈 Tiparește răspunsul
+      .pipe(
+        tap(response => {
+          if (response?.token) {
+            this.saveToken(response.token);
+            // ASIGURĂ-TE că serverul trimite datele user-ului (inclusiv avatarul)
+            this.saveUser(response.user); 
+             // Emite noua valoare către abonați (Navbar)
+             this.currentUserSubject.next(response.user); 
+          }
+        })
+      );
+  }
+
+  updateUserAvatar(newAvatarPath: string) {
+      const user = this.currentUserSubject.getValue();
+      if (user) {
+        const updatedUser = { ...user, avatar: newAvatarPath };
+        
+        // 1. Actualizează localStorage
+        this.saveUser(updatedUser); 
+        
+        // 2. Notifică toți abonații
+        this.currentUserSubject.next(updatedUser);
+      }
+    }
 
   register(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, data);
@@ -53,12 +81,18 @@ export class AuthService {
 
   // Optional: helper pentru user (dacă server trimite user la login)
   saveUser(user: any) {
-    localStorage.setItem('user', JSON.stringify(user));
-  }
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+  // Modifică getUser pentru a extrage UserInfo și a fi folosit intern
+  getStoredUser(): UserInfo | null {
+    const u = localStorage.getItem('user');
+    return u ? JSON.parse(u) as UserInfo : null;
+  }
+  // Păstrează getUser vechi pentru compatibilitate cu navbar.ts
   getUser(): any | null {
-    const u = localStorage.getItem('user');
-    return u ? JSON.parse(u) : null;
+      return this.getStoredUser(); 
   }
+
   getRoleFromToken(): string | null {
     const token = this.getToken();
     if (!token) return null;
