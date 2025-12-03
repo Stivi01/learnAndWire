@@ -28,3 +28,11 @@
   .success { color: green; margin-top: 12px; }
   .error { color: red; margin-top: 12px; }
 }
+
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}

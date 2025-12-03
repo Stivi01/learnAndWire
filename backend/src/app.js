@@ -91,7 +91,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   try {
     const result = await sqlPool.query`
-      SELECT id, email, passwordHash, role, firstName, lastName
+      SELECT id, email, passwordHash, role, firstName, lastName, avatar
       FROM Users
       WHERE email = ${email}
     `;
@@ -119,7 +119,8 @@ app.post('/api/auth/login', async (req, res) => {
         email: user.email,
         role: user.role,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        avatar: user.avatar
       }
     });
   } catch (err) {
@@ -177,12 +178,18 @@ connectDb().then(() => {
 app.get('/api/profile', protect, async (req, res) => {
   try {
     const result = await sqlPool.query`
-      SELECT id, email, role, firstName, lastName, phone, address, academicYear
+      SELECT id, email, role, firstName, lastName, phone, address, academicYear,avatar
       FROM Users
       WHERE id = ${req.user.id}
     `;
 
     const profile = result.recordset[0];
+
+    // Dacă avatar e null → trimitem default
+    if (!profile.avatar) {
+      profile.avatar = 'assets/avatar-default.png';
+    }
+
     res.json(profile);
 
   } catch (err) {
@@ -214,4 +221,45 @@ app.put('/api/profile', protect, async (req, res) => {
     res.status(500).json({ message: 'Eroare server la actualizarea profilului.' });
   }
 });
+
+const multer = require('multer');
+const path = require('path');
+
+// Storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/avatars/');
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      'user_' + req.user.id + path.extname(file.originalname)
+    );
+  }
+});
+
+const upload = multer({ storage });
+app.use('/uploads', express.static('uploads'));
+
+app.post('/api/profile/avatar', protect, upload.single('avatar'), async (req, res) => {
+  try {
+    const avatarPath = req.file ? req.file.path.replace(/\\/g, '/') : null;
+
+    await sqlPool.query`
+      UPDATE Users
+      SET avatar = ${avatarPath}
+      WHERE id = ${req.user.id}
+    `;
+
+    res.json({
+      message: "Avatar actualizat!",
+      avatar: avatarPath
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Eroare server la upload avatar." });
+  }
+});
+
 

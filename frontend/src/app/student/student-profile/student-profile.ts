@@ -17,7 +17,8 @@ private userService = inject(User);
     firstName: '',
     lastName: '',
     email: '',
-    academicYear: 0
+    academicYear: 0,
+    avatar: ''
   });
 
   isLoading = signal(true);
@@ -31,6 +32,11 @@ private userService = inject(User);
   loadProfile() {
     this.userService.getProfile().subscribe({
       next: (data) => {
+        console.log("Avatar value from server:", data.avatar); // <--- ADAUGĂ ACEASTA
+        // fallback avatar
+      //  if (!data.avatar || data.avatar === 'null') {
+      //    data.avatar = 'assets/avatar-default.png';
+      //  }
         this.profile.set(data);
         this.isLoading.set(false);
       },
@@ -40,6 +46,25 @@ private userService = inject(User);
       }
     });
   }
+
+  uploadAvatar(event: any) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  this.userService.uploadAvatar(formData).subscribe({
+    next: (res) => {
+      this.profile.set({ ...this.profile(), avatar: res.avatar });
+      this.successMessage.set('Avatar actualizat!');
+    },
+    error: () => {
+      this.errorMessage.set('Eroare la încărcarea avatarului.');
+    }
+  });
+}
+
 
   saveProfile() {
     this.userService.updateProfile(this.profile()).subscribe({

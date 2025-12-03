@@ -7,7 +7,10 @@
 
   <!-- User -->
   <div class="user-box">
-    <img src="assets/avatar-default.png" alt="avatar" class="avatar">
+    <img 
+      [src]="user?.avatar ? 'http://localhost:3000/' + user.avatar : 'assets/avatar-default.png'"
+      class="avatar">
+
     <div class="user-info">
       <p class="name">{{ user?.firstName }} {{ user?.lastName }}</p>
       <p class="role">{{ user?.role }}</p>

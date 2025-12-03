@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
+export interface UserInfo{
+  firstName: string;
+  lastName: string;
+  role: string;
+  avatar?: string;
+  [key:string] : any;
+
+}
+
 @Injectable({
   providedIn: 'root'
 })

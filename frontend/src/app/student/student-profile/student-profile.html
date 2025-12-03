@@ -4,10 +4,21 @@
   <div *ngIf="isLoading()">Se încarcă...</div>
 
   <div *ngIf="!isLoading()">
+
+    <div class="avatar-section">
+      <img 
+        [src]="profile().avatar === 'assets/avatar-default.png'
+              ? 'assets/avatar-default.png' 
+              : 'http://localhost:3000/' + profile().avatar" 
+        class="avatar-preview">
+
+
+      <input type="file" (change)="uploadAvatar($event)">
+    </div>
+
     <div class="form-group">
       <label>Prenume</label>
-        <input [ngModel]="profile().firstName" 
-               (ngModelChange)="profile.set({ ...profile(), firstName: $event })">
+      <input [(ngModel)]="profile().firstName" type="text" />
     </div>
 
     <div class="form-group">
@@ -22,7 +33,7 @@
 
     <div class="form-group">
       <label>An universitar</label>
-      <input [(ngModel)]="profile().academicYear" type="text" placeholder="Ex: 2025-2026"/>
+      <input [(ngModel)]="profile().academicYear" type="text" />
     </div>
 
     <div class="form-group">
@@ -39,5 +50,6 @@
 
     <div *ngIf="successMessage()" class="success">{{ successMessage() }}</div>
     <div *ngIf="errorMessage()" class="error">{{ errorMessage() }}</div>
+
   </div>
 </div>

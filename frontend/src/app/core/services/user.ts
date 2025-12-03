@@ -9,6 +9,7 @@ export interface StudentProfileData {
   academicYear: number | string;
   phone?: string;
   address?: string;
+  avatar?: string;
 }
 
 
@@ -40,5 +41,14 @@ updateProfile(profile: StudentProfileData) {
     headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
   });
 }
+
+uploadAvatar(formData: FormData) {
+  return this.http.post<{ avatar: string }>(
+    'http://localhost:3000/api/profile/avatar',
+    formData,
+    { headers: { Authorization: 'Bearer ' + localStorage.getItem('token') } }
+  );
+}
+
 
 }
