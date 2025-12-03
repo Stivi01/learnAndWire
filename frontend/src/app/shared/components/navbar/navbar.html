@@ -23,13 +23,13 @@
     </li>
 
     <!-- PROFESOR -->
-    <li *ngIf="role === 'profesor' || role === 'student'" routerLink="/my-classes" routerLinkActive="active">
+    <li *ngIf="role === 'Profesor' || role === 'Student'" routerLink="/my-classes" routerLinkActive="active">
       <i class="fas fa-home"></i>
       Clasa mea
     </li>
 
     <!-- STUDENT -->
-    <li *ngIf="role === 'student'" routerLink="/my-grades" routerLinkActive="active">
+    <li *ngIf="role === 'Student'" routerLink="/my-grades" routerLinkActive="active">
       <i class="fas fa-list-ul"></i>
       Notele mele
     </li>
@@ -39,10 +39,10 @@
       Calendar
     </li>
 
-    <li routerLink="/settings" routerLinkActive="active">
-      <i class="fas fa-cog"></i>
-      Setari
-    </li>
+    <li *ngIf="role === 'Student'" (click)="navigateToProfile()" routerLinkActive="active"> 
+        <i class="fas fa-cog"></i>
+        Setari
+    </li>
 
   </ul>
 

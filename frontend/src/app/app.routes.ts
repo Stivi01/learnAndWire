@@ -21,6 +21,14 @@ export const routes: Routes = [
     data: { role: 'Student' },
     loadComponent: () => import('./student/student-dashboard/student-dashboard').then(m => m.StudentDashboard)
   },
+
+  {
+    path: 'student-profile',               // aici ruta pentru settings
+    canActivate: [AuthGuard, roleGuard],   // aceleași guard-uri
+    data: { role: 'Student' },
+    loadComponent: () => import('./student/student-profile/student-profile').then(m => m.StudentProfile)
+  },
+
     { path: '', redirectTo: '/login', pathMatch: 'full' },
     { path: '**', redirectTo: '/login' }
 

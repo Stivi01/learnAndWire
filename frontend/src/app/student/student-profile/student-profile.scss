@@ -1,0 +1,30 @@
+.settings-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+
+  h1 { color: #5a3968; margin-bottom: 20px; }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+
+    label { font-weight: 600; margin-bottom: 6px; }
+    input { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; }
+    input[disabled] { background: #f0f0f0; }
+  }
+
+  button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #6b4a7c;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .success { color: green; margin-top: 12px; }
+  .error { color: red; margin-top: 12px; }
+}

@@ -1,0 +1,42 @@
+<div class="settings-page">
+  <h1>Setări profil</h1>
+
+  <div *ngIf="isLoading()">Se încarcă...</div>
+
+  <div *ngIf="!isLoading()">
+    <div class="form-group">
+      <label>Prenume</label>
+      <input [(ngModel)]="profile().firstName" type="text" />
+    </div>
+
+    <div class="form-group">
+      <label>Nume</label>
+      <input [(ngModel)]="profile().lastName" type="text" />
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input [(ngModel)]="profile().email" type="email" disabled />
+    </div>
+
+    <div class="form-group">
+      <label>An universitar</label>
+      <input [(ngModel)]="profile().academicYear" type="text" placeholder="Ex: 2025-2026"/>
+    </div>
+
+    <div class="form-group">
+      <label>Telefon</label>
+      <input [(ngModel)]="profile().phone" type="text" />
+    </div>
+
+    <div class="form-group">
+      <label>Adresă</label>
+      <input [(ngModel)]="profile().address" type="text" />
+    </div>
+
+    <button (click)="saveProfile()">Salvează modificările</button>
+
+    <div *ngIf="successMessage()" class="success">{{ successMessage() }}</div>
+    <div *ngIf="errorMessage()" class="error">{{ errorMessage() }}</div>
+  </div>
+</div>
