@@ -6,10 +6,11 @@ export interface StudentProfileData {
   firstName: string;
   lastName: string;
   email: string;
-  academicYear: number;
+  academicYear: number | string;
   phone?: string;
   address?: string;
 }
+
 
 @Injectable({
   providedIn: 'root',
@@ -29,17 +30,15 @@ export class User {
   }
 
   getProfile() {
-    return this.http.get<StudentProfileData>(
-      `${this.apiUrl}/profile`,
-      this.getAuthHeaders()
-    );
-  }
+  return this.http.get<StudentProfileData>('http://localhost:3000/api/profile', {
+    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+  });
+}
 
-  updateProfile(profile: Partial<StudentProfileData>) {
-    return this.http.put(
-      `${this.apiUrl}/profile`,
-      profile,
-      this.getAuthHeaders()
-    );
-  }
+updateProfile(profile: StudentProfileData) {
+  return this.http.put('http://localhost:3000/api/profile', profile, {
+    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+  });
+}
+
 }

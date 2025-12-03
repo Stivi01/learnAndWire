@@ -172,3 +172,46 @@ const PORT = process.env.PORT || 3000;
 connectDb().then(() => {
   app.listen(PORT, () => console.log(`Server pornit pe http://localhost:${PORT}`));
 });
+
+// GET PROFILE (any logged user)
+app.get('/api/profile', protect, async (req, res) => {
+  try {
+    const result = await sqlPool.query`
+      SELECT id, email, role, firstName, lastName, phone, address, academicYear
+      FROM Users
+      WHERE id = ${req.user.id}
+    `;
+
+    const profile = result.recordset[0];
+    res.json(profile);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare server la încărcarea profilului.' });
+  }
+});
+
+// UPDATE PROFILE
+app.put('/api/profile', protect, async (req, res) => {
+  const { firstName, lastName, phone, address, academicYear } = req.body;
+
+  try {
+    await sqlPool.query`
+      UPDATE Users
+      SET 
+        firstName = ${firstName},
+        lastName = ${lastName},
+        phone = ${phone},
+        address = ${address},
+        academicYear = ${academicYear}
+      WHERE id = ${req.user.id}
+    `;
+
+    res.json({ message: 'Profil actualizat cu succes!' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare server la actualizarea profilului.' });
+  }
+});
+

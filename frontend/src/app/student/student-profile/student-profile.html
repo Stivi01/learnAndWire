@@ -6,7 +6,8 @@
   <div *ngIf="!isLoading()">
     <div class="form-group">
       <label>Prenume</label>
-      <input [(ngModel)]="profile().firstName" type="text" />
+        <input [ngModel]="profile().firstName" 
+               (ngModelChange)="profile.set({ ...profile(), firstName: $event })">
     </div>
 
     <div class="form-group">
