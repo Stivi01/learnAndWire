@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface UserInfo{
+  id: number;
   firstName: string;
   lastName: string;
   role: string;
@@ -103,5 +104,9 @@ export class AuthService {
     } catch (e) {
       return null;
     }
+  }
+
+  public get currentUserValue(): UserInfo | null {
+    return this.currentUserSubject.getValue();
   }
 }

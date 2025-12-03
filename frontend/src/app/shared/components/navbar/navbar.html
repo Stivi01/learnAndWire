@@ -33,6 +33,12 @@
       Clasa mea
     </li>
 
+    <li *ngIf="role === 'Profesor'" (click)="navigateToCourseForm()">
+      <i class="fas fa-plus"></i>
+      Adaugă curs
+    </li>
+
+
     <!-- STUDENT -->
     <li *ngIf="role === 'Student'" routerLink="/my-grades" routerLinkActive="active">
       <i class="fas fa-list-ul"></i>

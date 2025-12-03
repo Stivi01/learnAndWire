@@ -16,9 +16,10 @@ export class Course {
   }
 
   // 2️⃣ Creare curs
-  createCourse(course: Partial<Course>): Observable<Course> {
-    return this.http.post<Course>(`${this.apiUrl}/courses`, course);
+  createCourse(courseData: any, headers?: any) {
+    return this.http.post(`${this.apiUrl}/courses`, courseData, { headers });
   }
+
 
   // 3️⃣ Editare curs
   updateCourse(courseId: number, course: Partial<Course>): Observable<Course> {

@@ -262,4 +262,71 @@ app.post('/api/profile/avatar', protect, upload.single('avatar'), async (req, re
   }
 });
 
+// CREATE COURSE
+app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
+  const { title, description, thumbnailUrl, isPublished } = req.body;
+
+  if (!title) return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO Courses (title, description, createdBy, createdAt, thumbnailUrl, isPublished)
+      OUTPUT INSERTED.*
+      VALUES (${title}, ${description}, ${req.user.id}, GETDATE(), ${thumbnailUrl}, ${isPublished})
+    `;
+
+    const course = result.recordset[0];
+    res.status(201).json(course);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la crearea cursului.' });
+  }
+});
+
+// GET COURSES BY TEACHER
+app.get('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
+  try {
+    const result = await sqlPool.query`
+      SELECT * FROM Courses
+      WHERE createdBy = ${req.user.id}
+      ORDER BY createdAt DESC
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea cursurilor.' });
+  }
+});
+
+// INVITE STUDENTS
+app.post('/api/course-enrollments', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId, studentIds } = req.body;
+
+  if (!courseId || !Array.isArray(studentIds)) {
+    return res.status(400).json({ message: 'Date invalide.' });
+  }
+
+  try {
+    for (const studentId of studentIds) {
+      await sqlPool.query`
+        IF NOT EXISTS (
+          SELECT 1 FROM CourseEnrollments
+          WHERE CourseId = ${courseId} AND StudentId = ${studentId}
+        )
+        INSERT INTO CourseEnrollments (CourseId, StudentId, EnrolledAt)
+        VALUES (${courseId}, ${studentId}, GETDATE())
+      `;
+    }
+
+    res.json({ message: 'Studenții au fost adăugați în curs.' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la adăugarea studenților.' });
+  }
+});
+
+
+
 

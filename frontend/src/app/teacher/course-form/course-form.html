@@ -1,1 +1,29 @@
-<p>course-form works!</p>
+<div class="course-form">
+  <h2>Adaugă curs nou</h2>
+
+  <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label>Titlu</label>
+      <input formControlName="title" />
+    </div>
+
+    <div>
+      <label>Descriere</label>
+      <textarea formControlName="description"></textarea>
+    </div>
+
+    <div>
+      <label>Thumbnail URL</label>
+      <input formControlName="thumbnailUrl" />
+    </div>
+
+    <div>
+      <label>
+        <input type="checkbox" formControlName="isPublished" />
+        Publică cursul
+      </label>
+    </div>
+
+    <button type="submit" [disabled]="courseForm.invalid">Creează curs</button>
+  </form>
+</div>

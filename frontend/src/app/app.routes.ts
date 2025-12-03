@@ -29,6 +29,15 @@ export const routes: Routes = [
     loadComponent: () => import('./student/student-profile/student-profile').then(m => m.StudentProfile)
   },
 
+  {
+    path: 'teacher/course-form',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/course-form/course-form')
+                        .then(m => m.CourseForm)
+  },
+
+
     { path: '', redirectTo: '/login', pathMatch: 'full' },
     { path: '**', redirectTo: '/login' }
 

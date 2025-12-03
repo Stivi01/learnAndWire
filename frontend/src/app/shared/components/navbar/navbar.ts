@@ -40,4 +40,7 @@ export class Navbar {
   navigateToProfile() {
     this.router.navigate(['/student-profile']);
   }
+  navigateToCourseForm() {
+    this.router.navigate(['/teacher/course-form']);
+  }
 }
