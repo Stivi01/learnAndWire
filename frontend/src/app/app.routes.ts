@@ -59,6 +59,22 @@ export const routes: Routes = [
     import('./teacher/lesson-form/lesson-form').then(m => m.LessonForm)
 },
 
+// TEACHER: Invite Students
+  {
+    path: 'teacher/invite-students',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/invite-students/invite-students').then(m => m.InviteStudents)
+  },
+
+  // STUDENT: My Enrollments / Invitations
+  {
+    path: 'student/my-enrollments',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Student' },
+    loadComponent: () => import('./student/my-enrollments/my-enrollments').then(m => m.MyEnrollments)
+  },
+
 
 
     { path: '', redirectTo: '/login', pathMatch: 'full' },

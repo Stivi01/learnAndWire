@@ -1,1 +1,19 @@
-<p>invite-students works!</p>
+<div class="invite-students-container">
+  <h2>Invită studenți la curs</h2>
+
+  <div *ngIf="error()">{{ error() }}</div>
+  <div *ngIf="success()">{{ success() }}</div>
+
+  <ul>
+    <li *ngFor="let student of students()">
+      <label>
+        <input type="checkbox" (change)="toggleStudent(student.id)">
+        {{ student.name }}
+      </label>
+    </li>
+  </ul>
+
+  <button (click)="sendInvitations()" [disabled]="selectedStudents().length === 0">
+    Trimite invitații
+  </button>
+</div>

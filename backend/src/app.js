@@ -518,6 +518,101 @@ app.get('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
   }
 });
 
+app.post('/api/course-invitations', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId, studentIds } = req.body;
+
+  if (!courseId || !Array.isArray(studentIds)) {
+    return res.status(400).json({ message: 'Date invalide.' });
+  }
+
+  try {
+    for (const studentId of studentIds) {
+      // verificăm dacă invitația există deja
+      const exists = await sqlPool.query`
+        SELECT 1 FROM CourseInvitations
+        WHERE CourseId = ${courseId} AND StudentId = ${studentId} AND Status = 'Pending'
+      `;
+      if (exists.recordset.length === 0) {
+        await sqlPool.query`
+          INSERT INTO CourseInvitations (CourseId, StudentId, TeacherId, Status)
+          VALUES (${courseId}, ${studentId}, ${req.user.id}, 'Pending')
+        `;
+      }
+    }
+
+    res.json({ message: 'Invitațiile au fost trimise cu succes.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la trimiterea invitațiilor.' });
+  }
+});
+
+app.get('/api/course-invitations', protect, restrictTo('Student'), async (req, res) => {
+  try {
+    const result = await sqlPool.query`
+      SELECT ci.Id, ci.CourseId, ci.Status, c.Title, c.Description,
+             u.FirstName AS TeacherFirstName, u.LastName AS TeacherLastName
+      FROM CourseInvitations ci
+      INNER JOIN Courses c ON c.Id = ci.CourseId
+      INNER JOIN Users u ON u.Id = ci.TeacherId
+      WHERE ci.StudentId = ${req.user.id} AND ci.Status = 'Pending'
+      ORDER BY ci.InvitedAt DESC
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea invitațiilor.' });
+  }
+});
+
+app.post('/api/course-invitations/:id/respond', protect, restrictTo('Student'), async (req, res) => {
+  const invitationId = req.params.id;
+  const { accept } = req.body;
+
+  if (typeof accept !== 'boolean') {
+    return res.status(400).json({ message: 'Parametru invalid.' });
+  }
+
+  try {
+    // 1️⃣ Preluăm invitația
+    const result = await sqlPool.query`
+      SELECT * FROM CourseInvitations
+      WHERE Id = ${invitationId} AND StudentId = ${req.user.id} AND Status = 'Pending'
+    `;
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ message: 'Invitația nu există sau a fost deja procesată.' });
+    }
+
+    const invitation = result.recordset[0];
+
+    // 2️⃣ Actualizăm status
+    const newStatus = accept ? 'Accepted' : 'Declined';
+    await sqlPool.query`
+      UPDATE CourseInvitations
+      SET Status = ${newStatus}
+      WHERE Id = ${invitationId}
+    `;
+
+    // 3️⃣ Dacă accept → înscriem studentul în curs
+    if (accept) {
+      await sqlPool.query`
+        IF NOT EXISTS (
+          SELECT 1 FROM CourseEnrollments
+          WHERE CourseId = ${invitation.CourseId} AND StudentId = ${req.user.id}
+        )
+        INSERT INTO CourseEnrollments (CourseId, StudentId, EnrolledAt)
+        VALUES (${invitation.CourseId}, ${req.user.id}, GETDATE())
+      `;
+    }
+
+    res.json({ message: `Invitația a fost ${newStatus.toLowerCase()}.` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la procesarea invitației.' });
+  }
+});
+
 
 
 

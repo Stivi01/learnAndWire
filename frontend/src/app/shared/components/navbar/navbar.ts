@@ -50,5 +50,14 @@ export class Navbar {
       this.router.navigate(['/student/my-classes']); // dacă vrei să faci și pentru student
     }
   }
+  navigateToInvitations() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/invite-students']);
+    } else if (this.role === 'Student') {
+      this.router.navigate(['/student/my-enrollments']);
+    }
+  }
+
+
 
 }

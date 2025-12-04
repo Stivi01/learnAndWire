@@ -38,6 +38,18 @@
       Adaugă curs
     </li>
 
+    <!-- PROFESOR: invitații -->
+    <li *ngIf="role === 'Profesor'" (click)="navigateToInvitations()">
+      <i class="fas fa-envelope"></i>
+      Invită studenți
+    </li>
+
+    <!-- STUDENT: invitații la cursuri -->
+    <li *ngIf="role === 'Student'" (click)="navigateToInvitations()">
+      <i class="fas fa-envelope"></i>
+      Invitații cursuri
+    </li>
+
 
     <!-- STUDENT -->
     <li *ngIf="role === 'Student'" routerLink="/my-grades" routerLinkActive="active">

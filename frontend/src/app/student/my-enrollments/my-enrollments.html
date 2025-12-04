@@ -1,1 +1,15 @@
-<p>my-enrollments works!</p>
+<div class="enrollments-container">
+  <h2>📩 Invitații la cursuri</h2>
+
+  <div *ngIf="loading()">Se încarcă...</div>
+  <div *ngIf="error()">{{ error() }}</div>
+  <div *ngIf="!loading() && invitations().length === 0">Nu există invitații noi.</div>
+
+  <div class="invitation-card" *ngFor="let inv of invitations()">
+    <h3>{{ inv.Title }}</h3>
+    <p>{{ inv.Description }}</p>
+    <p>Profesor: {{ inv.TeacherFirstName }} {{ inv.TeacherLastName }}</p>
+    <button (click)="respond(inv.Id, true)">✅ Accept</button>
+    <button (click)="respond(inv.Id, false)">❌ Refuz</button>
+  </div>
+</div>
