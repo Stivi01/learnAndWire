@@ -1,1 +1,22 @@
-<p>module-form works!</p>
+<div class="module-form-container">
+  <h2>Module pentru curs</h2>
+
+  <div *ngIf="loading">Se încarcă modulele...</div>
+  <div *ngIf="error">{{ error }}</div>
+
+  <form [formGroup]="moduleForm" (ngSubmit)="addModule()">
+    <input formControlName="title" placeholder="Titlu modul">
+    <input formControlName="orderIndex" type="number" placeholder="Ordine">
+    <button type="submit">Adaugă modul</button>
+  </form>
+
+  <div *ngIf="modules.length > 0">
+    <h3>Module existente</h3>
+    <ul>
+      <li *ngFor="let mod of modules">
+        {{ mod.title }} (Ordine: {{ mod.orderIndex }})
+        <button (click)="editLessons(mod)">Editează lecții</button>
+      </li>
+    </ul>
+  </div>
+</div>

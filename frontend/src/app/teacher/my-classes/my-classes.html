@@ -1,29 +1,57 @@
 <div class="my-classes-container">
   <h2>Cursurile mele</h2>
 
-  <div *ngIf="loading()">
-    Se încarcă cursurile...
-  </div>
+  <button routerLink="/teacher/course-form" class="btn-add-course">
+    + Adaugă curs nou
+  </button>
 
-  <div *ngIf="error()">
-    {{ error() }}
-  </div>
+  <div *ngIf="loading()">Se încarcă...</div>
+  <div *ngIf="error()">{{ error() }}</div>
 
-  <button routerLink="/teacher/course-form" class="btn-add-course">Adaugă curs nou</button>
-
-  <div class="courses-list" *ngIf="!loading() && courses().length > 0">
+  <div class="courses-list" *ngIf="!loading()">
     <div class="course-card" *ngFor="let course of courses()">
-      <h3>{{ course.Title }}</h3>
+
+      <!-- HEADER CURS -->
+      <div class="course-header" (click)="toggleCourse(course.Id)">
+        <h3>{{ course.Title }}</h3>
+        <span class="toggle-icon">
+          {{ expandedCourseId() === course.Id ? '▲' : '▼' }}
+        </span>
+      </div>
+
       <p>{{ course.Description }}</p>
-      <p><strong>Creat la:</strong> {{ course.CreatedAt | date:'short' }}</p>
-      <p><strong>Status:</strong> {{ course.IsPublished ? 'Publicat' : 'Draft' }}</p>
 
-      <button (click)="editCourse(course.Id)">Editează</button>
-      <button (click)="inviteStudents(course.Id)">Invită studenți</button>
+      <!-- ACTIONS -->
+      <div class="course-actions">
+        <button (click)="editCourse(course.Id)">Editează</button>
+        <button (click)="inviteStudents(course.Id)">Invită studenți</button>
+        <button (click)="addModule(course.Id)">+ Modul nou</button>
+      </div>
+
+      <!-- EXPANDED STRUCTURE -->
+      <div *ngIf="expandedCourseId() === course.Id" class="course-details">
+        <div *ngIf="!course.modules">Se încarcă structura...</div>
+
+        <div class="module-card" *ngFor="let module of course.modules">
+          <h4>{{ module.Title }}</h4>
+          <button (click)="addLesson(module.Id)">+ Lecție nouă</button>
+
+          <div class="lessons-list">
+            <div class="lesson-card" *ngFor="let lesson of module.lessons">
+              <div class="lesson-header" (click)="toggleLesson(lesson)">
+                <strong>{{ lesson.OrderIndex }}. {{ lesson.Title }}</strong>
+                <span class="toggle-icon">{{ lesson.expanded ? '▲' : '▼' }}</span>
+              </div>
+
+              <div class="lesson-content" *ngIf="lesson.expanded">
+                <p>{{ lesson.Content }}</p>
+                <a *ngIf="lesson.VideoUrl" [href]="lesson.VideoUrl" target="_blank">🎥 Vezi video</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
-
-  <div *ngIf="!loading() && courses().length === 0">
-    Nu ai creat niciun curs încă.
   </div>
 </div>

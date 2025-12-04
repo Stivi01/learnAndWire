@@ -1,1 +1,38 @@
-<p>lesson-form works!</p>
+<div class="lesson-container">
+  <h2>📘 Lecții pentru modulul {{ moduleId }}</h2>
+
+  <form [formGroup]="lessonForm" class="lesson-form" (ngSubmit)="addLesson()">
+
+    <div>
+      <label>Titlu lecție</label>
+      <input type="text" formControlName="title" placeholder="Ex: Introducere în Drept Civil" />
+    </div>
+
+    <div>
+      <label>Conținut</label>
+      <textarea formControlName="content" placeholder="Adaugă descrierea sau materialul lecției..."></textarea>
+    </div>
+
+    <div>
+      <label>Link Video (opțional)</label>
+      <input type="text" formControlName="videoUrl" placeholder="https://youtube.com/..." />
+    </div>
+
+    <div>
+      <label>Ordinea lecției</label>
+      <input type="number" formControlName="orderIndex" />
+    </div>
+
+    <button type="submit" [disabled]="lessonForm.invalid">➕ Adaugă lecție</button>
+  </form>
+
+  <div class="lessons-list" *ngIf="lessons.length > 0">
+    <h3>📚 Lecțiile existente</h3>
+
+    <div class="lesson-item" *ngFor="let lesson of lessons">
+      <strong>{{ lesson.OrderIndex }}. {{ lesson.Title }}</strong>
+
+      <button (click)="deleteLesson(lesson.id)">Șterge</button>
+    </div>
+  </div>
+</div>

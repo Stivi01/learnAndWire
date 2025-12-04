@@ -2,6 +2,37 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export interface FullCourseResponse {
+  course: any;
+  modules: {
+    id: number;
+    title: string;
+    lessons: { id: number; title: string }[];
+  }[];
+}
+
+export interface CourseItem {
+  Id: number;
+  Title: string;
+  Description: string;
+  CreatedAt: string;
+  IsPublished: boolean;
+  modules?: ModuleItem[];
+}
+
+export interface ModuleItem {
+  Id: number;
+  Title: string;
+  OrderIndex: number;
+  lessons?: LessonItem[];
+}
+
+export interface LessonItem {
+  Id: number;
+  Title: string;
+}
+
+
 @Injectable({
   providedIn: 'root',
 })
@@ -20,9 +51,9 @@ export class Course {
 
 
   // 2️⃣ Creare curs
-  createCourse(courseData: any, headers?: any) {
-    return this.http.post(`${this.apiUrl}/courses`, courseData, { headers });
-  }
+  createCourse(data: any, headers: any): Observable<{ id: number }> {
+  return this.http.post<{ id: number }>(`${this.apiUrl}/courses`, data, { headers });
+}
 
   getMyCourses(): Observable<Course[]> {
     const token = localStorage.getItem('token');
@@ -46,4 +77,20 @@ export class Course {
   deleteCourse(courseId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/courses/${courseId}`);
   }
+  getFullCourse(courseId: number): Observable<FullCourseResponse> {
+  const token = localStorage.getItem('token');
+
+  return this.http.get<FullCourseResponse>(
+    `${this.apiUrl}/courses/${courseId}/full`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+
+
+
+
 }

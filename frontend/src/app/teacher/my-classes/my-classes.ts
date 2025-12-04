@@ -18,22 +18,26 @@ export class MyClasses implements OnInit{
   courses = signal<any[]>([]);
   loading = signal(true);
   error = signal('');
+  expandedCourseId = signal<number | null>(null);
 
   private destroy$ = new Subject<void>();
 
-  constructor(private courseService: Course, private authService: AuthService, private router: Router) {}
+  constructor(
+    private courseService: Course,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
-   ngOnInit(): void {
+  ngOnInit(): void {
     this.router.events
       .pipe(
-        startWith(new NavigationEnd(0, this.router.url, this.router.url)), // emite și la refresh
+        startWith(new NavigationEnd(0, this.router.url, this.router.url)),
         filter(event => event instanceof NavigationEnd),
         switchMap(() => this.authService.currentUser$),
         filter(user => !!user),
         switchMap(user => {
           this.loading.set(true);
-          const token = this.authService.getToken()!;
-          return this.courseService.getCoursesByTeacher(user!.id, token);
+          return this.courseService.getCoursesByTeacher(user!.id, this.authService.getToken()!);
         }),
         takeUntil(this.destroy$)
       )
@@ -55,11 +59,40 @@ export class MyClasses implements OnInit{
     this.destroy$.complete();
   }
 
+  toggleCourse(courseId: number) {
+    if (this.expandedCourseId() === courseId) {
+      this.expandedCourseId.set(null);
+      return;
+    }
 
+    this.expandedCourseId.set(courseId);
 
+    this.courseService.getFullCourse(courseId).subscribe({
+      next: (full) => {
+        // adăugăm expanded = false pentru fiecare lecție
+        full.modules.forEach((mod: any) => {
+          mod.lessons.forEach((lesson: any) => lesson.expanded = false);
+        });
 
+        const updated = this.courses().map(c =>
+          c.Id === courseId ? { ...c, modules: full.modules } : c
+        );
+        this.courses.set(updated);
+      }
+    });
+  }
 
+  toggleLesson(lesson: any) {
+    lesson.expanded = !lesson.expanded;
+  }
 
+  addModule(courseId: number) {
+    this.router.navigate(['/teacher/module-form'], { queryParams: { courseId } });
+  }
+
+  addLesson(moduleId: number) {
+    this.router.navigate(['/teacher/lesson-form'], { queryParams: { moduleId } });
+  }
 
   editCourse(courseId: number) {
     this.router.navigate(['/teacher/course-form'], { queryParams: { id: courseId } });

@@ -358,6 +358,167 @@ app.get('/api/courses/:id/students', protect, restrictTo('Profesor'), async (req
   }
 });
 
+// CREATE MODULE
+app.post('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId, title, orderIndex } = req.body;
+
+  if (!courseId || !title) {
+    return res.status(400).json({ message: 'CourseId și Title sunt obligatorii.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO CourseModules (CourseId, Title, OrderIndex)
+      OUTPUT INSERTED.*
+      VALUES (${courseId}, ${title}, ${orderIndex || 0})
+    `;
+
+    res.status(201).json(result.recordset[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la crearea modulului.' });
+  }
+});
+
+// CREATE LESSON
+app.post('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
+  const { moduleId, title, content, videoUrl, orderIndex } = req.body;
+
+  if (!moduleId || !title) {
+    return res.status(400).json({ message: 'ModuleId și Title sunt obligatorii.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO CourseLessons (ModuleId, Title, Content, VideoUrl, OrderIndex)
+      OUTPUT INSERTED.*
+      VALUES (${moduleId}, ${title}, ${content}, ${videoUrl}, ${orderIndex || 0})
+    `;
+
+    res.status(201).json(result.recordset[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la crearea lecției.' });
+  }
+});
+
+// GET FULL COURSE STRUCTURE
+app.get('/api/courses/:id/full', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = req.params.id;
+
+  try {
+    // 1. course
+    const courseResult = await sqlPool.query`
+      SELECT * FROM Courses WHERE Id = ${courseId}
+    `;
+
+    if (courseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul nu există.' });
+    }
+
+    const course = courseResult.recordset[0];
+
+    // 2. modules
+    const modulesResult = await sqlPool.query`
+      SELECT * FROM CourseModules WHERE CourseId = ${courseId} ORDER BY OrderIndex
+    `;
+
+    const modules = modulesResult.recordset;
+
+    // 3. lessons for each module
+    for (let mod of modules) {
+      const lessonsResult = await sqlPool.query`
+        SELECT * FROM CourseLessons WHERE ModuleId = ${mod.Id} ORDER BY OrderIndex
+      `;
+
+      mod.lessons = lessonsResult.recordset;
+    }
+
+    res.json({
+      course,
+      modules
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea cursului complet.' });
+  }
+});
+
+// CREATE MODULE
+app.post('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId, title, orderIndex } = req.body;
+
+  if (!courseId || !title) {
+    return res.status(400).json({ message: 'courseId și title sunt obligatorii.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO CourseModules (CourseId, Title, OrderIndex)
+      OUTPUT INSERTED.*
+      VALUES (${courseId}, ${title}, ${orderIndex})
+    `;
+
+    res.status(201).json(result.recordset[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la crearea modulului.' });
+  }
+});
+
+// GET MODULES BY COURSE ID
+app.get('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = req.query.courseId;
+
+  if (!courseId) {
+    return res.status(400).json({ message: 'Parametrul courseId este obligatoriu.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      SELECT *
+      FROM CourseModules
+      WHERE CourseId = ${courseId}
+      ORDER BY OrderIndex
+    `;
+
+    res.json(result.recordset);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea modulelor.' });
+  }
+});
+
+// GET LESSONS BY MODULE (MISSING ROUTE) ⚠️
+app.get('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
+  const moduleId = req.query.moduleId;
+
+  if (!moduleId) {
+    return res.status(400).json({ message: 'moduleId este obligatoriu.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      SELECT *
+      FROM CourseLessons
+      WHERE ModuleId = ${moduleId}
+      ORDER BY OrderIndex
+    `;
+
+    res.json(result.recordset);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea lecțiilor.' });
+  }
+});
+
+
 
 
 
