@@ -98,7 +98,9 @@ export class MyClasses implements OnInit{
     this.router.navigate(['/teacher/course-form'], { queryParams: { id: courseId } });
   }
 
-  inviteStudents(courseId: number) {
-    this.router.navigate(['/teacher/invite-students'], { queryParams: { id: courseId } });
+  inviteStudents(course: any) {
+    this.router.navigate(['/teacher/invite-students'], { state: { course } });
   }
+
+
 }

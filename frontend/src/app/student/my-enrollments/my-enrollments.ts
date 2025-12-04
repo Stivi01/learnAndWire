@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
-import { CourseInvitation } from '../../core/services/course-invitation';
+import { CourseInvitation, CourseInvitationData } from '../../core/services/course-invitation';
 
 @Component({
   selector: 'app-my-enrollments',
@@ -10,7 +10,7 @@ import { CourseInvitation } from '../../core/services/course-invitation';
   styleUrl: './my-enrollments.scss',
 })
 export class MyEnrollments implements OnInit{
-  invitations = signal<CourseInvitation[]>([]);
+  invitations = signal<CourseInvitationData[]>([]);
   loading = signal(true);
   error = signal('');
 

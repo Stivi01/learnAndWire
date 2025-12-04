@@ -1,8 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth';
+import { Observable } from 'rxjs';
 
 export interface StudentProfileData {
+  id:number;
   firstName: string;
   lastName: string;
   email: string;
@@ -31,24 +33,35 @@ export class User {
   }
 
   getProfile() {
-  return this.http.get<StudentProfileData>('http://localhost:3000/api/profile', {
-    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
-  });
-}
+    return this.http.get<StudentProfileData>('http://localhost:3000/api/profile', {
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+    });
+  }
 
-updateProfile(profile: StudentProfileData) {
-  return this.http.put('http://localhost:3000/api/profile', profile, {
-    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
-  });
-}
+  updateProfile(profile: StudentProfileData) {
+    return this.http.put('http://localhost:3000/api/profile', profile, {
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+    });
+  }
 
-uploadAvatar(formData: FormData) {
-  return this.http.post<{ avatar: string }>(
-    'http://localhost:3000/api/profile/avatar',
-    formData,
-    { headers: { Authorization: 'Bearer ' + localStorage.getItem('token') } }
-  );
-}
+  uploadAvatar(formData: FormData) {
+    return this.http.post<{ avatar: string }>(
+      'http://localhost:3000/api/profile/avatar',
+      formData,
+      { headers: { Authorization: 'Bearer ' + localStorage.getItem('token') } }
+    );
+  }
+
+  getStudents(academicYear?: number): Observable<StudentProfileData[]> {
+    let url = 'http://localhost:3000/api/students';
+    if (academicYear) url += `?academicYear=${academicYear}`;
+    return this.http.get<StudentProfileData[]>(url, {
+      headers: {
+        Authorization: `Bearer ${this.auth.getToken()}` // folosește token-ul de la AuthService
+      }
+    });
+  }
+
 
 
 }

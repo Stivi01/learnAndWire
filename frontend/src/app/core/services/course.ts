@@ -49,7 +49,6 @@ export class Course {
     return this.http.get<Course[]>(`${this.apiUrl}/courses?createdBy=${teacherId}`, httpOptions);
   }
 
-
   // 2️⃣ Creare curs
   createCourse(data: any, headers: any): Observable<{ id: number }> {
   return this.http.post<{ id: number }>(`${this.apiUrl}/courses`, data, { headers });
@@ -90,7 +89,15 @@ export class Course {
   );
 }
 
-
+ // ===============================
+  // STUDENT
+  // ===============================
+  getStudentCourses(): Observable<CourseItem[]> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<CourseItem[]>(`${this.apiUrl}/student/courses`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
 
 
 }

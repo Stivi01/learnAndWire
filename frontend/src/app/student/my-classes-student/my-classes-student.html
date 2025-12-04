@@ -1,0 +1,19 @@
+<div class="my-classes-container">
+  <h2>Cursurile mele</h2>
+
+  <div *ngIf="loading()">Se încarcă cursurile...</div>
+  <div class="error" *ngIf="error()">{{ error() }}</div>
+
+  <div *ngIf="!loading() && courses().length === 0">
+    Nu ești înscris la niciun curs.
+  </div>
+
+  <div class="courses-grid" *ngIf="courses().length > 0">
+    <div class="course-card" *ngFor="let course of courses()">
+      <h3>{{ course.Title }}</h3>
+      <p>{{ course.Description }}</p>
+      <small>Creat la: {{ course.CreatedAt | date:'shortDate' }}</small>
+      <a [routerLink]="['/course', course.Id]">Vezi cursul</a>
+    </div>
+  </div>
+</div>

@@ -1,19 +1,45 @@
-<div class="invite-students-container">
+<div class="invite-container">
+
   <h2>Invită studenți la curs</h2>
 
-  <div *ngIf="error()">{{ error() }}</div>
-  <div *ngIf="success()">{{ success() }}</div>
+  <div class="messages">
+    <p class="error" *ngIf="error()">{{ error() }}</p>
+    <p class="success" *ngIf="success()">{{ success() }}</p>
+  </div>
 
-  <ul>
-    <li *ngFor="let student of students()">
-      <label>
-        <input type="checkbox" (change)="toggleStudent(student.id)">
-        {{ student.name }}
-      </label>
-    </li>
-  </ul>
+  <div *ngIf="loadingCourses()">Se încarcă cursurile...</div>
+  <div *ngIf="!loadingCourses() && courses().length">
+    <label>Selectează cursul:</label>
+    <select [(ngModel)]="selectedCourse">
+      <option *ngFor="let c of courses()" [ngValue]="c">{{ c.Title }}</option>
+    </select>
+  </div>
 
-  <button (click)="sendInvitations()" [disabled]="selectedStudents().length === 0">
-    Trimite invitații
+  <div *ngIf="loadingStudents()">Se încarcă studenții...</div>
+
+  <table *ngIf="!loadingStudents() && filteredStudents().length">
+    <thead>
+      <tr>
+        <th>Selectează</th>
+        <th>Nume</th>
+        <th>Email</th>
+        <th>An</th>
+        <th>Invită</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of filteredStudents()">
+        <td><input type="checkbox" (change)="toggleStudent(s.id)"></td>
+        <td>{{ s.firstName }} {{ s.lastName }}</td>
+        <td>{{ s.email }}</td>
+        <td>{{ s.academicYear }}</td>
+        <td><button (click)="sendSingleInvitation(s.id)">Trimite</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button [disabled]="selectedStudents().length === 0" (click)="sendBulkInvitations()">
+    Trimite invitații la cei selectați
   </button>
+
 </div>

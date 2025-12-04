@@ -613,6 +613,32 @@ app.post('/api/course-invitations/:id/respond', protect, restrictTo('Student'), 
   }
 });
 
+// GET STUDENTS (profesor poate filtra după academicYear)
+app.get('/api/students', protect, restrictTo('Profesor'), async (req, res) => {
+  const { academicYear } = req.query;
+
+  try {
+    let query = sqlPool.request();
+    let sqlQuery = `
+      SELECT id, firstName, lastName, academicYear, email
+      FROM Users
+      WHERE role = 'Student'
+    `;
+
+    if (academicYear) {
+      sqlQuery += ` AND academicYear = @academicYear`;
+      query.input('academicYear', sql.Int, academicYear);
+    }
+
+    const result = await query.query(sqlQuery);
+    res.json(result.recordset);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea studenților.' });
+  }
+});
+
 
 
 
