@@ -22,7 +22,7 @@
   <!-- MENU -->
   <ul class="menu">
 
-    <li routerLink="/dashboard" routerLinkActive="active">
+    <li *ngIf="role === 'Student'" (click)="navigateToDashboard()">
       <i class="fas fa-th-large"></i>
       Acasa
     </li>
@@ -61,11 +61,10 @@
       <i class="fas fa-calendar-alt"></i>
       Calendar
     </li>
-
-    <li *ngIf="role === 'Student'" (click)="navigateToProfile()" routerLinkActive="active"> 
-        <i class="fas fa-cog"></i>
-        Setari
-    </li>
+    <li *ngIf="role === 'Student'" (click)="navigateToProfile()">
+      <i class="fas fa-cog"></i>
+      Setari
+    </li>
 
   </ul>
 

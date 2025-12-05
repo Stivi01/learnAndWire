@@ -37,6 +37,9 @@ export class Navbar {
     this.auth.logout();
     this.router.navigate(['/login']);
   }
+  navigateToDashboard() {
+    this.router.navigate(['/student-dashboard']);
+  }
   navigateToProfile() {
     this.router.navigate(['/student-profile']);
   }
