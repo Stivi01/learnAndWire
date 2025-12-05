@@ -639,6 +639,44 @@ app.get('/api/students', protect, restrictTo('Profesor'), async (req, res) => {
   }
 });
 
+// GET LINKED TEACHERS (student -> professors who teach their courses)
+app.get('/api/student/teachers', protect, restrictTo('Student'), async (req, res) => {
+  try {
+    const result = await sqlPool.request()
+      .input("studentId", sql.Int, req.user.id)
+      .query(`
+        SELECT DISTINCT 
+            u.Id,
+            u.FirstName,
+            u.LastName,
+            u.Email,
+            u.Avatar,
+            u.Role,
+            c.Title AS CourseTitle
+        FROM Users u
+        INNER JOIN Courses c ON c.CreatedBy = u.Id
+        INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
+        WHERE ce.StudentId = @studentId
+      `);
+
+    // Formatăm avatarul (dacă e null -> default)
+    const teachers = result.recordset.map(t => ({
+      Id: t.Id,
+      FirstName: t.FirstName,
+      LastName: t.LastName,
+      Email: t.Email,
+      Avatar: t.Avatar ? t.Avatar : "assets/avatar-default.png",
+      Role: t.Role,
+      course: t.CourseTitle || ''
+    }));
+
+    res.json(teachers);
+
+  } catch (err) {
+    console.error("❌ Error getting linked teachers:", err);
+    res.status(500).json({ message: "Eroare server la preluarea profesorilor." });
+  }
+});
 
 
 

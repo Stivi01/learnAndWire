@@ -1,7 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { Teacher } from '../models/teacher.model';
 
 export interface StudentProfileData {
   id:number;
@@ -61,6 +62,26 @@ export class User {
       }
     });
   }
+
+  getLinkedTeachers(): Observable<Teacher[]> {
+  return this.http.get<any[]>('http://localhost:3000/api/student/teachers', {
+    headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+  }).pipe(
+    map(teachers => teachers.map(t => ({
+      id: t.Id,  // din PascalCase
+      fullName: `${t.FirstName} ${t.LastName}`, // combinăm
+      email: t.Email,
+      role: t.Role,
+      avatarUrl: t.Avatar || 'assets/avatar-default.png',
+      phone: t.Phone || '',
+      course: t.course || ''
+    })))
+  );
+}
+
+
+
+
 
 
 

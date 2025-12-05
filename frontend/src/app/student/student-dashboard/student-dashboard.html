@@ -19,19 +19,23 @@
       <!-- TEACHERS -->
       <div class="card card-teachers">
         <h2>Linked Teachers</h2>
+
         <div *ngFor="let t of teachers()" class="teacher-item">
           <div class="teacher-left">
-            <img [src]="t.avatarUrl" [alt]="t.name" class="teacher-avatar"/>
+            <img [src]="t.avatarUrl" [alt]="t.fullName" class="teacher-avatar"/>
             <div class="teacher-meta">
-              <div class="t-name">{{ t.name }}</div>
+              <div class="t-name">{{ t.fullName }}</div>
               <div class="t-role">{{ t.role }}</div>
             </div>
           </div>
-          <button class="message-btn" title="Message">
-            <svg viewBox="0 0 24 24" class="icon-small"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+
+          <!-- Buton pentru vizualizare profil -->
+          <a class="see-more view-profile-link" (click)="openTeacherModal(t)">
+            View Profile &gt;
+          </a>
         </div>
-        <a class="see-more" href="#">See more &gt;</a>
+
+        <a class="see-more" href="#">See more ></a>
       </div>
 
       <!-- EVENTS -->
@@ -43,9 +47,6 @@
             <div class="e-title">{{ e.title }}</div>
             <div class="e-sub"><span>{{ e.date }}</span> · <strong>{{ e.time }}</strong></div>
           </div>
-          <button class="message-btn" title="Details">
-            <svg viewBox="0 0 24 24" class="icon-small"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
         </div>
         <a class="see-more" href="#">See more &gt;</a>
       </div>
@@ -54,6 +55,7 @@
       <div class="card card-schedule lavender">
         <h2>My schedule</h2>
         <div class="schedule-inner">
+
           <!-- Calendar -->
           <div class="calendar-box">
             <div class="calendar-header">
@@ -79,17 +81,19 @@
 
           <!-- Schedule list -->
           <div class="schedule-list">
-                <h3>Lecții pentru {{ selectedDay() || dailyLessons()[0]?.day }}/{{ currentMonth().getMonth() + 1 }}</h3>
-                <div *ngFor="let l of lessonsForSelectedDay()" class="schedule-item">
-                <div class="schedule-card">
+            <h3>Lecții pentru {{ selectedDay() || dailyLessons()[0]?.day }}/{{ currentMonth().getMonth() + 1 }}</h3>
+            <div *ngFor="let l of lessonsForSelectedDay()" class="schedule-item">
+              <div class="schedule-card">
                 <div class="lesson-title">{{ l.title }}</div>
                 <div class="lesson-time">{{ l.time }} - {{ l.day }}/{{ currentMonth().getMonth() + 1 }}</div>
-                </div>
+              </div>
+            </div>
+            <div *ngIf="lessonsForSelectedDay().length === 0">Nu există lecții pentru această zi.</div>
           </div>
-        <div *ngIf="lessonsForSelectedDay().length === 0">Nu există lecții pentru această zi.</div>
-        </div>
+
         </div>
       </div>
+
     </section>
 
     <!-- RIGHT COLUMN -->
@@ -123,5 +127,21 @@
         <a class="see-more white" href="#">See more &gt;</a>
       </div>
     </aside>
+
   </main>
+
+  <!-- MODAL TEACHER PROFILE -->
+  <div class="modal-backdrop" *ngIf="isModalOpen()">
+  <div class="modal">
+    <button class="close-btn" (click)="closeTeacherModal()">X</button>
+    <img *ngIf="selectedTeacher()?.avatarUrl" [src]="selectedTeacher()?.avatarUrl" alt="{{selectedTeacher()?.fullName}}" class="modal-avatar"/>
+    <h3>{{ selectedTeacher()?.fullName }}</h3>
+    <p><strong>Email:</strong> {{ selectedTeacher()?.email }}</p>
+    <p><strong>Rol:</strong> {{ selectedTeacher()?.role }}</p>
+    <p *ngIf="selectedTeacher()?.phone"><strong>Phone:</strong> {{ selectedTeacher()?.phone }}</p>
+    <p *ngIf="selectedTeacher()?.course"><strong>Curs:</strong> {{ selectedTeacher()?.course }}</p>
+  </div>
+</div>
+
+
 </div>

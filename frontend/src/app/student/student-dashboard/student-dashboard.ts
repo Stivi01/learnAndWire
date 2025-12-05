@@ -1,12 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../core/services/auth';
-
-interface Teacher {
-  name: string;
-  role: string;
-  avatarUrl: string;
-}
+import { User } from '../../core/services/user';
+import { Teacher } from '../../core/models/teacher.model';
 
 interface Event {
   title: string;
@@ -40,21 +36,20 @@ function getGaugeStyle(percentage: number, color: string): string {
 })
 export class StudentDashboard {
   private auth = inject(AuthService);
+  private userService = inject(User);
 
   // USER
   userName = signal('');
 
+  teachers = signal<Teacher[]>([]);
+  selectedTeacher = signal<Teacher | null>(null);
+  isModalOpen = signal(false);
   // GAUGES
   attendance = signal(60);
   homework = signal(90);
   rating = signal(75);
 
-  // TEACHERS
-  teachers = signal<Teacher[]>([
-    { name: 'Olivia Miller', role: 'mentor', avatarUrl: 'https://placehold.co/40x40/B39DDB/ffffff?text=OM' },
-    { name: 'Liam Garcia', role: 'teacher', avatarUrl: 'https://placehold.co/40x40/81C784/ffffff?text=LG' },
-    { name: 'Jackson Lopez', role: 'teacher', avatarUrl: 'https://placehold.co/40x40/FF8A65/ffffff?text=JL' },
-  ]);
+
 
   // EVENTS
   events = signal<Event[]>([
@@ -84,6 +79,38 @@ export class StudentDashboard {
     // Setăm prima zi cu lecții ca selectată
     const firstLessonDay = this.dailyLessons()[0]?.day;
     if (firstLessonDay) this.selectedDay.set(firstLessonDay);
+    this.loadTeachers();
+  }
+
+  loadTeachers() {
+    this.userService.getLinkedTeachers().subscribe({
+      next: (items) => {
+        console.log('Raw teachers from API:', items); // Debug API data
+        const mapped = items.map(t => ({
+          id: t.id,
+          fullName: t.fullName,
+          email: t.email,
+          role: t.role, // Poți schimba
+          avatarUrl: t.avatarUrl || 'assets/avatar-default.png',
+          phone: t.phone,
+          course: t.course
+        }));
+
+        console.log('Mapped teachers:', mapped); // Debug mapped data
+        this.teachers.set(mapped);
+      },
+      error: () => console.error("Failed to load teachers.")
+    });
+  }
+
+  openTeacherModal(t: Teacher) {
+  this.selectedTeacher.set(t);
+  this.isModalOpen.set(true);
+  }
+
+  closeTeacherModal() {
+    this.isModalOpen.set(false);
+    this.selectedTeacher.set(null);
   }
 
   generateCalendar(date: Date) {
