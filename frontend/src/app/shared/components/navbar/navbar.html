@@ -57,6 +57,23 @@
       Notele mele
     </li>
 
+    <!-- QUIZ -->
+    <li *ngIf="role === 'Profesor'" (click)="navigateToQuizzes()">
+      <i class="fas fa-question-circle"></i>
+      Quiz-uri
+    </li>
+
+    <li *ngIf="role === 'Profesor'" (click)="navigateToQuizForm()">
+      <i class="fas fa-plus-circle"></i>
+      Creează Quiz
+    </li>
+
+    <li *ngIf="role === 'Student'" (click)="navigateToQuizzes()">
+      <i class="fas fa-question-circle"></i>
+      Quiz-uri disponibile
+    </li>
+
+
     <li routerLink="/schedule" routerLinkActive="active">
       <i class="fas fa-calendar-alt"></i>
       Calendar

@@ -677,7 +677,170 @@ app.get('/api/student/teachers', protect, restrictTo('Student'), async (req, res
     res.status(500).json({ message: "Eroare server la preluarea profesorilor." });
   }
 });
+// =========================
+// QUIZZES (TEACHER)
+// =========================
 
+// CREATE QUIZ
+app.post('/api/quizzes', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId, title, description, isPublished } = req.body;
+
+  if (!courseId || !title) {
+    return res.status(400).json({ message: "courseId și title sunt obligatorii." });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO CourseQuizzes (CourseId, Title, Description, CreatedBy, CreatedAt, IsPublished)
+      OUTPUT INSERTED.*
+      VALUES (${courseId}, ${title}, ${description || ''}, ${req.user.id}, GETDATE(), ${isPublished || 0})
+    `;
+
+    res.status(201).json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error creating quiz:", err);
+    res.status(500).json({ message: "Eroare la crearea quiz-ului." });
+  }
+});
+
+// GET QUIZZES BY TEACHER
+app.get('/api/quizzes/teacher/:teacherId', protect, restrictTo('Profesor'), async (req, res) => {
+  const teacherId = parseInt(req.params.teacherId);
+
+  try {
+    const result = await sqlPool.query`
+      SELECT * FROM CourseQuizzes
+      WHERE CreatedBy = ${teacherId}
+      ORDER BY CreatedAt DESC
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Error fetching quizzes by teacher:", err);
+    res.status(500).json({ message: "Eroare la preluarea quiz-urilor profesorului." });
+  }
+});
+
+// GET FULL QUIZ (WITH QUESTIONS AND OPTIONS)
+app.get('/api/quizzes/:id/full', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+
+  try {
+    const quizResult = await sqlPool.query`
+      SELECT * FROM CourseQuizzes WHERE Id = ${quizId}
+    `;
+
+    if (quizResult.recordset.length === 0)
+      return res.status(404).json({ message: "Quiz-ul nu există." });
+
+    const quiz = quizResult.recordset[0];
+
+    // QUESTIONS
+    const questionsResult = await sqlPool.query`
+      SELECT * FROM QuizQuestions WHERE QuizId = ${quizId}
+    `;
+    const questions = questionsResult.recordset;
+
+    // OPTIONS for each question
+    for (let q of questions) {
+      const optionsResult = await sqlPool.query`
+        SELECT * FROM QuizOptions WHERE QuestionId = ${q.Id}
+      `;
+      q.options = optionsResult.recordset;
+    }
+
+    res.json({ quiz, questions });
+  } catch (err) {
+    console.error("❌ Error fetching full quiz:", err);
+    res.status(500).json({ message: "Eroare la preluarea quiz-ului complet." });
+  }
+});
+
+// UPDATE QUIZ
+app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+  const { title, description, isPublished } = req.body;
+
+  try {
+    await sqlPool.query`
+      UPDATE CourseQuizzes
+      SET Title = ${title}, Description = ${description}, IsPublished = ${isPublished}
+      WHERE Id = ${quizId}
+    `;
+
+    res.json({ message: "Quiz actualizat." });
+  } catch (err) {
+    console.error("❌ Error updating quiz:", err);
+    res.status(500).json({ message: "Eroare la actualizarea quiz-ului." });
+  }
+});
+
+// DELETE QUIZ
+app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+
+  try {
+    // DELETE options -> questions -> quiz
+    await sqlPool.query`
+      DELETE FROM QuizOptions
+      WHERE QuestionId IN (SELECT Id FROM QuizQuestions WHERE QuizId = ${quizId})
+    `;
+    await sqlPool.query`
+      DELETE FROM QuizQuestions WHERE QuizId = ${quizId}
+    `;
+    await sqlPool.query`
+      DELETE FROM CourseQuizzes WHERE Id = ${quizId}
+    `;
+
+    res.json({ message: "Quiz șters." });
+  } catch (err) {
+    console.error("❌ Error deleting quiz:", err);
+    res.status(500).json({ message: "Eroare la ștergerea quiz-ului." });
+  }
+});
+
+// ADD QUESTION
+app.post('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.quizId);
+  const { questionText, questionType, points } = req.body;
+
+  if (!questionText || !questionType) {
+    return res.status(400).json({ message: 'Textul și tipul întrebării sunt obligatorii.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO QuizQuestions (QuizId, QuestionText, QuestionType, Points)
+      OUTPUT INSERTED.*
+      VALUES (${quizId}, ${questionText}, ${questionType}, ${points || 1})
+    `;
+    res.status(201).json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error adding question:", err);
+    res.status(500).json({ message: "Eroare la adăugarea întrebării." });
+  }
+});
+
+// ADD OPTION TO QUESTION
+app.post('/api/questions/:questionId/options', protect, restrictTo('Profesor'), async (req, res) => {
+  const questionId = parseInt(req.params.questionId);
+  const { optionText, isCorrect } = req.body;
+
+  if (!optionText) {
+    return res.status(400).json({ message: "OptionText este obligatoriu." });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO QuizOptions (QuestionId, OptionText, IsCorrect)
+      OUTPUT INSERTED.*
+      VALUES (${questionId}, ${optionText}, ${isCorrect || 0})
+    `;
+    res.status(201).json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error adding option:", err);
+    res.status(500).json({ message: "Eroare la adăugarea opțiunii." });
+  }
+});
 
 
 

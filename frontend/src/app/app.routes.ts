@@ -51,36 +51,59 @@ export const routes: Routes = [
   },
 
   {
-  path: 'teacher/module-form',
-  canActivate: [AuthGuard, roleGuard],
-  data: { role: 'Profesor' },
-  loadComponent: () =>
-    import('./teacher/module-form/module-form').then(m => m.ModuleForm)
-},
-
-{
-  path: 'teacher/lesson-form',
-  canActivate: [AuthGuard, roleGuard],
-  data: { role: 'Profesor' },
-  loadComponent: () =>
-    import('./teacher/lesson-form/lesson-form').then(m => m.LessonForm)
-},
-
-// TEACHER: Invite Students
-  {
-    path: 'teacher/invite-students',
+    path: 'teacher/module-form',
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Profesor' },
-    loadComponent: () => import('./teacher/invite-students/invite-students').then(m => m.InviteStudents)
+    loadComponent: () =>
+      import('./teacher/module-form/module-form').then(m => m.ModuleForm)
   },
 
-  // STUDENT: My Enrollments / Invitations
   {
-    path: 'student/my-enrollments',
+    path: 'teacher/lesson-form',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () =>
+      import('./teacher/lesson-form/lesson-form').then(m => m.LessonForm)
+  },
+
+  // TEACHER: Invite Students
+    {
+      path: 'teacher/invite-students',
+      canActivate: [AuthGuard, roleGuard],
+      data: { role: 'Profesor' },
+      loadComponent: () => import('./teacher/invite-students/invite-students').then(m => m.InviteStudents)
+    },
+
+    // STUDENT: My Enrollments / Invitations
+    {
+      path: 'student/my-enrollments',
+      canActivate: [AuthGuard, roleGuard],
+      data: { role: 'Student' },
+      loadComponent: () => import('./student/my-enrollments/my-enrollments').then(m => m.MyEnrollments)
+    },
+
+    // PROFESOR
+  {
+    path: 'teacher/quizzes',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/quiz-list-teacher/quiz-list-teacher').then(m => m.QuizListTeacher)
+  },
+  {
+    path: 'teacher/quiz-form',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/quiz-form/quiz-form').then(m => m.QuizForm)
+  },
+
+  // STUDENT
+  {
+    path: 'student/quizzes',
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Student' },
-    loadComponent: () => import('./student/my-enrollments/my-enrollments').then(m => m.MyEnrollments)
+    loadComponent: () => import('./student/quiz-list-student/quiz-list-student').then(m => m.QuizListStudent)
   },
+
 
 
 

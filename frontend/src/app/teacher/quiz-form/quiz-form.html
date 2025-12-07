@@ -1,1 +1,36 @@
-<p>quiz-form works!</p>
+<div class="quiz-container">
+
+  <h2>{{ quizId ? 'Editează quiz' : 'Creează quiz' }}</h2>
+
+  <div class="messages">
+    <p class="error" *ngIf="!selectedCourse">Selectează un curs!</p>
+  </div>
+
+  <div *ngIf="loadingCourses()">Se încarcă cursurile...</div>
+
+  <div *ngIf="!loadingCourses() && courses().length">
+    <label>Selectează cursul:</label>
+    <select [(ngModel)]="quiz().courseId" (ngModelChange)="updateCourse($event)">
+        <option *ngFor="let c of courses()" [value]="c.Id">{{ c.Title }}</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Titlu quiz:</label>
+    <input type="text" [(ngModel)]="quiz().title" (ngModelChange)="updateTitle($event)">
+  </div>
+
+  <div class="form-group">
+    <label>Descriere quiz:</label>
+    <textarea [(ngModel)]="quiz().description" (ngModelChange)="updateDescription($event)"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>
+      <input type="checkbox" [(ngModel)]="quiz().isPublished" (ngModelChange)="updateIsPublished($event)">
+      Publicat
+    </label>
+  </div>
+
+  <button (click)="saveQuiz()">{{ quizId ? 'Actualizează quiz' : 'Creează quiz' }}</button>
+
+</div>

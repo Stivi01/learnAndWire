@@ -61,6 +61,21 @@ export class Navbar {
     }
   }
 
+  navigateToQuizzes() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/quizzes']);
+    } else if (this.role === 'Student') {
+      this.router.navigate(['/student/quizzes']);
+    }
+  }
+
+  navigateToQuizForm() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/quiz-form']);
+    }
+  }
+
+
 
 
 }

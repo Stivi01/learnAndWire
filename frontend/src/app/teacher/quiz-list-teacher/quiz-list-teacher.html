@@ -1,1 +1,49 @@
-<p>quiz-list-teacher works!</p>
+<div class="quiz-container">
+
+  <h2>Quiz-uri create</h2>
+
+  <button class="create-btn" (click)="createQuiz()">
+    + Creează Quiz
+  </button>
+
+  <div class="quiz-card" *ngFor="let q of quizzes()">
+    <h3>{{ q.title }}</h3>
+    <p>{{ q.description }}</p>
+
+    <div class="actions">
+      <button class="edit-btn" (click)="editQuiz(q)">Editează</button>
+      <span class="status" [class.published]="q.isPublished">
+        {{ q.isPublished ? 'Publicat' : 'Nepublicat' }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" *ngIf="showModal() && editingQuiz() as eq">
+  <div class="modal-content">
+    <h3>{{ eq.id ? 'Editează Quiz' : 'Creează Quiz' }}</h3>
+
+    <div class="form-group">
+      <label>Titlu:</label>
+      <input type="text" [(ngModel)]="eq.title">
+    </div>
+
+    <div class="form-group">
+      <label>Descriere:</label>
+      <textarea [(ngModel)]="eq.description"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" [(ngModel)]="eq.isPublished">
+        Publicat
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button (click)="saveQuiz()">{{ eq.id ? 'Salvează' : 'Creează' }}</button>
+      <button (click)="closeModal()">Anulează</button>
+    </div>
+  </div>
+</div>
