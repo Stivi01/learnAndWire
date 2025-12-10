@@ -104,6 +104,59 @@ export const routes: Routes = [
     loadComponent: () => import('./student/quiz-list-student/quiz-list-student').then(m => m.QuizListStudent)
   },
 
+  {
+    path: 'teacher/quiz/:id/manage',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/quiz-manager/quiz-manager')
+                        .then(m => m.QuizManager)
+  },
+
+  {
+    path: 'teacher/quiz/:quizId/question/add',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/question-form/question-form')
+                        .then(m => m.QuestionForm)
+  },
+  {
+    path: 'teacher/quiz/:quizId/question/:id',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/question-form/question-form')
+                        .then(m => m.QuestionForm)
+  },
+
+  {
+    path: 'teacher/question/:questionId/options',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/option-form/option-form')
+                        .then(m => m.OptionForm)
+  },
+
+  {
+    path: 'teacher/quiz/:quizId/question/add',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/question-form/question-form').then(m => m.QuestionForm)
+  },
+  {
+    path: 'teacher/quiz/:quizId/question/:questionId',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/question-form/question-form').then(m => m.QuestionForm)
+  },
+  {
+    path: 'teacher/questions/:questionId/options',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/option-form/option-form').then(m => m.OptionForm)
+  },
+
+
+
+
 
 
 

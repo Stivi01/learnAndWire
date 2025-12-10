@@ -1,1 +1,28 @@
-<p>question-form works!</p>
+<div class="question-form-container">
+  <h2>{{ questionId ? 'Editează Întrebare' : 'Adaugă Întrebare' }}</h2>
+
+  <div *ngIf="loading()">Se încarcă...</div>
+
+  <div *ngIf="!loading()">
+    <div class="form-group">
+      <label>Text întrebare:</label>
+      <textarea [(ngModel)]="question().questionText"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Tip întrebare:</label>
+      <select [(ngModel)]="question().questionType">
+        <option value="single">Single</option>
+        <option value="multiple">Multiple</option>
+        <option value="open">Deschisă</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Puncte:</label>
+      <input type="number" min="1" [(ngModel)]="question().points">
+    </div>
+
+    <button (click)="saveQuestion()">{{ questionId ? 'Salvează' : 'Adaugă' }}</button>
+  </div>
+</div>

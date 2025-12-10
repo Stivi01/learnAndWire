@@ -10,8 +10,6 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const storedUser = auth.getUser();
   const userRole = storedUser?.role || auth.getRoleFromToken();
 
-  console.log("ROLE CHECK:", { expectedRole, userRole });
-
   if (!userRole || userRole !== expectedRole) {
     router.navigate(['/login']);
     return false;

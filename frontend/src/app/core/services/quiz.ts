@@ -9,6 +9,7 @@ import { QuizData,QuizOption, QuizQuestion, QuizResult } from '../models/quiz.mo
 })
 export class Quiz {
   private api = 'http://localhost:3000/api/quizzes';
+  private questionsApi = 'http://localhost:3000/api/questions';
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -116,12 +117,12 @@ export class Quiz {
     );
   }
 
-  // -------------------------
+    // -------------------------
   // OPTIONS
   // -------------------------
 
   addOption(questionId: number, data: Partial<QuizOption>): Observable<QuizOption> {
-    return this.http.post<any>(`${this.api}/questions/${questionId}/options`, data, this.headers()).pipe(
+    return this.http.post<any>(`${this.questionsApi}/${questionId}/options`, data, this.headers()).pipe(
       map(o => ({
         id: o.Id,
         questionId: o.QuestionId,
@@ -132,7 +133,7 @@ export class Quiz {
   }
 
   getOptions(questionId: number): Observable<QuizOption[]> {
-    return this.http.get<any[]>(`${this.api}/questions/${questionId}/options`, this.headers()).pipe(
+    return this.http.get<any[]>(`${this.questionsApi}/${questionId}/options`, this.headers()).pipe(
       map(res => res.map(o => ({
         id: o.Id,
         questionId: o.QuestionId,
@@ -140,6 +141,14 @@ export class Quiz {
         isCorrect: o.IsCorrect
       })))
     );
+  }
+
+  updateOption(optionId: number, data: Partial<QuizOption>) {
+    return this.http.put(`${this.questionsApi}/${optionId}`, data, this.headers());
+  }
+
+  deleteOption(optionId: number) {
+    return this.http.delete(`${this.questionsApi}/${optionId}`, this.headers());
   }
 
   // -------------------------

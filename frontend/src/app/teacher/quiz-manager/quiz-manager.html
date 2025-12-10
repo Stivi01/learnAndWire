@@ -1,0 +1,51 @@
+<div class="quiz-manager-container">
+
+  <h2 class="page-title">Administrare Quiz</h2>
+
+  <div *ngIf="loading()" class="loading">Se încarcă...</div>
+
+  <div *ngIf="!loading() && quiz()" class="quiz-content">
+
+    <div class="quiz-header">
+      <h3>{{ quiz().Title }}</h3>
+      <p>{{ quiz().Description }}</p>
+
+      <div class="status">
+        <span [class.published]="quiz().IsPublished" class="status-badge">
+          {{ quiz().IsPublished ? 'Publicat' : 'Nepublicat' }}
+        </span>
+
+        <button *ngIf="!quiz().IsPublished" class="btn btn-primary" (click)="publishQuiz()">Publică Quiz</button>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="questions-section">
+      <div class="questions-header">
+        <h3>Întrebări</h3>
+        <button class="btn btn-success" (click)="goToAddQuestion()">+ Adaugă întrebare</button>
+      </div>
+
+      <div class="question-card" *ngFor="let q of questions()">
+        <div class="question-header">
+          <h4>{{ q.questionText }}</h4>
+          <span class="question-info">{{ q.points }} pct | {{ q.questionType }}</span>
+        </div>
+
+        <div *ngIf="q.questionType === 'single' || q.questionType === 'multiple'" class="options-list">
+          <div *ngFor="let opt of q.options" class="option-item" [class.correct]="opt.isCorrect">
+            <input type="checkbox" [checked]="opt.isCorrect" disabled />
+            <span>{{ opt.optionText }}</span>
+          </div>
+
+          <button class="btn btn-outline" (click)="goToOptions(q.id)">Gestionare opțiuni</button>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-outline" (click)="goToEditQuestion(q.id)">Editează întrebare</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

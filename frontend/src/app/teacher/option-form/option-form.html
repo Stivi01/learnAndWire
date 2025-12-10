@@ -1,1 +1,17 @@
-<p>option-form works!</p>
+<div class="option-form-container">
+  <h2>{{ optionId ? 'Editează Opțiune' : 'Adaugă Opțiune' }}</h2>
+
+  <div class="form-group">
+    <label>Text opțiune:</label>
+    <input type="text" [(ngModel)]="option().optionText">
+  </div>
+
+  <div class="form-group">
+    <label>
+      <input type="checkbox" [(ngModel)]="option().isCorrect">
+      Corectă
+    </label>
+  </div>
+
+  <button (click)="saveOption()">{{ optionId ? 'Salvează' : 'Adaugă' }}</button>
+</div>

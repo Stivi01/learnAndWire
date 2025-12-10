@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Quiz } from '../../core/services/quiz';
 import { AuthService } from '../../core/services/auth';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-quiz-list-teacher',
@@ -18,7 +19,7 @@ export class QuizListTeacher {
   editingQuiz = signal<Partial<QuizData> | null>(null); // quizul curent din modal
   showModal = signal(false);
 
-  constructor(private quizService: Quiz, private auth: AuthService) {}
+  constructor(private quizService: Quiz, private auth: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     const user = this.auth.getUser();
@@ -90,5 +91,9 @@ export class QuizListTeacher {
   closeModal() {
     this.showModal.set(false);
     this.editingQuiz.set(null);
+  }
+
+  goToQuizManager(quizId: number) {
+    this.router.navigate([`/teacher/quiz/${quizId}/manage`]);
   }
 }

@@ -15,6 +15,9 @@
       <span class="status" [class.published]="q.isPublished">
         {{ q.isPublished ? 'Publicat' : 'Nepublicat' }}
       </span>
+      <button class="manage-btn" (click)="goToQuizManager(q.id)">
+        + Adaugă / Administrează întrebări
+      </button>
     </div>
   </div>
 </div>

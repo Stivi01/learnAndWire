@@ -842,6 +842,165 @@ app.post('/api/questions/:questionId/options', protect, restrictTo('Profesor'), 
   }
 });
 
+// GET QUESTIONS BY QUIZ (simple list)
+app.get('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.quizId);
+
+  try {
+    const result = await sqlPool.query`
+      SELECT *
+      FROM QuizQuestions
+      WHERE QuizId = ${quizId}
+      ORDER BY Id
+    `;
+    res.json(result.recordset);
+
+  } catch (err) {
+    console.error("❌ Error fetching questions:", err);
+    res.status(500).json({ message: "Eroare la preluarea întrebărilor." });
+  }
+});
+
+
+// UPDATE QUESTION
+app.put('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const questionId = parseInt(req.params.id);
+  const { questionText, questionType, points } = req.body;
+
+  try {
+    await sqlPool.query`
+      UPDATE QuizQuestions
+      SET QuestionText = ${questionText},
+          QuestionType = ${questionType},
+          Points = ${points}
+      WHERE Id = ${questionId}
+    `;
+
+    res.json({ message: "Întrebarea a fost actualizată." });
+
+  } catch (err) {
+    console.error("❌ Error updating question:", err);
+    res.status(500).json({ message: "Eroare la actualizarea întrebării." });
+  }
+});
+
+// GET OPTIONS BY QUESTION
+app.get('/api/questions/:questionId/options', protect, restrictTo('Profesor'), async (req, res) => {
+  const questionId = parseInt(req.params.questionId);
+  try {
+    const result = await sqlPool.query`
+      SELECT * FROM QuizOptions WHERE QuestionId = ${questionId}
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Error fetching options:", err);
+    res.status(500).json({ message: "Eroare la preluarea opțiunilor." });
+  }
+});
+
+
+
+// DELETE QUESTION + OPTIONS
+app.delete('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const questionId = parseInt(req.params.id);
+
+  try {
+    await sqlPool.query`
+      DELETE FROM QuizOptions WHERE QuestionId = ${questionId}
+    `;
+    await sqlPool.query`
+      DELETE FROM QuizQuestions WHERE Id = ${questionId}
+    `;
+
+    res.json({ message: "Întrebarea și opțiunile au fost șterse." });
+
+  } catch (err) {
+    console.error("❌ Error deleting question:", err);
+    res.status(500).json({ message: "Eroare la ștergerea întrebării." });
+  }
+});
+
+
+// UPDATE OPTION
+app.put('/api/options/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const optionId = parseInt(req.params.id);
+  const { optionText, isCorrect } = req.body;
+
+  try {
+    await sqlPool.query`
+      UPDATE QuizOptions
+      SET OptionText = ${optionText},
+          IsCorrect = ${isCorrect}
+      WHERE Id = ${optionId}
+    `;
+
+    res.json({ message: "Opțiunea a fost actualizată." });
+
+  } catch (err) {
+    console.error("❌ Error updating option:", err);
+    res.status(500).json({ message: "Eroare la actualizarea opțiunii." });
+  }
+});
+
+
+// DELETE OPTION
+app.delete('/api/options/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const optionId = parseInt(req.params.id);
+
+  try {
+    await sqlPool.query`
+      DELETE FROM QuizOptions WHERE Id = ${optionId}
+    `;
+
+    res.json({ message: "Opțiunea a fost ștearsă." });
+
+  } catch (err) {
+    console.error("❌ Error deleting option:", err);
+    res.status(500).json({ message: "Eroare la ștergerea opțiunii." });
+  }
+});
+
+
+// PUBLISH / UNPUBLISH QUIZ
+app.patch('/api/quizzes/:id/publish', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+  const { isPublished } = req.body;
+
+  try {
+    await sqlPool.query`
+      UPDATE CourseQuizzes
+      SET IsPublished = ${isPublished}
+      WHERE Id = ${quizId}
+    `;
+
+    res.json({ message: isPublished ? "Quiz publicat." : "Quiz ascuns." });
+
+  } catch (err) {
+    console.error("❌ Error changing publish state:", err);
+    res.status(500).json({ message: "Eroare la schimbarea stării quiz-ului." });
+  }
+});
+
+
+// GET QUIZZES BY COURSE
+app.get('/api/quizzes/by-course/:courseId', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = parseInt(req.params.courseId);
+
+  try {
+    const result = await sqlPool.query`
+      SELECT *
+      FROM CourseQuizzes
+      WHERE CourseId = ${courseId}
+      ORDER BY CreatedAt DESC
+    `;
+    res.json(result.recordset);
+
+  } catch (err) {
+    console.error("❌ Error fetching quizzes by course:", err);
+    res.status(500).json({ message: "Eroare la preluarea quiz-urilor cursului." });
+  }
+});
+
 
 
 
