@@ -21,7 +21,7 @@ export interface QuizOption {
   id: number;
   questionId: number;
   optionText: string;
-  isCorrect: boolean;
+  isCorrect: boolean | number;
 }
 
 export interface QuizResult {

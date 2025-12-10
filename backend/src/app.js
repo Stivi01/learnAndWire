@@ -926,21 +926,26 @@ app.put('/api/options/:id', protect, restrictTo('Profesor'), async (req, res) =>
   const optionId = parseInt(req.params.id);
   const { optionText, isCorrect } = req.body;
 
+  console.log('💡 Received update request for optionId:', optionId);
+  console.log('💡 Payload:', { optionText, isCorrect });
+
   try {
-    await sqlPool.query`
+    const result = await sqlPool.query`
       UPDATE QuizOptions
       SET OptionText = ${optionText},
           IsCorrect = ${isCorrect}
       WHERE Id = ${optionId}
     `;
 
+    console.log('✅ SQL Update executed, result:', result);
     res.json({ message: "Opțiunea a fost actualizată." });
 
   } catch (err) {
-    console.error("❌ Error updating option:", err);
+    console.error('❌ Error updating option:', err);
     res.status(500).json({ message: "Eroare la actualizarea opțiunii." });
   }
 });
+
 
 
 // DELETE OPTION

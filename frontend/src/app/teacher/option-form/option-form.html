@@ -1,17 +1,17 @@
 <div class="option-form-container">
-  <h2>{{ optionId ? 'Editează Opțiune' : 'Adaugă Opțiune' }}</h2>
+  <h3>Gestionare opțiuni</h3>
 
-  <div class="form-group">
-    <label>Text opțiune:</label>
-    <input type="text" [(ngModel)]="option().optionText">
-  </div>
-
-  <div class="form-group">
+  <div *ngFor="let opt of options(); let i = index" class="option-row">
+    <input type="text" [(ngModel)]="opt.optionText" placeholder="Text opțiune" />
     <label>
-      <input type="checkbox" [(ngModel)]="option().isCorrect">
-      Corectă
+      <input type="checkbox" [(ngModel)]="opt.isCorrect" /> Corect
     </label>
+    <button type="button" class="btn-remove" (click)="removeOptionRow(i)">Șterge</button>
   </div>
 
-  <button (click)="saveOption()">{{ optionId ? 'Salvează' : 'Adaugă' }}</button>
+  <button type="button" class="btn-add" (click)="addOptionRow()">+ Adaugă opțiune</button>
+
+  <div class="save-container">
+    <button type="button" class="btn-save" (click)="saveOptions()">Salvează toate opțiunile</button>
+  </div>
 </div>

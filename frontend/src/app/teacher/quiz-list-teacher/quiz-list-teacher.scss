@@ -1,23 +1,192 @@
+.quiz-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #1f2937; // gri închis
+  }
+
+  .create-btn {
+    background-color: #3b82f6; // albastru
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+
+    &:hover {
+      background-color: #2563eb;
+    }
+  }
+
+  .quiz-card {
+    background: #f9fafb; // gri deschis
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+      color: #111827;
+    }
+
+    p {
+      margin: 0 0 15px;
+      color: #4b5563; // gri mediu
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      .edit-btn,
+      .manage-btn {
+        background-color: #10b981; // verde
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.3s;
+
+        &:hover {
+          background-color: #059669;
+        }
+      }
+
+      .edit-btn {
+        background-color: #f97316; // portocaliu
+        &:hover {
+          background-color: #ea580c;
+        }
+      }
+
+      .status {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        &.published {
+          background-color: #d1fae5; // verde deschis
+          color: #065f46;
+        }
+        &:not(.published) {
+          background-color: #fef3c7; // galben deschis
+          color: #92400e;
+        }
+      }
+    }
+  }
+}
+
+/* ------------------ MODAL ------------------ */
 .modal {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 10px;
 
   .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 400px;
-  }
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 25px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    animation: fadeIn 0.3s ease;
 
-  .modal-actions {
-    margin-top: 15px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #111827;
+      font-size: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #374151;
+      }
+
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+
+        &:focus {
+          outline: none;
+          border-color: #3b82f6;
+        }
+      }
+
+      input[type="checkbox"] {
+        margin-right: 8px;
+      }
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+
+      button {
+        padding: 8px 16px;
+        font-weight: 500;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      button:first-child {
+        background-color: #3b82f6;
+        color: white;
+        &:hover {
+          background-color: #2563eb;
+        }
+      }
+
+      button:last-child {
+        background-color: #f3f4f6;
+        color: #111827;
+        &:hover {
+          background-color: #e5e7eb;
+        }
+      }
+    }
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
 }

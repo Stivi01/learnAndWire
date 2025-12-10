@@ -117,20 +117,41 @@ export class Quiz {
     );
   }
 
+  // In quiz.service.ts
+  updateQuestion(questionId: number, data: Partial<QuizQuestion>) {
+    return this.http.put(`${this.questionsApi}/${questionId}`, data, this.headers());
+  }
+
+
     // -------------------------
   // OPTIONS
   // -------------------------
 
-  addOption(questionId: number, data: Partial<QuizOption>): Observable<QuizOption> {
-    return this.http.post<any>(`${this.questionsApi}/${questionId}/options`, data, this.headers()).pipe(
-      map(o => ({
-        id: o.Id,
-        questionId: o.QuestionId,
-        optionText: o.OptionText,
-        isCorrect: o.IsCorrect
-      }))
-    );
-  }
+  // quiz.service.ts
+updateOption(optionId: number, data: Partial<QuizOption>) {
+  const payload = {
+    ...data,
+    isCorrect: data.isCorrect ? 1 : 0
+  };
+  return this.http.put(`http://localhost:3000/api/options/${optionId}`, payload, this.headers());
+}
+
+
+addOption(questionId: number, data: Partial<QuizOption>) {
+  const payload = {
+    ...data,
+    isCorrect: data.isCorrect ? 1 : 0
+  };
+  return this.http.post<any>(`${this.questionsApi}/${questionId}/options`, payload, this.headers()).pipe(
+    map(o => ({
+      id: o.Id,
+      questionId: o.QuestionId,
+      optionText: o.OptionText,
+      isCorrect: !!o.IsCorrect  // convertim 0/1 → boolean
+    }))
+  );
+}
+
 
   getOptions(questionId: number): Observable<QuizOption[]> {
     return this.http.get<any[]>(`${this.questionsApi}/${questionId}/options`, this.headers()).pipe(
@@ -141,10 +162,6 @@ export class Quiz {
         isCorrect: o.IsCorrect
       })))
     );
-  }
-
-  updateOption(optionId: number, data: Partial<QuizOption>) {
-    return this.http.put(`${this.questionsApi}/${optionId}`, data, this.headers());
   }
 
   deleteOption(optionId: number) {
