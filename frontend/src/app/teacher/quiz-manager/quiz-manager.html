@@ -24,7 +24,7 @@
     <div class="questions-section">
       <div class="questions-header">
         <h3>Întrebări</h3>
-        <button class="btn btn-success" (click)="goToAddQuestion()">+ Adaugă întrebare</button>
+        <button class="btn btn-success" [disabled]="quiz().IsPublished" (click)="goToAddQuestion()">+ Adaugă întrebare</button>
       </div>
 
       <div class="question-card" *ngFor="let q of questions()">
@@ -39,11 +39,11 @@
             <span>{{ opt.optionText }}</span>
           </div>
 
-          <button class="btn btn-outline" (click)="goToOptions(q.id)">Gestionare opțiuni</button>
+          <button class="btn btn-outline" [disabled]="quiz().IsPublished" (click)="goToOptions(q.id)">Gestionare opțiuni</button>
         </div>
 
         <div class="actions">
-          <button class="btn btn-outline" (click)="goToEditQuestion(q.id)">Editează întrebare</button>
+          <button class="btn btn-outline" [disabled]="quiz().IsPublished" (click)="goToEditQuestion(q.id)">Editează întrebare</button>
         </div>
       </div>
     </div>

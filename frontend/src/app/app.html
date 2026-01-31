@@ -1,3 +1,4 @@
+<app-toast></app-toast>
 <div *ngIf="auth.isLoggedIn(); else authPages" class="app-layout">
   <app-navbar [role]="auth.getUser()?.role"></app-navbar>
   <div class="main-content">

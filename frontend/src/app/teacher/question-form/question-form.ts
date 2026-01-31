@@ -16,6 +16,7 @@ import { forkJoin, map } from 'rxjs';
 export class QuestionForm {
   quizId: number | null = null;
   questionId: number | null = null;
+  isEdit = false;
   question = signal<Partial<QuizQuestion>>({
     questionText: '',
     questionType: 'single',
@@ -30,61 +31,78 @@ export class QuestionForm {
   ) {}
 
   ngOnInit() {
-    this.quizId = +this.route.snapshot.params['quizId'];
-    this.questionId = this.route.snapshot.params['questionId'] ? +this.route.snapshot.params['questionId'] : null;
+  this.quizId = Number(this.route.snapshot.paramMap.get('quizId'));
+  const qId = this.route.snapshot.paramMap.get('id');
 
-    if (this.questionId) {
+  this.questionId = qId ? Number(qId) : null;
+  this.isEdit = this.questionId !== null;
+
+  this.quizService.getQuizFull(this.quizId).subscribe(res => {
+    if (res.quiz.IsPublished) {
+      alert('Quiz-ul este publicat și nu mai poate fi modificat');
+      this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
+      return;
+    }
+
+    if (this.isEdit) {
       this.loadQuestion();
     }
-  }
+  });
+}
 
-  loadQuestion() {
-  if (!this.quizId || !this.questionId) return;
+
+loadQuestion() {
+  if (this.quizId === null || this.questionId === null) return;
 
   this.loading.set(true);
 
   this.quizService.getQuestions(this.quizId).subscribe({
     next: qs => {
       const q = qs.find(q => q.id === this.questionId);
-      if (q) {
-        this.quizService.getOptions(q.id).subscribe({
-          next: opts => this.question.set({ ...q, options: opts }),
-          error: err => console.error(err),
-          complete: () => this.loading.set(false)
-        });
-      } else {
-        console.error('Întrebarea nu a fost găsită');
+      if (!q) {
+        console.error('Întrebarea nu există în quiz-ul acesta');
         this.loading.set(false);
+        return;
       }
+
+      console.log('Întrebarea încărcată:', q); // debug
+      this.question.set({ ...q }); // <-- folosim spread pentru siguranță
+      this.loading.set(false);
     },
-    error: err => { console.error(err); this.loading.set(false); }
+    error: err => {
+      console.error(err);
+      this.loading.set(false);
+    }
   });
 }
 
 
   saveQuestion() {
-    const q = this.question();
-    if (!q.questionText) {
-      alert('Textul întrebării este obligatoriu!');
-      return;
-    }
+  const q = this.question();
 
-    if (this.questionId) {
-      this.quizService.addQuestion(this.quizId!, q).subscribe({
-        next: () => {
-          alert('Întrebare actualizată!');
-          this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
-        },
-        error: err => console.error(err)
-      });
-    } else {
-      this.quizService.addQuestion(this.quizId!, q).subscribe({
-        next: () => {
-          alert('Întrebare adăugată!');
-          this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
-        },
-        error: err => console.error(err)
-      });
-    }
+  if (!q.questionText) {
+    alert('Textul întrebării este obligatoriu!');
+    return;
   }
+
+  if (this.questionId !== null) {
+    // UPDATE
+    this.quizService.updateQuestion(this.questionId, q).subscribe({
+      next: () => {
+        alert('Întrebare actualizată!');
+        this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
+      }
+    });
+  } else {
+    // ADD
+    this.quizService.addQuestion(this.quizId!, q).subscribe({
+      next: () => {
+        alert('Întrebare adăugată!');
+        this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
+      }
+    });
+  }
+}
+
+
 }

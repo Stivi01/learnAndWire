@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 import { QuizOption, QuizQuestion } from '../../core/models/quiz.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Quiz } from '../../core/services/quiz';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-quiz-manager',
@@ -20,7 +21,8 @@ export class QuizManager {
   constructor(
     private route: ActivatedRoute,
     private quizService: Quiz,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -56,14 +58,26 @@ export class QuizManager {
   }
 
   goToAddQuestion() {
+    if(this.quiz()?.IsPublished){
+      this.toast.show('Quiz-ul este publicat si nu poti edita intrebarile!','info');
+      return;
+    }
     this.router.navigate([`/teacher/quiz/${this.quizId}/question/add`]);
   }
 
   goToEditQuestion(questionId: number) {
+    if(this.quiz()?.IsPublished){
+      this.toast.show('Quiz-ul este publicat si nu poti edita intrebarile!','info');
+      return;
+    }
     this.router.navigate([`/teacher/quiz/${this.quizId}/question/${questionId}`]);
   }
 
   goToOptions(questionId: number) {
+    if(this.quiz()?.IsPublished){
+      this.toast.show('Quiz-ul este publicat si nu poti edita intrebarile!','info');
+      return;
+    }
     this.router.navigate([`/teacher/questions/${questionId}/options`]);
   }
 
