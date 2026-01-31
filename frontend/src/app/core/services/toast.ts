@@ -14,9 +14,10 @@ export class ToastService {
     const newToast: ToastMessage = { message, type };
     this.toasts.update(prev => [...prev, newToast]);
 
-    // eliminăm toast-ul după 3 secunde
+    // dispariție automată după 3 secunde
     setTimeout(() => {
       this.toasts.update(prev => prev.filter(t => t !== newToast));
     }, 3000);
   }
+
 }

@@ -58,6 +58,7 @@ export class QuizManager {
   }
 
   goToAddQuestion() {
+     console.log('Current quiz:', this.quiz());
     if(this.quiz()?.IsPublished){
       this.toast.show('Quiz-ul este publicat si nu poti edita intrebarile!','info');
       return;
