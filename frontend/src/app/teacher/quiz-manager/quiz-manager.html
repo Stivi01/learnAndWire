@@ -9,7 +9,7 @@
     <div class="quiz-header">
       <h3>{{ quiz().Title }}</h3>
       <p>{{ quiz().Description }}</p>
-
+      <p>Total puncte: {{ totalPoints }}</p>
       <div class="status">
         <span [class.published]="quiz().IsPublished" class="status-badge">
           {{ quiz().IsPublished ? 'Publicat' : 'Nepublicat' }}

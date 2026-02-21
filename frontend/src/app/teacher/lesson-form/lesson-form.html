@@ -1,10 +1,10 @@
 <div class="lesson-container">
-  <h2>📘 Lecții pentru modulul {{ moduleId }}</h2>
+  <h2>📘 Subcapitole pentru capitol {{ moduleId }}</h2>
 
   <form [formGroup]="lessonForm" class="lesson-form" (ngSubmit)="addLesson()">
 
     <div>
-      <label>Titlu lecție</label>
+      <label>Titlu subcapitol</label>
       <input type="text" formControlName="title" placeholder="Ex: Introducere în Drept Civil" />
     </div>
 
@@ -19,15 +19,15 @@
     </div>
 
     <div>
-      <label>Ordinea lecției</label>
+      <label>Ordinea subcapitolului</label>
       <input type="number" formControlName="orderIndex" />
     </div>
 
-    <button type="submit" [disabled]="lessonForm.invalid">➕ Adaugă lecție</button>
+    <button type="submit" [disabled]="lessonForm.invalid">➕ Adaugă subcapitol</button>
   </form>
 
   <div class="lessons-list" *ngIf="lessons.length > 0">
-    <h3>📚 Lecțiile existente</h3>
+    <h3>📚 Subcapitole existente</h3>
 
     <div class="lesson-item" *ngFor="let lesson of lessons">
       <strong>{{ lesson.OrderIndex }}. {{ lesson.Title }}</strong>

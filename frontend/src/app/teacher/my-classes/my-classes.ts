@@ -2,13 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { Course } from '../../core/services/course';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 import { filter, startWith, Subject, switchMap, take, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-my-classes',
-  imports: [CommonModule,ReactiveFormsModule],
+  imports: [CommonModule,ReactiveFormsModule,RouterModule],
   standalone: true,
   templateUrl: './my-classes.html',
   styleUrl: './my-classes.scss',
@@ -101,6 +101,8 @@ export class MyClasses implements OnInit{
   inviteStudents(course: any) {
     this.router.navigate(['/teacher/invite-students'], { state: { course } });
   }
-
+  goToAddCourse() {
+    this.router.navigate(['/teacher/course-form']);
+  }
 
 }

@@ -43,9 +43,9 @@ export class Navbar {
   navigateToProfile() {
     this.router.navigate(['/student-profile']);
   }
-  navigateToCourseForm() {
-    this.router.navigate(['/teacher/course-form']);
-  }
+  // navigateToCourseForm() {
+  //   this.router.navigate(['/teacher/course-form']);
+  // }
   navigateToMyClasses() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher/my-classes']);

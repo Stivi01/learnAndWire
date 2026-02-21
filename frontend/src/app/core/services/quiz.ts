@@ -117,6 +117,21 @@ export class Quiz {
     );
   }
 
+  getQuestionById(id: number): Observable<QuizQuestion> {
+  return this.http
+    .get<any>(`${this.questionsApi}/${id}`, this.headers())
+    .pipe(
+      map(q => ({
+        id: q.Id,
+        quizId: q.QuizId,
+        questionText: q.QuestionText,
+        questionType: q.QuestionType, // <-- AICI vine corect
+        points: q.Points
+      }))
+    );
+}
+
+
   // In quiz.service.ts
   updateQuestion(questionId: number, data: Partial<QuizQuestion>) {
     return this.http.put(`${this.questionsApi}/${questionId}`, data, this.headers());

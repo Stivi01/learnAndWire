@@ -3,9 +3,12 @@
 
   <div *ngFor="let opt of options(); let i = index" class="option-row">
     <input type="text" [(ngModel)]="opt.optionText" placeholder="Text opțiune" />
-    <label>
+    
+    <!-- Checkbox doar pentru single / multiple -->
+    <label *ngIf="questionType !== 'open'">
       <input type="checkbox" [(ngModel)]="opt.isCorrect" /> Corect
     </label>
+
     <button type="button" class="btn-remove" (click)="removeOptionRow(i)">Șterge</button>
   </div>
 

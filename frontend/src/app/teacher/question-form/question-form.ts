@@ -5,6 +5,7 @@ import { QuizQuestion } from '../../core/models/quiz.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Quiz } from '../../core/services/quiz';
 import { forkJoin, map } from 'rxjs';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-question-form',
@@ -27,7 +28,8 @@ export class QuestionForm {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private quizService: Quiz
+    private quizService: Quiz,
+    private toast:ToastService
   ) {}
 
   ngOnInit() {
@@ -80,29 +82,35 @@ loadQuestion() {
   saveQuestion() {
   const q = this.question();
 
-  if (!q.questionText) {
-    alert('Textul întrebării este obligatoriu!');
+  if (!q.questionText || !q.questionText.trim()) {
+    this.toast.show('Textul întrebării este obligatoriu!', 'error');
     return;
   }
 
-  if (this.questionId !== null) {
-    // UPDATE
-    this.quizService.updateQuestion(this.questionId, q).subscribe({
+  if (!q.points || q.points < 1) {
+    this.toast.show('Întrebarea trebuie să aibă cel puțin 1 punct!', 'error');
+    return;
+  }
+
+  if (this.isEdit) {
+    this.quizService.updateQuestion(this.questionId!, q).subscribe({
       next: () => {
-        alert('Întrebare actualizată!');
+        this.toast.show('Întrebare actualizată!', 'success');
         this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
-      }
+      },
+      error: () => this.toast.show('Eroare la actualizarea întrebării!', 'error')
     });
   } else {
-    // ADD
     this.quizService.addQuestion(this.quizId!, q).subscribe({
       next: () => {
-        alert('Întrebare adăugată!');
+        this.toast.show('Întrebare adăugată!', 'success');
         this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
-      }
+      },
+      error: () => this.toast.show('Eroare la adăugarea întrebării!', 'error')
     });
   }
 }
+
 
 
 }

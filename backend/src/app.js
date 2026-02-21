@@ -920,6 +920,34 @@ app.delete('/api/questions/:id', protect, restrictTo('Profesor'), async (req, re
   }
 });
 
+// GET QUESTION BY ID
+app.get('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const questionId = parseInt(req.params.id);
+
+  if (isNaN(questionId)) {
+    return res.status(400).json({ message: 'ID întrebare invalid.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      SELECT *
+      FROM QuizQuestions
+      WHERE Id = ${questionId}
+    `;
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ message: 'Întrebarea nu există.' });
+    }
+
+    res.json(result.recordset[0]);
+
+  } catch (err) {
+    console.error('❌ Error fetching question by id:', err);
+    res.status(500).json({ message: 'Eroare la preluarea întrebării.' });
+  }
+});
+
+
 
 // UPDATE OPTION
 app.put('/api/options/:id', protect, restrictTo('Profesor'), async (req, res) => {

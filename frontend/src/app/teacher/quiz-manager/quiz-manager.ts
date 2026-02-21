@@ -91,4 +91,9 @@ export class QuizManager {
       error: err => console.error(err)
     });
   }
+
+  get totalPoints(): number {
+  return this.questions().reduce((sum, q) => sum + (q.points || 0), 0);
+}
+
 }

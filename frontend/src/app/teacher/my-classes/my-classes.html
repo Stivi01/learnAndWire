@@ -1,8 +1,8 @@
 <div class="my-classes-container">
   <h2>Cursurile mele</h2>
 
-  <button routerLink="/teacher/course-form" class="btn-add-course">
-    + Adaugă curs nou
+  <button class="btn-add-course" (click)="goToAddCourse()">
+  + Adaugă curs nou
   </button>
 
   <div *ngIf="loading()">Se încarcă...</div>
@@ -25,7 +25,7 @@
       <div class="course-actions">
         <button (click)="editCourse(course.Id)">Editează</button>
         <button (click)="inviteStudents(course.Id)">Invită studenți</button>
-        <button (click)="addModule(course.Id)">+ Modul nou</button>
+        <button (click)="addModule(course.Id)">+ Capitol nou</button>
       </div>
 
       <!-- EXPANDED STRUCTURE -->
@@ -34,7 +34,7 @@
 
         <div class="module-card" *ngFor="let module of course.modules">
           <h4>{{ module.Title }}</h4>
-          <button (click)="addLesson(module.Id)">+ Lecție nouă</button>
+          <button (click)="addLesson(module.Id)">+ Subcapitol nou</button>
 
           <div class="lessons-list">
             <div class="lesson-card" *ngFor="let lesson of module.lessons">
@@ -51,7 +51,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
