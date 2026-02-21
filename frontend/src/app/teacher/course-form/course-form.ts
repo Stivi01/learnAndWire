@@ -47,12 +47,10 @@ export class CourseForm implements OnInit{
     };
 
     this.courseService.createCourse(courseData, headers).subscribe({
-      next: (res) => {
-        const courseId = res.id;
-        alert('Curs creat cu succes!');
-        this.router.navigate(['/teacher/module-form'], {
-            queryParams: { courseId }
-  });      },
+      next: () => {
+      alert('Curs creat cu succes!');
+      this.router.navigate(['/teacher/my-classes']);
+    },
       error: (err) => {
         console.error(err);
         alert('Eroare la crearea cursului.');
