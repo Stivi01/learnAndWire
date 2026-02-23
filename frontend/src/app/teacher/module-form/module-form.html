@@ -1,22 +1,100 @@
-<div class="module-form-container">
-  <h2>Capitol pentru curs</h2>
+<div class="module-container">
+  <header class="page-header">
+    <h2><i class="fas fa-layer-group"></i> Administrare Capitole</h2>
+    <p class="subtitle">Gestionează structura cursului și subcapitolele aferente</p>
+  </header>
 
-  <div *ngIf="loading">Se încarcă capitolele...</div>
-  <div *ngIf="error">{{ error }}</div>
+  <div *ngIf="loading" class="state-msg loading">
+    <span class="spinner"></span> Se încarcă capitolele...
+  </div>
+  <div *ngIf="error" class="state-msg error">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
 
-  <form [formGroup]="moduleForm" (ngSubmit)="addModule()">
-    <input formControlName="title" placeholder="Titlu capitol">
-    <input formControlName="orderIndex" type="number" placeholder="Ordine">
-    <button type="submit">Adaugă capitol</button>
+  <section class="add-section">
+  <form [formGroup]="moduleForm" (ngSubmit)="addModule()" class="modern-form">
+    <div class="input-group">
+      <input formControlName="title" placeholder="Ex: Introducere în JavaScript..." required>
+      <button type="submit" [disabled]="moduleForm.invalid" class="btn-primary">
+        <i class="fas fa-plus"></i> Adaugă capitol
+      </button>
+      <button type="button" class="btn-danger" (click)="deleteAllModules()">
+        <i class="fas fa-trash"></i> Șterge toate capitolele
+      </button>
+    </div>
   </form>
+</section>
 
-  <div *ngIf="modules.length > 0">
-    <h3>Capitole existente</h3>
-    <ul>
-      <li *ngFor="let mod of modules">
-        {{ mod.title }} (Ordine: {{ mod.orderIndex }})
-        <button (click)="editLessons(mod)">Editează subcapitole</button>
-      </li>
-    </ul>
+  <div class="modules-grid" *ngIf="modules.length > 0">
+    <div *ngFor="let mod of modules; let i = index" class="module-card" [class.expanded]="isExpanded(mod.id)">
+      
+      <div class="module-header">
+        <div class="main-info" (click)="toggleModule(mod.id)">
+          <div class="badge">{{ i + 1 }}</div>
+          
+          <ng-container *ngIf="!mod.editing">
+            <span class="title-text">{{ mod.title }}</span>
+          </ng-container>
+
+          <div class="edit-wrapper" *ngIf="mod.editing" (click)="$event.stopPropagation()">
+            <input 
+              [(ngModel)]="mod.editTitle" 
+              [ngModelOptions]="{standalone: true}" 
+              (keyup.enter)="saveModuleEdit(mod)"
+              class="modern-input"
+              #editInput
+            >
+            <div class="edit-actions">
+              <button class="btn-icon save" (mousedown)="saveModuleEdit(mod); $event.preventDefault()">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn-icon cancel" (click)="cancelEditing(mod)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions" *ngIf="!mod.editing">
+          <button class="btn-ghost" (click)="startEditing(mod); $event.stopPropagation()" title="Editează titlu">
+            <i class="fas fa-pen"></i>
+          </button>
+          <button class="btn-ghost delete" (click)="deleteModule(mod); $event.stopPropagation()" title="Șterge capitol">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="btn-ghost add" (click)="showAddLesson(mod); $event.stopPropagation()" title="Adaugă subcapitol">
+            <i class="fas fa-folder-plus"></i>
+          </button>
+          <span class="chevron" (click)="toggleModule(mod.id)">
+            <i class="fas" [ngClass]="isExpanded(mod.id) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+          </span>
+        </div>
+      </div>
+
+      <div class="module-content" *ngIf="isExpanded(mod.id)">
+        <div class="lessons-list">
+          <div *ngFor="let sub of mod.lessons" class="lesson-item">
+            <div class="lesson-info">
+              <i class="far fa-file-alt"></i>
+              <span>{{ sub.title }}</span>
+            </div>
+            <div class="lesson-actions">
+              <button class="btn-mini" (click)="editLesson(sub)">Edit</button>
+              <button class="btn-mini danger" (click)="deleteLesson(sub, mod)">Șterge</button>
+            </div>
+          </div>
+
+          <div *ngIf="mod.showAddLessonForm" class="add-lesson-inline">
+            <input [(ngModel)]="mod.newLessonTitle" placeholder="Titlu subcapitol nou...">
+            <button class="btn-success" (click)="addLesson(mod)">Confirmă</button>
+            <button class="btn-link" (click)="mod.showAddLessonForm = false">Anulează</button>
+          </div>
+
+          <div class="empty-lessons" *ngIf="mod.lessons.length === 0 && !mod.showAddLessonForm">
+            Nu există subcapitole adăugate.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

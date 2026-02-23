@@ -1,95 +1,210 @@
-.module-form-container {
-  max-width: 800px;
+// Variabile Culori
+$primary: #4f46e5;
+$primary-hover: #4338ca;
+$success: #10b981;
+$danger: #ef4444;
+$bg-body: #f9fafb;
+$border-color: #e5e7eb;
+$text-main: #1f2937;
+$text-muted: #6b7280;
+
+.module-container {
+  max-width: 850px;
   margin: 2rem auto;
-  padding: 2rem;
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  padding: 0 1rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: $text-main;
 
-  h2 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    color: #333;
-  }
-
-  form {
-    display: flex;
-    gap: 1rem;
+  .page-header {
     margin-bottom: 2rem;
-    flex-wrap: wrap;
+    h2 { font-size: 1.75rem; font-weight: 800; color: #111827; margin: 0; }
+    .subtitle { color: $text-muted; margin-top: 0.5rem; }
+  }
 
-    input {
-      flex: 1 1 200px;
-      padding: 0.75rem 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border 0.2s;
+  // Mesaje Status
+  .state-msg {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    &.loading { background: #eff6ff; color: #1d4ed8; }
+    &.error { background: #fef2f2; color: #b91c1c; }
+  }
 
-      &:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
-      }
-    }
+  // Secțiune Adăugare
+  .add-section {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
 
-    button {
-      padding: 0.75rem 1.5rem;
-      background: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-
-      &:hover {
-        background: #0056b3;
-      }
-
-      &:disabled {
-        background: #aaa;
-        cursor: not-allowed;
+    .input-group {
+      display: flex;
+      gap: 10px;
+      input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid $border-color;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+        &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.1); }
       }
     }
   }
 
-  h3 {
+  // Cards Module
+  .module-card {
+    background: white;
+    border: 1px solid $border-color;
+    border-radius: 12px;
     margin-bottom: 1rem;
-    color: #444;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0.5rem;
-  }
+    transition: all 0.2s ease;
+    
+    &:hover { border-color: $primary; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    &.expanded { border-left: 4px solid $primary; }
 
-  ul {
-    list-style: none;
-    padding: 0;
-
-    li {
-      background: #fff;
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.5rem;
-      border-radius: 8px;
+    .module-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      padding: 1rem 1.25rem;
+      min-height: 60px;
 
-      button {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        background: #28a745;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
+      .main-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
         cursor: pointer;
-        transition: background 0.2s;
 
-        &:hover {
-          background: #1e7e34;
+        .badge {
+          background: $bg-body;
+          color: $text-muted;
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          font-weight: 600;
+          font-size: 0.85rem;
+        }
+
+        .title-text { font-weight: 600; font-size: 1.05rem; }
+      }
+
+      // Stiluri Editare Inline
+      .edit-wrapper {
+        display: flex;
+        gap: 8px;
+        flex: 1;
+        input {
+          flex: 1;
+          padding: 0.5rem;
+          border: 2px solid $primary;
+          border-radius: 6px;
+        }
+        .edit-actions {
+          display: flex;
+          gap: 5px;
         }
       }
     }
+  }
+
+  // Butoane
+  .btn-primary {
+    background: $primary;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover { background: $primary-hover; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  .btn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &.save { background: $success; color: white; }
+    &.cancel { background: $text-muted; color: white; }
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: $bg-body; color: $primary; }
+    &.delete:hover { color: $danger; background: #fef2f2; }
+  }
+
+  // Subcapitole (Lesson List)
+  .module-content {
+    background: #fafafa;
+    border-top: 1px solid $border-color;
+    padding: 1rem 1.25rem;
+
+    .lesson-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: white;
+      border: 1px solid $border-color;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+
+      .lesson-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        i { color: $text-muted; }
+        span { font-size: 0.95rem; }
+      }
+
+      .btn-mini {
+        background: transparent;
+        border: 1px solid $border-color;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        &:hover { background: $bg-body; }
+        &.danger:hover { color: $danger; border-color: $danger; }
+      }
+    }
+  }
+
+  .add-lesson-inline {
+    margin-top: 1rem;
+    display: flex;
+    gap: 8px;
+    input { flex: 1; padding: 0.5rem; border: 1px solid $border-color; border-radius: 6px; }
+    .btn-success { background: $success; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+    .btn-link { background: none; border: none; color: $text-muted; cursor: pointer; text-decoration: underline; }
+  }
+
+  .chevron {
+    margin-left: 10px;
+    color: $text-muted;
+    cursor: pointer;
+    width: 30px;
+    text-align: center;
   }
 }

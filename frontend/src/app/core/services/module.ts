@@ -41,5 +41,34 @@ createModule(moduleData: any) {
 
   return this.http.post<any>(this.api, moduleData, { headers });
 }
+updateModule(moduleId: number, data: { title: string; orderIndex?: number }) {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  return this.http.put(`${this.api}/${moduleId}`, data, { headers });
+}
+deleteModule(moduleId: number) {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  return this.http.delete(`${this.api}/${moduleId}`, { headers });
+}
+deleteAllModulesByCourse(courseId: number) {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
+  return this.http.delete(
+    `http://localhost:3000/api/courses/${courseId}/modules`, // ✅ CORECT
+    { headers }
+  );
+}
+createLesson(lessonData: any) {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  return this.http.post<any>('http://localhost:3000/api/lessons', lessonData, { headers });
+}
+
+deleteLesson(lessonId: number) {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  return this.http.delete(`http://localhost:3000/api/lessons/${lessonId}`, { headers });
+}
 }

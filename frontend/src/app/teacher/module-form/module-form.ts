@@ -1,33 +1,48 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Module } from '../../core/services/module';
 import { AuthService } from '../../core/services/auth';
+import { CourseLesson, Lesson } from '../../core/services/lesson';
+import { ToastService } from '../../core/services/toast';
+import { forkJoin, map, switchMap } from 'rxjs';
+
+interface UIModule {
+  id: number;
+  title: string;
+  orderIndex: number;
+  lessons: { id: number; title: string }[];
+  editing?: boolean;
+  editTitle?: string;
+}
 
 @Component({
   selector: 'app-module-form',
-  imports: [CommonModule,ReactiveFormsModule],
+  imports: [CommonModule,ReactiveFormsModule,FormsModule],
   standalone: true,
   templateUrl: './module-form.html',
   styleUrl: './module-form.scss',
 })
+
 export class ModuleForm {
-courseId!: number;
+  courseId!: number;
   modules: any[] = [];
   moduleForm!: FormGroup;
   loading = false;
   error = '';
+  expandedModuleIds = new Set<number>();
 
   constructor(
     private fb: FormBuilder,
+    private moduleService: Module,
+    private lessonService: Lesson,
     private route: ActivatedRoute,
     private router: Router,
-    private moduleService: Module,
-    private authService: AuthService,
+    private toastService: ToastService
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.courseId = Number(this.route.snapshot.queryParamMap.get('courseId'));
     if (!this.courseId) {
       this.error = 'Nu s-a găsit ID-ul cursului!';
@@ -35,46 +50,199 @@ courseId!: number;
     }
 
     this.moduleForm = this.fb.group({
-      title: ['', Validators.required],
-      orderIndex: [1, [Validators.required, Validators.min(1)]],
+      title: ['', Validators.required]
     });
 
     this.loadModules();
   }
 
+  // --- Load Modules + lessons ---
   loadModules() {
-    this.loading = true;
-    this.moduleService.getModulesByCourse(this.courseId).subscribe({
-      next: modules => {
-        this.modules = modules;
-        this.loading = false;
-      },
-      error: err => {
-        console.error(err);
-        this.error = 'Nu s-au putut încărca modulele.';
-        this.loading = false;
-      }
-    });
-  }
+  this.loading = true;
+  this.moduleService.getModulesByCourse(this.courseId).pipe(
+    switchMap(modules => {
+      // Creăm un array de request-uri pentru lecții
+      const requests = modules.map(m => 
+        this.lessonService.getLessonsByModule(m.Id).pipe(
+          map(lessons => ({
+            id: m.Id,
+            title: m.Title,
+            orderIndex: m.OrderIndex,
+            lessons: lessons.map(l => ({ id: l.Id, title: l.Title }))
+          }))
+        )
+      );
+      return forkJoin(requests); // Așteaptă să se termine TOATE request-urile de lecții
+    })
+  ).subscribe({
+    next: (fullData) => {
+      this.modules = fullData; // Acum ai datele complete dintr-odată!
+      this.loading = false;
+    },
+    error: () => { this.loading = false; }
+  });
+}
 
+  // --- CRUD Module ---
   addModule() {
     if (this.moduleForm.invalid) return;
 
     const newModule = {
-      ...this.moduleForm.value,
-      courseId: this.courseId
+      title: this.moduleForm.value.title,
+      courseId: this.courseId,
+      orderIndex: this.modules.length + 1
     };
 
     this.moduleService.createModule(newModule).subscribe({
       next: module => {
-        this.modules.push(module);
-        this.moduleForm.reset({ orderIndex: this.modules.length + 1 });
+        this.modules.push({
+          id: module.Id,
+          courseId: module.CourseId,
+          title: module.Title,
+          orderIndex: module.OrderIndex,
+          lessons: [],
+          showAddLessonForm: false,
+          newLessonTitle: ''
+        });
+        this.moduleForm.reset();
+        this.toastService.show('Capitolul a fost adăugat cu succes!', 'success');
       },
-      error: err => console.error(err)
+      error: err => {
+        console.error(err);
+        this.toastService.show('Eroare la adăugarea capitolului.', 'error');
+      }
     });
   }
 
-  editLessons(module: any) {
-    this.router.navigate(['/teacher/lesson-form'], { queryParams: { moduleId: module.id } });
+  editModule(mod: any) {
+    this.router.navigate(['/teacher/module-edit'], { queryParams: { moduleId: mod.id } });
+  }
+
+  startEditing(mod: any) {
+    mod.editing = true;
+    mod.editTitle = mod.title ?? '';
+  }
+
+  cancelEditing(mod: any) {
+    mod.editing = false;
+  }
+
+  saveModuleEdit(mod: any) {
+  if (!mod.editTitle || mod.editTitle.trim() === '') return;
+
+  const updatedData = {
+    title: mod.editTitle.trim(),
+    orderIndex: mod.orderIndex   // 🔑 păstrează valoarea reală
+  };
+
+  this.moduleService.updateModule(mod.id, updatedData).subscribe({
+    next: () => {
+      mod.title = mod.editTitle;
+      mod.editing = false;
+      this.toastService.show('Capitolul a fost actualizat!', 'success');
+    },
+    error: err => {
+      console.error('Eroare la actualizarea capitolului:', err);
+      this.toastService.show('Eroare la actualizarea capitolului.', 'error');
+    }
+  });
+}
+
+  deleteModule(mod: any) {
+    if (!confirm('Sigur ștergi capitolul?')) return;
+
+    this.moduleService.deleteModule(mod.id).subscribe({
+      next: () => {
+        this.modules = this.modules.filter(m => m.id !== mod.id);
+        this.toastService.show('Capitolul a fost șters cu succes!', 'success');
+        this.loadModules();
+      },
+      error: err => {
+        console.error(err);
+        this.toastService.show('Eroare la ștergerea capitolului.', 'error');
+      }
+    });
+  }
+
+  deleteAllModules() {
+    if (!confirm('Sigur vrei să ștergi toate capitolele și lecțiile asociate?')) return;
+
+    this.moduleService.deleteAllModulesByCourse(this.courseId).subscribe({
+      next: () => {
+        // Golește lista locală și da refresh
+        this.modules = [];
+        this.toastService.show('Toate capitolele au fost șterse cu succes.', 'success');
+        // Reîncarcă modulele dacă vrei să fii sigur
+        this.loadModules();
+      },
+      error: err => {
+        console.error(err);
+        this.toastService.show('Eroare la ștergerea tuturor capitolelor.', 'error');
+      }
+    });
+  }
+
+  // --- Toggle module collapse ---
+  toggleModule(id: number) {
+    if (this.expandedModuleIds.has(id)) this.expandedModuleIds.delete(id);
+    else this.expandedModuleIds.add(id);
+  }
+
+  isExpanded(id: number) {
+    return this.expandedModuleIds.has(id);
+  }
+
+  // --- CRUD Lessons ---
+  showAddLesson(mod: any) {
+    mod.showAddLessonForm = true;
+  }
+
+  addLesson(mod: any) {
+    if (!mod.newLessonTitle) return;
+
+    const newLesson: CourseLesson = {
+      moduleId: mod.id,
+      Title: mod.newLessonTitle,
+      Content: '',
+      OrderIndex: mod.lessons.length + 1
+    };
+
+    this.lessonService.createLesson(newLesson).subscribe({
+      next: lesson => {
+        mod.lessons.push({
+          id: lesson.Id,
+          title: lesson.Title,
+          content: lesson.Content,
+          orderIndex: lesson.OrderIndex,
+          videoUrl: lesson.VideoUrl
+        });
+        mod.newLessonTitle = '';
+        mod.showAddLessonForm = false;
+        this.toastService.show('Subcapitolul a fost adăugat!', 'success');
+      },
+      error: err => {
+        console.error(err);
+        this.toastService.show('Eroare la adăugarea subcapitolului.', 'error');
+      }
+    });
+  }
+
+  editLesson(lesson: any) {
+    this.router.navigate(['/teacher/lesson-edit'], { queryParams: { lessonId: lesson.id } });
+  }
+
+  deleteLesson(lesson: any, mod: any) {
+    if (!confirm('Sigur ștergi subcapitolul?')) return;
+
+    this.lessonService.deleteLesson(lesson.id).subscribe({
+      next: () => {
+        mod.lessons = mod.lessons.filter((l: any) => l.id !== lesson.id);
+        this.toastService.show('Subcapitolul a fost șters!', 'success');
+      },
+      error: err => {
+        console.error(err);
+        this.toastService.show('Eroare la ștergerea subcapitolului.', 'error');
+      }
+    });
   }
 }

@@ -381,6 +381,78 @@ app.post('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
   }
 });
 
+// UPDATE MODULE
+app.put('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const moduleId = parseInt(req.params.id);
+  const { title, orderIndex } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  }
+
+  try {
+    await sqlPool.query`
+      UPDATE CourseModules
+      SET Title = ${title}, OrderIndex = ${orderIndex}
+      WHERE Id = ${moduleId}
+    `;
+    res.json({ message: 'Capitol actualizat cu succes.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la actualizarea capitolului.' });
+  }
+});
+
+// DELETE SINGLE MODULE (with lessons)
+app.delete('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const moduleId = parseInt(req.params.id);
+
+  try {
+    // 1️⃣ Șterge lecțiile asociate
+    await sqlPool.query`
+      DELETE FROM CourseLessons
+      WHERE ModuleId = ${moduleId}
+    `;
+
+    // 2️⃣ Șterge modulul
+    await sqlPool.query`
+      DELETE FROM CourseModules
+      WHERE Id = ${moduleId}
+    `;
+
+    res.json({ message: 'Capitolul și lecțiile sale au fost șterse cu succes.' });
+  } catch (err) {
+    console.error('❌ Error deleting module:', err);
+    res.status(500).json({ message: 'Eroare la ștergerea capitolului.' });
+  }
+});
+
+// DELETE ALL MODULES FOR A COURSE (with lessons)
+app.delete('/api/courses/:courseId/modules', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = parseInt(req.params.courseId);
+
+  try {
+    // 1️⃣ Șterge lecțiile tuturor modulelor
+    await sqlPool.query`
+      DELETE FROM CourseLessons
+      WHERE ModuleId IN (
+        SELECT Id FROM CourseModules WHERE CourseId = ${courseId}
+      )
+    `;
+
+    // 2️⃣ Șterge toate modulele cursului
+    await sqlPool.query`
+      DELETE FROM CourseModules
+      WHERE CourseId = ${courseId}
+    `;
+
+    res.json({ message: 'Toate capitolele și lecțiile asociate au fost șterse cu succes.' });
+  } catch (err) {
+    console.error('❌ Error deleting all modules:', err);
+    res.status(500).json({ message: 'Eroare la ștergerea capitolelor.' });
+  }
+});
+
 // CREATE LESSON
 app.post('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
   const { moduleId, title, content, videoUrl, orderIndex } = req.body;
