@@ -1,55 +1,82 @@
 <div class="my-classes-container">
-  <h2>Cursurile mele</h2>
+  <header class="page-header">
+    <div>
+      <h1>Cursurile mele</h1>
+      <p class="subtitle">Gestionează materialele tale educaționale</p>
+    </div>
+    <button class="btn-primary" (click)="goToAddCourse()">
+      <span class="icon">+</span> Adaugă curs nou
+    </button>
+  </header>
 
-  <button class="btn-add-course" (click)="goToAddCourse()">
-  + Adaugă curs nou
-  </button>
+  <div *ngIf="loading()" class="loader-container">
+    <div class="spinner"></div>
+    <p>Se încarcă cursurile...</p>
+  </div>
 
-  <div *ngIf="loading()">Se încarcă...</div>
-  <div *ngIf="error()">{{ error() }}</div>
-
-  <div class="courses-list" *ngIf="!loading()">
-    <div class="course-card" *ngFor="let course of courses()">
-
-      <!-- HEADER CURS -->
-      <div class="course-header" (click)="toggleCourse(course.Id)">
-        <h3>{{ course.Title }}</h3>
-        <span class="toggle-icon">
-          {{ expandedCourseId() === course.Id ? '▲' : '▼' }}
-        </span>
+  <div class="courses-grid" *ngIf="!loading()">
+    <div class="course-card" *ngFor="let course of courses()" [class.expanded]="expandedCourseId() === course.Id">
+      
+      <div class="course-main-info" (click)="toggleCourse(course.Id)">
+        <div class="course-text">
+          <h3>{{ course.Title }}</h3>
+          <p>{{ course.Description | slice:0:100 }}{{ course.Description?.length > 100 ? '...' : '' }}</p>
+        </div>
+        <div class="course-meta">
+          <span class="badge">{{ course.modules?.length || 0 }} Capitole</span>
+          <div class="chevron-circle">
+            <span class="toggle-icon">{{ expandedCourseId() === course.Id ? '▲' : '▼' }}</span>
+          </div>
+        </div>
       </div>
 
-      <p>{{ course.Description }}</p>
-
-      <!-- ACTIONS -->
       <div class="course-actions">
-        <button (click)="editCourse(course.Id)">Editează</button>
-        <button (click)="inviteStudents(course.Id)">Invită studenți</button>
-        <button (click)="addModule(course.Id)">+ Capitol nou</button>
+        <button class="btn-outline" (click)="editCourse(course.Id); $event.stopPropagation()">Editează</button>
+        <button class="btn-outline" (click)="inviteStudents(course.Id); $event.stopPropagation()">Invită</button>
+        <button class="btn-text" (click)="addModule(course.Id); $event.stopPropagation()">+ Capitol</button>
       </div>
 
-      <!-- EXPANDED STRUCTURE -->
-      <div *ngIf="expandedCourseId() === course.Id" class="course-details">
-        <div *ngIf="!course.modules">Se încarcă structura...</div>
+      <div *ngIf="expandedCourseId() === course.Id" class="course-details-area">
+        <div *ngIf="!course.modules" class="skeleton-loader">Se încarcă structura...</div>
 
-        <div class="module-card" *ngFor="let module of course.modules">
-          <h4>{{ module.Title }}</h4>
-          <button (click)="addLesson(module.Id)">+ Subcapitol nou</button>
+        <div class="module-section" *ngFor="let module of course.modules">
+          <div class="module-header">
+            <h4>{{ module.Title }}</h4>
+            <button class="btn-small" (click)="addLesson(module.Id)">+ Subcapitol</button>
+          </div>
 
           <div class="lessons-list">
-            <div class="lesson-card" *ngFor="let lesson of module.lessons">
-              <div class="lesson-header" (click)="toggleLesson(lesson)">
-                <strong>{{ lesson.OrderIndex }}. {{ lesson.Title }}</strong>
-                <span class="toggle-icon">{{ lesson.expanded ? '▲' : '▼' }}</span>
-              </div>
-
-              <div class="lesson-content" *ngIf="lesson.expanded">
-                <p>{{ lesson.Content }}</p>
-                <a *ngIf="lesson.VideoUrl" [href]="lesson.VideoUrl" target="_blank">🎥 Vezi video</a>
-              </div>
+            <div class="lesson-row" *ngFor="let lesson of module.lessons" (click)="openLessonPreview(lesson)">
+              <div class="lesson-prefix">{{ lesson.OrderIndex }}</div>
+              <div class="lesson-name">{{ lesson.Title }}</div>
+              <div class="lesson-preview-tag">Preview →</div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="selectedLesson()" (click)="closePreview()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="close-modal" (click)="closePreview()">&times;</button>
+      
+      <div class="modal-body">
+        <span class="lesson-tag">Previzualizare Lecție</span>
+        <h2>{{ selectedLesson().Title }}</h2>
+        <div class="content-scroll">
+          <p class="lesson-description">{{ selectedLesson().Content }}</p>
+          
+          <div class="video-preview" *ngIf="selectedLesson().VideoUrl">
+            <a [href]="selectedLesson().VideoUrl" target="_blank" class="video-btn">
+              <span class="play-icon">▶</span> Vizualizează conținutul video
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-primary" (click)="closePreview()">Am înțeles</button>
       </div>
     </div>
   </div>

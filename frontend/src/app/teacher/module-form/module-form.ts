@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Module } from '../../core/services/module';
@@ -25,13 +25,15 @@ interface UIModule {
   styleUrl: './module-form.scss',
 })
 
-export class ModuleForm {
+export class ModuleForm implements OnInit{
   courseId!: number;
   modules: any[] = [];
   moduleForm!: FormGroup;
   loading = false;
   error = '';
   expandedModuleIds = new Set<number>();
+  selectedLesson = signal<any | null>(null);
+  isModalOpening = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -244,5 +246,29 @@ export class ModuleForm {
         this.toastService.show('Eroare la ștergerea subcapitolului.', 'error');
       }
     });
+  }
+
+  // Adaugă aceste semnale/proprietăți în clasa ModuleForm
+
+
+  // Metoda pentru deschiderea preview-ului (folosește serviciul pentru a lua datele complete)
+  openLessonPreview(sub: any) {
+    this.loading = true;
+    this.lessonService.getLessonsByModule(sub.id).subscribe({
+      next: (fullLesson) => {
+        this.selectedLesson.set(fullLesson);
+        this.loading = false;
+        setTimeout(() => this.isModalOpening.set(true), 10);
+      },
+      error: () => {
+        this.toastService.show('Nu s-au putut încărca detaliile lecției', 'error');
+        this.loading = false;
+      }
+    });
+  }
+
+  closePreview() {
+    this.isModalOpening.set(false);
+    setTimeout(() => this.selectedLesson.set(null), 300);
   }
 }

@@ -19,6 +19,7 @@ export class MyClasses implements OnInit{
   loading = signal(true);
   error = signal('');
   expandedCourseId = signal<number | null>(null);
+  selectedLesson = signal<any | null>(null);
 
   private destroy$ = new Subject<void>();
 
@@ -104,5 +105,18 @@ export class MyClasses implements OnInit{
   goToAddCourse() {
     this.router.navigate(['/teacher/course-form']);
   }
+
+  
+
+  // Metoda pentru a deschide modalul
+  openLessonPreview(lesson: any) {
+    this.selectedLesson.set(lesson);
+  }
+
+  // Metoda pentru a închide modalul
+  closePreview() {
+    this.selectedLesson.set(null);
+  }
+
 
 }
