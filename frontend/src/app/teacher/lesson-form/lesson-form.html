@@ -1,10 +1,12 @@
 <div class="lesson-container">
   <header class="lesson-header">
     <h2>➕ Adaugă subcapitol</h2>
-    <p *ngIf="courseTitle && moduleTitle">
-      Curs: <strong>{{ courseTitle }}</strong> <br>
+
+    <div *ngIf="!loading && courseTitle && moduleTitle" class="context-info">
+      Curs: <strong>{{ courseTitle }}</strong><br>
       Capitol: <strong>{{ moduleTitle }}</strong>
-    </p>
+    </div>
+
     <p *ngIf="error" class="error-msg">{{ error }}</p>
   </header>
 

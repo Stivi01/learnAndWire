@@ -112,3 +112,24 @@ h2 {
     }
   }
 }
+
+.lesson-header {
+  text-align: center;
+  margin-bottom: 25px;
+
+  .context-info {
+    margin-top: 12px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f5f4ff, #ecebff);
+    border-radius: 12px;
+    border: 1px solid #e2e0ff;
+    font-size: 15px;
+    color: #444;
+    line-height: 1.6;
+
+    strong {
+      color: #6a5af9;
+      font-weight: 600;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Lesson } from '../../core/services/lesson';
@@ -29,7 +29,8 @@ export class LessonForm implements OnInit {
     private lessonService: Lesson,
     private moduleService: Module,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -53,17 +54,22 @@ private initForm() {
   });
 }
   loadModuleDetails() {
-    this.moduleService.getModuleById(this.moduleId).subscribe({
-      next: module => {
-        this.moduleTitle = module.Title;
-        this.courseTitle = module.Course?.Title || ''; 
-        // sau adaptează după structura ta backend
-      },
-      error: () => {
-        this.error = 'Nu s-au putut încărca informațiile modulului.';
-      }
-    });
-  }
+  this.loading = true;
+
+  this.moduleService.getModuleById(this.moduleId).subscribe({
+    next: module => {
+      this.moduleTitle = module.Title ?? '';
+      this.courseTitle = module.CourseTitle ?? '';
+      this.loading = false;
+      this.cd.detectChanges(); // 🔥 forțăm re-render imediat
+    },
+    error: () => {
+      this.error = 'Nu s-au putut încărca informațiile modulului.';
+      this.loading = false;
+      this.cd.detectChanges();
+    }
+  });
+}
 
   addLesson() {
     if (this.lessonForm.invalid) return;
