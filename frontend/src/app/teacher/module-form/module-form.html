@@ -81,8 +81,25 @@
               <span>{{ sub.title }}</span>
             </div>
             <div class="lesson-actions">
+              <!-- Sageata sus -->
+              <button class="btn-mini" title="Mută sus" 
+                      (click)="moveLessonUp(sub, mod)" 
+                      [disabled]="sub.orderIndex === 1">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+
+              <!-- Edit -->
               <button class="btn-mini" (click)="editLesson(sub)">Edit</button>
+
+              <!-- Delete -->
               <button class="btn-mini danger" (click)="deleteLesson(sub, mod)">Șterge</button>
+
+              <!-- Sageata jos -->
+              <button class="btn-mini" title="Mută jos" 
+                      (click)="moveLessonDown(sub, mod)" 
+                      [disabled]="sub.orderIndex === mod.lessons.length">
+                <i class="fas fa-arrow-down"></i>
+              </button>
             </div>
           </div>
 

@@ -60,8 +60,24 @@ private initForm() {
     next: module => {
       this.moduleTitle = module.Title ?? '';
       this.courseTitle = module.CourseTitle ?? '';
-      this.loading = false;
-      this.cd.detectChanges(); // 🔥 forțăm re-render imediat
+
+      // Preia lecțiile existente ca să calculăm orderIndex
+      this.lessonService.getLessonsByModule(this.moduleId).subscribe({
+        next: lessons => {
+          const maxOrderIndex = lessons.length > 0 
+            ? Math.max(...lessons.map(l => l.OrderIndex ?? 0))
+            : 0;
+
+          this.lessonForm.patchValue({ orderIndex: maxOrderIndex + 1 });
+          this.loading = false;
+          this.cd.detectChanges();
+        },
+        error: () => {
+          this.error = 'Nu s-au putut încărca lecțiile modulului.';
+          this.loading = false;
+          this.cd.detectChanges();
+        }
+      });
     },
     error: () => {
       this.error = 'Nu s-au putut încărca informațiile modulului.';
