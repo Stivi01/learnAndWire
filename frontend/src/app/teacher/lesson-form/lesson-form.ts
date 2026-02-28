@@ -95,14 +95,38 @@ private initForm() {
       moduleId: this.moduleId,
     };
 
-    this.lessonService.createLesson(newLesson).subscribe({
-      next: lesson => {
-        this.toastService.show('Subcapitolul a fost adăugat cu succes!', 'success');
-        this.router.navigate(['/teacher/my-classes']);
+    // --- Validări locale înainte de trimitere ---
+    this.lessonService.getLessonsByModule(this.moduleId).subscribe({
+      next: lessons => {
+        // 1️⃣ Verificare titlu duplicat
+        const titleDuplicate = lessons.some(l => l.Title.trim().toLowerCase() === newLesson.title.trim().toLowerCase());
+        if (titleDuplicate) {
+          this.toastService.show('Există deja un subcapitol cu acest titlu!', 'error');
+          return;
+        }
+
+        // 2️⃣ Verificare orderIndex duplicat
+        const orderDuplicate = lessons.some(l => l.OrderIndex === newLesson.orderIndex);
+        if (orderDuplicate) {
+          this.toastService.show(`Există deja un subcapitol pe poziția ${newLesson.orderIndex}!`, 'error');
+          return;
+        }
+
+        // Totul valid -> creăm subcapitolul
+        this.lessonService.createLesson(newLesson).subscribe({
+          next: lesson => {
+            this.toastService.show('Subcapitolul a fost adăugat cu succes!', 'success');
+            this.router.navigate(['/teacher/my-classes']);
+          },
+          error: err => {
+            console.error(err);
+            this.toastService.show('Eroare la adăugarea subcapitolului.', 'error');
+          }
+        });
       },
       error: err => {
         console.error(err);
-        this.toastService.show('Eroare la adăugarea subcapitolului.', 'error');
+        this.toastService.show('Nu s-au putut prelua lecțiile modulului.', 'error');
       }
     });
   }
