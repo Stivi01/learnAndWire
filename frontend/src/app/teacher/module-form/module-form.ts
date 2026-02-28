@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Module } from '../../core/services/module';
@@ -41,7 +41,8 @@ export class ModuleForm implements OnInit{
     private lessonService: Lesson,
     private route: ActivatedRoute,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private cd: ChangeDetectorRef 
   ) {}
 
   ngOnInit() {
@@ -63,7 +64,6 @@ export class ModuleForm implements OnInit{
   this.loading = true;
   this.moduleService.getModulesByCourse(this.courseId).pipe(
     switchMap(modules => {
-      // Creăm un array de request-uri pentru lecții
       const requests = modules.map(m => 
         this.lessonService.getLessonsByModule(m.Id).pipe(
           map(lessons => ({
@@ -74,14 +74,18 @@ export class ModuleForm implements OnInit{
           }))
         )
       );
-      return forkJoin(requests); // Așteaptă să se termine TOATE request-urile de lecții
+      return forkJoin(requests);
     })
   ).subscribe({
     next: (fullData) => {
-      this.modules = fullData; // Acum ai datele complete dintr-odată!
+      this.modules = fullData;        // setăm array-ul complet
       this.loading = false;
+      this.cd.detectChanges();        // 🔑 forțăm re-render, doar dacă e nevoie
     },
-    error: () => { this.loading = false; }
+    error: () => { 
+      this.loading = false; 
+      this.cd.detectChanges();
+    }
   });
 }
 
@@ -108,6 +112,8 @@ export class ModuleForm implements OnInit{
         });
         this.moduleForm.reset();
         this.toastService.show('Capitolul a fost adăugat cu succes!', 'success');
+
+        this.cd.detectChanges();
       },
       error: err => {
         console.error(err);
@@ -157,6 +163,7 @@ export class ModuleForm implements OnInit{
       next: () => {
         this.modules = this.modules.filter(m => m.id !== mod.id);
         this.toastService.show('Capitolul a fost șters cu succes!', 'success');
+        this.cd.detectChanges();
         this.loadModules();
       },
       error: err => {
@@ -221,6 +228,8 @@ export class ModuleForm implements OnInit{
         mod.newLessonTitle = '';
         mod.showAddLessonForm = false;
         this.toastService.show('Subcapitolul a fost adăugat!', 'success');
+
+        this.cd.detectChanges();
       },
       error: err => {
         console.error(err);
@@ -271,5 +280,9 @@ export class ModuleForm implements OnInit{
   closePreview() {
     this.isModalOpening.set(false);
     setTimeout(() => this.selectedLesson.set(null), 300);
+  }
+
+  goToAddLesson(moduleId: number) {
+    this.router.navigate(['/teacher/lesson-form'], { queryParams: { moduleId } });
   }
 }

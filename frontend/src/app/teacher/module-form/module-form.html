@@ -62,7 +62,9 @@
           <button class="btn-ghost delete" (click)="deleteModule(mod); $event.stopPropagation()" title="Șterge capitol">
             <i class="fas fa-trash"></i>
           </button>
-          <button class="btn-ghost add" (click)="showAddLesson(mod); $event.stopPropagation()" title="Adaugă subcapitol">
+          <button class="btn-ghost add" 
+                (click)="goToAddLesson(mod.id); $event.stopPropagation()" 
+                title="Adaugă subcapitol">
             <i class="fas fa-folder-plus"></i>
           </button>
           <span class="chevron" (click)="toggleModule(mod.id)">
