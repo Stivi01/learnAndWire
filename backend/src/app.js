@@ -403,6 +403,34 @@ app.put('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) =>
   }
 });
 
+// GET MODULE BY ID
+app.get('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const moduleId = parseInt(req.params.id);
+
+  if (isNaN(moduleId)) {
+    return res.status(400).json({ message: 'ID modul invalid.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      SELECT m.*, c.Title AS CourseTitle
+      FROM CourseModules m
+      INNER JOIN Courses c ON c.Id = m.CourseId
+      WHERE m.Id = ${moduleId}
+    `;
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ message: 'Modulul nu există.' });
+    }
+
+    res.json(result.recordset[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la preluarea modulului.' });
+  }
+});
+
 // DELETE SINGLE MODULE (with lessons)
 app.delete('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const moduleId = parseInt(req.params.id);

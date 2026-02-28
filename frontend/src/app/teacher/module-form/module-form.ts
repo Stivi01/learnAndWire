@@ -68,6 +68,7 @@ export class ModuleForm implements OnInit{
         this.lessonService.getLessonsByModule(m.Id).pipe(
           map(lessons => ({
             id: m.Id,
+            courseId: m.CourseId,
             title: m.Title,
             orderIndex: m.OrderIndex,
             lessons: lessons.map(l => ({ id: l.Id, title: l.Title }))
@@ -282,7 +283,13 @@ export class ModuleForm implements OnInit{
     setTimeout(() => this.selectedLesson.set(null), 300);
   }
 
-  goToAddLesson(moduleId: number) {
-    this.router.navigate(['/teacher/lesson-form'], { queryParams: { moduleId } });
+  // ModuleForm.ts
+  goToAddLesson(mod: any) {
+    this.router.navigate(['/teacher/lesson-form'], {
+      queryParams: {
+        moduleId: mod.id,
+        courseId: mod.courseId   // dacă ai CourseId
+      }
+    });
   }
 }

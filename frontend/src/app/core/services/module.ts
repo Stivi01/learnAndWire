@@ -32,6 +32,12 @@ export class Module {
   return this.http.get<any[]>(`${this.api}?courseId=${courseId}`, { headers });
 }
 
+getModuleById(moduleId: number): Observable<any> {
+  const token = this.authService.getToken();
+  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+  return this.http.get<any>(`${this.api}/${moduleId}`, { headers });
+}
+
 createModule(moduleData: any) {
   const token = this.authService.getToken();
 

@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Lesson } from '../../core/services/lesson';
 import { Module } from '../../core/services/module';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-lesson-form',
@@ -12,9 +13,12 @@ import { Module } from '../../core/services/module';
   templateUrl: './lesson-form.html',
   styleUrl: './lesson-form.scss',
 })
-export class LessonForm {
-moduleId!: number;
-  lessons: any[] = [];
+export class LessonForm implements OnInit {
+  courseId!: number;
+  courseTitle = '';
+  moduleId!: number;
+  moduleTitle = '';
+
   lessonForm!: FormGroup;
   loading = false;
   error = '';
@@ -23,44 +27,40 @@ moduleId!: number;
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private lessonService: Lesson,
-    private moduleService: Module
+    private moduleService: Module,
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
-    this.moduleId = Number(this.route.snapshot.queryParamMap.get('moduleId'));
-    if (!this.moduleId) {
-      this.error = 'Nu s-a găsit ID-ul modulului!';
-      return;
-    }
+  this.moduleId = Number(this.route.snapshot.queryParamMap.get('moduleId'));
 
-    this.lessonForm = this.fb.group({
-      title: ['', Validators.required],
-      content: ['', Validators.required],
-      videoUrl: [''],
-      orderIndex: [1, [Validators.required, Validators.min(1)]],
-    });
-
-    this.loadLessons();
+  if (!this.moduleId) {
+    this.error = 'Nu s-a găsit ID-ul modulului!';
+    return;
   }
 
-  loadLessons() {
-    this.loading = true;
-    this.lessonService.getLessonsByModule(this.moduleId).subscribe({
-      next: lessons => {
-        this.lessons = lessons.map(l => ({
-          id: l.Id,
-          title: l.Title,
-          content: l.Content,
-          orderIndex: l.OrderIndex,
-          videoUrl: l.VideoUrl
-        }));
-        this.loading = false;
-      },
+  this.initForm();
+  this.loadModuleDetails(); // 👈 doar modulul
+}
 
-      error: err => {
-        console.error(err);
-        this.error = 'Nu s-au putut încărca lecțiile.';
-        this.loading = false;
+private initForm() {
+  this.lessonForm = this.fb.group({
+    title: ['', Validators.required],
+    content: ['', Validators.required],
+    videoUrl: [''],
+    orderIndex: [1, [Validators.required, Validators.min(1)]],
+  });
+}
+  loadModuleDetails() {
+    this.moduleService.getModuleById(this.moduleId).subscribe({
+      next: module => {
+        this.moduleTitle = module.Title;
+        this.courseTitle = module.Course?.Title || ''; 
+        // sau adaptează după structura ta backend
+      },
+      error: () => {
+        this.error = 'Nu s-au putut încărca informațiile modulului.';
       }
     });
   }
@@ -70,34 +70,30 @@ moduleId!: number;
 
     const newLesson = {
       ...this.lessonForm.value,
-      moduleId: this.moduleId
+      moduleId: this.moduleId,
     };
 
     this.lessonService.createLesson(newLesson).subscribe({
       next: lesson => {
-        this.lessons.push({
-          id: lesson.Id,
-          title: lesson.Title,
-          content: lesson.Content,
-          orderIndex: lesson.OrderIndex,
-          videoUrl: lesson.VideoUrl
-        });
-
-        this.lessonForm.reset({ orderIndex: this.lessons.length + 1 });
+        this.toastService.show('Subcapitolul a fost adăugat cu succes!', 'success');
+        this.router.navigate(['/teacher/my-classes']);
       },
-
-      error: err => console.error(err)
+      error: err => {
+        console.error(err);
+        this.toastService.show('Eroare la adăugarea subcapitolului.', 'error');
+      }
     });
   }
-  deleteLesson(id: number) {
-  if (!confirm("Sigur vrei să ștergi lecția?")) return;
-
-  this.lessonService.deleteLesson(id).subscribe({
-    next: () => {
-      this.lessons = this.lessons.filter(l => l.id !== id);
-    },
-    error: err => console.error(err)
-  });
 }
 
-}
+//   deleteLesson(id: number) {
+//   if (!confirm("Sigur vrei să ștergi lecția?")) return;
+
+//   this.lessonService.deleteLesson(id).subscribe({
+//     next: () => {
+//       this.lessons = this.lessons.filter(l => l.id !== id);
+//     },
+//     error: err => console.error(err)
+//   });
+// }
+

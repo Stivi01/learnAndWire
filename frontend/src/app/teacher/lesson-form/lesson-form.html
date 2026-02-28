@@ -1,8 +1,15 @@
 <div class="lesson-container">
-  <h2>📘 Subcapitole pentru capitol {{ moduleId }}</h2>
+  <header class="lesson-header">
+    <h2>➕ Adaugă subcapitol</h2>
+    <p *ngIf="courseTitle && moduleTitle">
+      Curs: <strong>{{ courseTitle }}</strong> <br>
+      Capitol: <strong>{{ moduleTitle }}</strong>
+    </p>
+    <p *ngIf="error" class="error-msg">{{ error }}</p>
+  </header>
 
-  <form [formGroup]="lessonForm" class="lesson-form" (ngSubmit)="addLesson()">
-
+  <!-- --- Form pentru adăugare subcapitol --- -->
+  <form *ngIf="lessonForm" [formGroup]="lessonForm" class="lesson-form" (ngSubmit)="addLesson()">
     <div>
       <label>Titlu subcapitol</label>
       <input type="text" formControlName="title" placeholder="Ex: Introducere în Drept Civil" />
@@ -25,14 +32,4 @@
 
     <button type="submit" [disabled]="lessonForm.invalid">➕ Adaugă subcapitol</button>
   </form>
-
-  <div class="lessons-list" *ngIf="lessons.length > 0">
-    <h3>📚 Subcapitole existente</h3>
-
-    <div class="lesson-item" *ngFor="let lesson of lessons">
-      <strong>{{ lesson.OrderIndex }}. {{ lesson.Title }}</strong>
-
-      <button (click)="deleteLesson(lesson.id)">Șterge</button>
-    </div>
-  </div>
 </div>
