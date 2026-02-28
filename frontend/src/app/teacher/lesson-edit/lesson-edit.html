@@ -1,0 +1,43 @@
+<div class="lesson-edit-container">
+  <div class="lesson-edit-header">
+    <h2>Editare Subcapitol</h2>
+    <p>Actualizează informațiile lecției</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    Se încarcă datele...
+  </div>
+
+  <form *ngIf="!loading" [formGroup]="lessonForm" (ngSubmit)="saveLesson()" class="lesson-form">
+
+    <div class="form-group">
+      <label>Titlu</label>
+      <input formControlName="Title">
+    </div>
+
+    <div class="form-group">
+      <label>Conținut</label>
+      <textarea formControlName="Content"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Video URL</label>
+      <input formControlName="VideoUrl">
+    </div>
+
+    <div class="form-group">
+      <label>Ordine</label>
+      <input type="number" formControlName="OrderIndex">
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="goBack()">
+        Anulează
+      </button>
+      <button type="submit" class="btn-primary">
+        Salvează modificările
+      </button>
+    </div>
+
+  </form>
+</div>

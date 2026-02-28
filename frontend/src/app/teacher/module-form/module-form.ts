@@ -230,7 +230,7 @@ export class ModuleForm implements OnInit{
   }
 
   editLesson(lesson: any) {
-    this.router.navigate(['/teacher/lesson-edit'], { queryParams: { lessonId: lesson.id } });
+    this.router.navigate(['/teacher/lesson-edit', lesson.id]);
   }
 
   deleteLesson(lesson: any, mod: any) {
@@ -253,19 +253,20 @@ export class ModuleForm implements OnInit{
 
   // Metoda pentru deschiderea preview-ului (folosește serviciul pentru a lua datele complete)
   openLessonPreview(sub: any) {
-    this.loading = true;
-    this.lessonService.getLessonsByModule(sub.id).subscribe({
-      next: (fullLesson) => {
-        this.selectedLesson.set(fullLesson);
-        this.loading = false;
-        setTimeout(() => this.isModalOpening.set(true), 10);
-      },
-      error: () => {
-        this.toastService.show('Nu s-au putut încărca detaliile lecției', 'error');
-        this.loading = false;
-      }
-    });
-  }
+  this.loading = true;
+
+  this.lessonService.getLessonById(sub.id).subscribe({
+    next: (lesson) => {
+      this.selectedLesson.set(lesson);
+      this.loading = false;
+      setTimeout(() => this.isModalOpening.set(true), 10);
+    },
+    error: () => {
+      this.toastService.show('Nu s-au putut încărca detaliile lecției', 'error');
+      this.loading = false;
+    }
+  });
+}
 
   closePreview() {
     this.isModalOpening.set(false);

@@ -476,6 +476,83 @@ app.post('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
   }
 });
 
+// DELETE LESSON
+app.delete('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const lessonId = parseInt(req.params.id);
+
+  if (isNaN(lessonId)) {
+    return res.status(400).json({ message: 'ID lecție invalid.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      DELETE FROM CourseLessons
+      WHERE Id = ${lessonId}
+    `;
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Lecția nu există.' });
+    }
+
+    res.json({ message: 'Lecția a fost ștearsă cu succes.' });
+
+  } catch (err) {
+    console.error('❌ Error deleting lesson:', err);
+    res.status(500).json({ message: 'Eroare la ștergerea lecției.' });
+  }
+});
+
+// UPDATE LESSON
+app.put('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const lessonId = parseInt(req.params.id);
+  const { title, content, videoUrl, orderIndex } = req.body;
+
+  if (isNaN(lessonId)) {
+    return res.status(400).json({ message: 'ID lecție invalid.' });
+  }
+
+  if (!title) {
+    return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      UPDATE CourseLessons
+      SET 
+        Title = ${title},
+        Content = ${content || ''},
+        VideoUrl = ${videoUrl || ''},
+        OrderIndex = ${orderIndex || 0}
+      WHERE Id = ${lessonId}
+    `;
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Lecția nu există.' });
+    }
+
+    res.json({ message: 'Lecția a fost actualizată cu succes.' });
+
+  } catch (err) {
+    console.error('❌ Error updating lesson:', err);
+    res.status(500).json({ message: 'Eroare la actualizarea lecției.' });
+  }
+});
+
+app.get('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const lessonId = parseInt(req.params.id);
+
+  const result = await sqlPool.query`
+    SELECT *
+    FROM CourseLessons
+    WHERE Id = ${lessonId}
+  `;
+
+  if (result.recordset.length === 0)
+    return res.status(404).json({ message: 'Lecția nu există.' });
+
+  res.json(result.recordset[0]);
+});
+
 // GET FULL COURSE STRUCTURE
 app.get('/api/courses/:id/full', protect, restrictTo('Profesor'), async (req, res) => {
   const courseId = req.params.id;

@@ -32,6 +32,13 @@ export class Lesson {
       this.headers
     );
   }
+  
+  getLessonById(id: number): Observable<CourseLesson> {
+  return this.http.get<CourseLesson>(
+    `${this.apiUrl}/${id}`,
+    this.headers
+  );
+}
 
   createLesson(lesson: CourseLesson): Observable<CourseLesson> {
     return this.http.post<CourseLesson>(
@@ -41,13 +48,13 @@ export class Lesson {
     );
   }
 
-  updateLesson(lesson: CourseLesson): Observable<CourseLesson> {
-    return this.http.put<CourseLesson>(
-      `${this.apiUrl}/${lesson.Id}`,
-      lesson,
-      this.headers
-    );
-  }
+  updateLesson(lesson: any): Observable<CourseLesson> {
+  return this.http.put<CourseLesson>(
+    `${this.apiUrl}/${lesson.id}`,  // aici lesson.Id trebuie să fie doar URL
+    lesson,
+    this.headers
+  );
+}
 
   deleteLesson(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, this.headers);

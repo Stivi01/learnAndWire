@@ -66,6 +66,14 @@ export const routes: Routes = [
       import('./teacher/lesson-form/lesson-form').then(m => m.LessonForm)
   },
 
+  {
+    path: 'teacher/lesson-edit/:lessonId',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () =>
+      import('./teacher/lesson-edit/lesson-edit').then(m => m.LessonEdit)
+  },
+
   // TEACHER: Invite Students
     {
       path: 'teacher/invite-students',
