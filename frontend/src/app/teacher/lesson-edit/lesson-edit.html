@@ -27,7 +27,12 @@
 
     <div class="form-group">
       <label>Ordine</label>
-      <input type="number" formControlName="OrderIndex">
+      <input 
+        type="number" 
+        formControlName="OrderIndex" 
+        min="1"
+        step="1"
+        />
     </div>
 
     <div class="form-actions">

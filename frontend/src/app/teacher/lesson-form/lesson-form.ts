@@ -112,6 +112,11 @@ private initForm() {
           return;
         }
 
+        if (this.lessonForm.value.orderIndex < 1) {
+          this.toastService.show('Poziția trebuie să fie cel puțin 1.', 'error');
+          return;
+        }
+
         // Totul valid -> creăm subcapitolul
         this.lessonService.createLesson(newLesson).subscribe({
           next: lesson => {
