@@ -37,9 +37,8 @@ export class QuizListTeacher {
     });
   }
 
-  createQuiz() {
-    this.editingQuiz.set({ title: '', description: '', isPublished: false });
-    this.showModal.set(true);
+  goToCreateQuiz() {
+    this.router.navigate(['/teacher/quiz-form']);
   }
 
   editQuiz(quiz: QuizData) {

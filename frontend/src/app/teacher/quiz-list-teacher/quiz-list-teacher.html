@@ -2,8 +2,12 @@
 
   <h2>Quiz-uri create</h2>
 
-  <button class="create-btn" (click)="createQuiz()">
-    + Creează Quiz
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="goToCreateQuiz()"
+  >
+    Crează Quiz
   </button>
 
   <div class="quiz-card" *ngFor="let q of quizzes()">
