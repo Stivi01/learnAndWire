@@ -18,7 +18,8 @@ export class QuizForm {
   quiz = signal<Partial<QuizData>>({
     title: '',
     description: '',
-    isPublished: false
+    isPublished: false,
+    scheduledAt: null   // ← ADAUGĂ
   });
 
   courses = signal<CourseItem[]>([]);
@@ -73,23 +74,30 @@ export class QuizForm {
 
 
   loadQuiz(id: number) {
-    this.quizService.getQuizFull(id).subscribe({
-      next: data => {
-        this.quiz.set({
-          title: data.quiz.Title,
-          description: data.quiz.Description,
-          isPublished: data.quiz.IsPublished,
-        });
+  this.quizService.getQuizFull(id).subscribe({
+    next: data => {
 
-        // Setăm cursul selectat
-        if (data.quiz.CourseId) {
-          const match = this.courses().find(c => c.Id === data.quiz.CourseId);
-          if (match) this.selectedCourse = match;
-        }
-      },
-      error: err => console.error("Eroare la încărcarea quiz-ului:", err)
-    });
-  }
+      let scheduled = data.quiz.ScheduledAt;
+
+      // 🔥 Conversie pentru datetime-local
+      if (scheduled) {
+        scheduled = scheduled.substring(0, 16);
+      }
+
+      this.quiz.set({
+        title: data.quiz.Title,
+        description: data.quiz.Description,
+        isPublished: data.quiz.IsPublished,
+        courseId: data.quiz.CourseId,
+        scheduledAt: scheduled
+      });
+
+      const match = this.courses().find(c => c.Id === data.quiz.CourseId);
+      if (match) this.selectedCourse = match;
+    },
+    error: err => console.error("Eroare la încărcarea quiz-ului:", err)
+  });
+}
 
   saveQuiz() {
   const quizData = this.quiz();
@@ -102,11 +110,27 @@ export class QuizForm {
     return;
   }
 
+  if (quizData.isPublished && !quizData.scheduledAt) {
+    alert("Trebuie să setezi data înainte de publicare.");
+    return;
+  }
+
+  if (quizData.scheduledAt) {
+    const now = new Date();
+    const scheduled = new Date(quizData.scheduledAt);
+
+    if (scheduled <= now) {
+      alert("Data trebuie să fie în viitor.");
+      return;
+    }
+  }
+
   const payload = {
     title: quizData.title,
     description: quizData.description || '',
     courseId: quizData.courseId,
-    isPublished: quizData.isPublished
+    isPublished: quizData.isPublished,
+    scheduledAt: quizData.scheduledAt || null   // ← ADAUGĂ
   };
 
   if (this.quizId) {
@@ -144,6 +168,10 @@ export class QuizForm {
 
   updateCourse(value: number) {
     this.quiz.update(q => ({ ...q, courseId: value }));
+  }
+
+  updateScheduledAt(value: string) {
+    this.quiz.update(q => ({ ...q, scheduledAt: value }));
   }
 
 }

@@ -859,21 +859,54 @@ app.get('/api/student/teachers', protect, restrictTo('Student'), async (req, res
 // =========================
 
 // CREATE QUIZ
+// CREATE QUIZ
 app.post('/api/quizzes', protect, restrictTo('Profesor'), async (req, res) => {
-  const { courseId, title, description, isPublished } = req.body;
+  const { courseId, title, description, isPublished, scheduledAt } = req.body;
 
   if (!courseId || !title) {
-    return res.status(400).json({ message: "courseId și title sunt obligatorii." });
+    return res.status(400).json({
+      message: "courseId și title sunt obligatorii."
+    });
   }
 
   try {
-    const result = await sqlPool.query`
-      INSERT INTO CourseQuizzes (CourseId, Title, Description, CreatedBy, CreatedAt, IsPublished)
+    // 🔴 VALIDARE PUBLICARE FĂRĂ DATĂ
+    if (isPublished && !scheduledAt) {
+      return res.status(400).json({
+        message: "Nu poți publica un quiz fără dată programată."
+      });
+    }
+
+    // 🔴 VALIDARE DATĂ ÎN VIITOR
+    let scheduledDate = null;
+    if (scheduledAt) {
+      scheduledDate = new Date(scheduledAt);
+      const now = new Date();
+      if (scheduledDate <= now) {
+        return res.status(400).json({
+          message: "Data quiz-ului trebuie să fie în viitor."
+        });
+      }
+    }
+
+    // Folosim SQL tipizat
+    const request = sqlPool.request()
+      .input('CourseId', sql.Int, courseId)
+      .input('Title', sql.NVarChar(255), title)
+      .input('Description', sql.NVarChar(sql.MAX), description || '')
+      .input('CreatedBy', sql.Int, req.user.id)
+      .input('IsPublished', sql.Bit, isPublished ? 1 : 0)
+      .input('ScheduledAt', sql.DateTime2, scheduledDate);
+
+    const result = await request.query(`
+      INSERT INTO CourseQuizzes 
+      (CourseId, Title, Description, CreatedBy, CreatedAt, IsPublished, ScheduledAt)
       OUTPUT INSERTED.*
-      VALUES (${courseId}, ${title}, ${description || ''}, ${req.user.id}, GETDATE(), ${isPublished || 0})
-    `;
+      VALUES (@CourseId, @Title, @Description, @CreatedBy, GETDATE(), @IsPublished, @ScheduledAt)
+    `);
 
     res.status(201).json(result.recordset[0]);
+
   } catch (err) {
     console.error("❌ Error creating quiz:", err);
     res.status(500).json({ message: "Eroare la crearea quiz-ului." });
@@ -935,19 +968,58 @@ app.get('/api/quizzes/:id/full', protect, restrictTo('Profesor'), async (req, re
 // UPDATE QUIZ
 app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const quizId = parseInt(req.params.id);
-  const { title, description, isPublished } = req.body;
+  const { title, description, isPublished, scheduledAt } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ message: "Title este obligatoriu." });
+  }
 
   try {
-    await sqlPool.query`
-      UPDATE CourseQuizzes
-      SET Title = ${title}, Description = ${description}, IsPublished = ${isPublished}
-      WHERE Id = ${quizId}
+    const quizCheck = await sqlPool.query`
+      SELECT * FROM CourseQuizzes WHERE Id = ${quizId}
     `;
 
-    res.json({ message: "Quiz actualizat." });
+    if (quizCheck.recordset.length === 0) {
+      return res.status(404).json({ message: "Quiz inexistent." });
+    }
+
+    // Validări
+    if (isPublished && !scheduledAt) {
+      return res.status(400).json({ message: "Nu poți publica un quiz fără dată programată." });
+    }
+
+    let scheduledDate = null;
+    if (scheduledAt) {
+      scheduledDate = new Date(scheduledAt);
+      if (isNaN(scheduledDate.getTime())) {
+        return res.status(400).json({ message: "Data programată este invalidă." });
+      }
+      const now = new Date();
+      if (scheduledDate <= now) {
+        return res.status(400).json({ message: "Data quiz-ului trebuie să fie în viitor." });
+      }
+    }
+
+    await sqlPool.request()
+      .input('Title', sql.NVarChar(255), title)
+      .input('Description', sql.NVarChar(sql.MAX), description || '')
+      .input('IsPublished', sql.Bit, isPublished ? 1 : 0)
+      .input('ScheduledAt', sql.DateTime2, scheduledDate)
+      .query(`
+        UPDATE CourseQuizzes
+        SET 
+          Title = @Title,
+          Description = @Description,
+          IsPublished = @IsPublished,
+          ScheduledAt = @ScheduledAt
+        WHERE Id = ${quizId}
+      `);
+
+    res.json({ message: "Quiz actualizat cu succes." });
+
   } catch (err) {
     console.error("❌ Error updating quiz:", err);
-    res.status(500).json({ message: "Eroare la actualizarea quiz-ului." });
+    res.status(500).json({ message: "Eroare la actualizare." });
   }
 });
 
@@ -1177,6 +1249,22 @@ app.patch('/api/quizzes/:id/publish', protect, restrictTo('Profesor'), async (re
   const { isPublished } = req.body;
 
   try {
+    const quizResult = await sqlPool.query`
+      SELECT ScheduledAt FROM CourseQuizzes WHERE Id = ${quizId}
+    `;
+
+    if (quizResult.recordset.length === 0) {
+      return res.status(404).json({ message: "Quiz inexistent." });
+    }
+
+    const quiz = quizResult.recordset[0];
+
+    if (isPublished && !quiz.ScheduledAt) {
+      return res.status(400).json({ 
+        message: "Nu poți publica fără dată programată." 
+      });
+    }
+
     await sqlPool.query`
       UPDATE CourseQuizzes
       SET IsPublished = ${isPublished}
@@ -1186,8 +1274,8 @@ app.patch('/api/quizzes/:id/publish', protect, restrictTo('Profesor'), async (re
     res.json({ message: isPublished ? "Quiz publicat." : "Quiz ascuns." });
 
   } catch (err) {
-    console.error("❌ Error changing publish state:", err);
-    res.status(500).json({ message: "Eroare la schimbarea stării quiz-ului." });
+    console.error(err);
+    res.status(500).json({ message: "Eroare la schimbarea stării." });
   }
 });
 

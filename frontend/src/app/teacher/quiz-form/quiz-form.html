@@ -31,6 +31,14 @@
     </label>
   </div>
 
+  <div class="form-group">
+    <label>Data și ora susținerii:</label>
+    <input 
+      type="datetime-local"
+      [(ngModel)]="quiz().scheduledAt"
+      (ngModelChange)="updateScheduledAt($event)">
+  </div>
+
   <button (click)="saveQuiz()">{{ quizId ? 'Actualizează quiz' : 'Creează quiz' }}</button>
 
 </div>

@@ -43,9 +43,21 @@ export class QuizListTeacher {
   }
 
   editQuiz(quiz: QuizData) {
-    this.editingQuiz.set({ ...quiz });
-    this.showModal.set(true);
+  // 🔥 Conversie scheduledAt pentru datetime-local
+  let scheduledAt: string | null = null;
+  if (quiz.scheduledAt) {
+    const d = new Date(quiz.scheduledAt);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    scheduledAt = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   }
+
+  this.editingQuiz.set({ ...quiz, scheduledAt });
+  this.showModal.set(true);
+}
 
   saveQuiz() {
   const quiz = this.editingQuiz();
@@ -58,7 +70,8 @@ export class QuizListTeacher {
     title: quiz.title,
     description: quiz.description || '',
     isPublished: quiz.isPublished,
-    courseId: quiz.courseId // opțional, dacă ai selectat curs
+    courseId: quiz.courseId,
+    scheduledAt: quiz.scheduledAt || null  // ← adaugă aici
   };
 
   if (quiz.id) {

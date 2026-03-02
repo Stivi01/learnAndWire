@@ -9,6 +9,9 @@
   <div class="quiz-card" *ngFor="let q of quizzes()">
     <h3>{{ q.title }}</h3>
     <p>{{ q.description }}</p>
+    <p *ngIf="q.scheduledAt">
+      Programat pentru: {{ q.scheduledAt | date:'dd.MM.yyyy HH:mm' }}
+    </p>
 
     <div class="actions">
       <button class="edit-btn" (click)="editQuiz(q)">Editează</button>
@@ -30,6 +33,13 @@
     <div class="form-group">
       <label>Titlu:</label>
       <input type="text" [(ngModel)]="eq.title">
+    </div>
+
+    <div class="form-group">
+      <label>Data și ora susținerii:</label>
+      <input 
+        type="datetime-local" 
+        [(ngModel)]="eq.scheduledAt">
     </div>
 
     <div class="form-group">

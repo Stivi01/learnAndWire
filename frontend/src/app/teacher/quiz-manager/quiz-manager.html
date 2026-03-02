@@ -8,6 +8,9 @@
 
     <div class="quiz-header">
       <h3>{{ quiz().Title }}</h3>
+      <p *ngIf="quiz().ScheduledAt">
+        Programat pentru: {{ quiz().ScheduledAt | date:'dd.MM.yyyy HH:mm' }}
+      </p>
       <p>{{ quiz().Description }}</p>
       <p>Total puncte: {{ totalPoints }}</p>
       <div class="status">

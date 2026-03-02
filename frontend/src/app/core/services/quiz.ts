@@ -25,19 +25,27 @@ export class Quiz {
   // QUIZ CRUD
   // -------------------------
 
-  createQuiz(data: { courseId?: number; title: string; description?: string }): Observable<QuizData> {
-    return this.http.post<any>(`${this.api}`, data, this.headers()).pipe(
-      map(q => ({
-        id: q.Id,
-        courseId: q.CourseId,
-        title: q.Title,
-        description: q.Description,
-        createdAt: q.CreatedAt,
-        createdBy: q.CreatedBy,
-        isPublished: q.IsPublished
-      }))
-    );
-  }
+  createQuiz(data: { 
+  courseId?: number; 
+  title: string; 
+  description?: string; 
+  isPublished?: boolean;
+  scheduledAt?: string | null;
+}): Observable<QuizData> {
+
+  return this.http.post<any>(`${this.api}`, data, this.headers()).pipe(
+    map(q => ({
+      id: q.Id,
+      courseId: q.CourseId,
+      title: q.Title,
+      description: q.Description,
+      createdAt: q.CreatedAt,
+      createdBy: q.CreatedBy,
+      isPublished: q.IsPublished,
+      scheduledAt: q.ScheduledAt   // ← ADAUGĂ
+    }))
+  );
+}
 
   getQuizByCourse(courseId: number): Observable<QuizData[]> {
     return this.http.get<any[]>(`${this.api}/course/${courseId}`, this.headers()).pipe(
@@ -48,7 +56,8 @@ export class Quiz {
         description: q.Description,
         createdAt: q.CreatedAt,
         createdBy: q.CreatedBy,
-        isPublished: q.IsPublished
+        isPublished: q.IsPublished,
+        scheduledAt: q.ScheduledAt
       })))
     );
   }
@@ -62,7 +71,8 @@ export class Quiz {
         description: q.Description,
         createdAt: q.CreatedAt,
         createdBy: q.CreatedBy,
-        isPublished: q.IsPublished
+        isPublished: q.IsPublished,
+        scheduledAt: q.ScheduledAt
       })))
     );
   }
@@ -80,7 +90,8 @@ export class Quiz {
         description: q.Description,
         createdAt: q.CreatedAt,
         createdBy: q.CreatedBy,
-        isPublished: q.IsPublished
+        isPublished: q.IsPublished,
+        scheduledAt: q.ScheduledAt   // ← ADAUGĂ
       }))
     );
   }
