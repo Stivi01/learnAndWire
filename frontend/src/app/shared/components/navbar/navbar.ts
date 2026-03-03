@@ -75,6 +75,12 @@ export class Navbar {
     }
   }
 
+  navigateToStudents() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/students']);
+    }
+  }
+
 
 
 

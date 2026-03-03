@@ -1,0 +1,62 @@
+<div class="container">
+
+  <h2>Cursurile mele și studenții</h2>
+
+  <div class="top-controls">
+    <input
+    type="text"
+    placeholder="Caută student..."
+    [ngModel]="searchTerm()"
+    (ngModelChange)="searchTerm.set($event)"
+    />
+
+    <button (click)="toggleSort()">
+      Sortează după an ({{ sortDirection() === 'asc' ? '↑' : '↓' }})
+    </button>
+
+    <button (click)="exportAllCSV()">
+      Export CSV total
+    </button>
+  </div>
+
+  <div *ngIf="loading()">Se încarcă...</div>
+
+  <div *ngFor="let course of courses()" class="course-card">
+
+    <div class="course-header" (click)="toggleCourse(course.Id)">
+      <h3>{{ course.Title }}</h3>
+      <span>{{ course.students.length }} studenți</span>
+    </div>
+
+    <div *ngIf="isExpanded(course.Id)" class="students-section">
+
+      <button (click)="exportCourseCSV(course)">
+        Export CSV curs
+      </button>
+
+      <div *ngIf="getFilteredStudents(course.students).length === 0">
+        <em>Nu există studenți.</em>
+      </div>
+
+      <table *ngIf="getFilteredStudents(course.students).length > 0">
+        <thead>
+          <tr>
+            <th>Nume</th>
+            <th>Email</th>
+            <th>An</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of getFilteredStudents(course.students)">
+            <td>{{ student.FirstName }} {{ student.LastName }}</td>
+            <td>{{ student.Email }}</td>
+            <td>{{ student.AcademicYear }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

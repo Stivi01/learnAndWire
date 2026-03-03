@@ -44,6 +44,11 @@
       Invită studenți
     </li>
 
+    <li *ngIf="role === 'Profesor'" (click)="navigateToStudents()">
+      <i class="fas fa-envelope"></i>
+      Studenți
+    </li>
+
     <!-- STUDENT: invitații la cursuri -->
     <li *ngIf="role === 'Student'" (click)="navigateToInvitations()">
       <i class="fas fa-envelope"></i>

@@ -99,5 +99,18 @@ export class Course {
     });
   }
 
+  getCoursesWithStudents() {
+    const token = localStorage.getItem('token') || '';
+
+    return this.http.get<any[]>(
+      `${this.apiUrl}/teacher/courses-with-students`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+  }
+
 
 }

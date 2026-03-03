@@ -358,6 +358,38 @@ app.get('/api/courses/:id/students', protect, restrictTo('Profesor'), async (req
   }
 });
 
+// GET ALL COURSES WITH STUDENTS (for teacher)
+app.get('/api/teacher/courses-with-students', protect, restrictTo('Profesor'), async (req, res) => {
+  try {
+    // 1️⃣ Luăm toate cursurile profesorului
+    const coursesResult = await sqlPool.query`
+      SELECT * FROM Courses
+      WHERE CreatedBy = ${req.user.id}
+      ORDER BY CreatedAt DESC
+    `;
+
+    const courses = coursesResult.recordset;
+
+    // 2️⃣ Pentru fiecare curs luăm studenții
+    for (let course of courses) {
+      const studentsResult = await sqlPool.query`
+        SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear
+        FROM Users u
+        INNER JOIN CourseEnrollments ce ON ce.StudentId = u.Id
+        WHERE ce.CourseId = ${course.Id}
+      `;
+
+      course.students = studentsResult.recordset;
+    }
+console.log("COURSES WITH STUDENTS:", courses);
+    res.json(courses);
+
+  } catch (err) {
+    console.error("❌ Error fetching courses with students:", err);
+    res.status(500).json({ message: "Eroare la preluarea datelor." });
+  }
+});
+
 // CREATE MODULE
 app.post('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
   const { courseId, title, orderIndex } = req.body;

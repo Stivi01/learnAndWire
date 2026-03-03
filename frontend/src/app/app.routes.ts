@@ -90,6 +90,15 @@ export const routes: Routes = [
       loadComponent: () => import('./student/my-enrollments/my-enrollments').then(m => m.MyEnrollments)
     },
 
+    {
+      path: 'teacher/students',
+      canActivate: [AuthGuard, roleGuard],
+      data: { role: 'Profesor' },
+      loadComponent: () =>
+        import('./teacher/student-list-teacher/student-list-teacher')
+          .then(m => m.StudentListTeacher)
+    },
+
     // PROFESOR
   {
     path: 'teacher/quizzes',
