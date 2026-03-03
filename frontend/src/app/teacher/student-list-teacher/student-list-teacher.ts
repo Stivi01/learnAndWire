@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { Course } from '../../core/services/course';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-student-list-teacher',
@@ -19,7 +20,7 @@ export class StudentListTeacher implements OnInit{
 
   expandedCourses = signal<Set<number>>(new Set());
 
-  constructor(private courseService: Course) {}
+  constructor(private courseService: Course, private router : Router) {}
 
   ngOnInit(): void {
     this.courseService.getCoursesWithStudents().subscribe({
@@ -107,5 +108,9 @@ export class StudentListTeacher implements OnInit{
     a.click();
 
     window.URL.revokeObjectURL(url);
+  }
+
+  goToInviteStudents() {
+    this.router.navigate(['/teacher/invite-students']);
   }
 }
