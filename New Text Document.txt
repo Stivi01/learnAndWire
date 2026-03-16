@@ -1,0 +1,46 @@
+1. In loc de Modul trec capitol si in loc de lectie trec subcapitol - rezolvat
+2. Sa fac editare curs sa mearga
+
+
+3. Din navbar sa sterg adauga curs, in loc de Invita student sa am doar stundenti unde sa apara toti studentii inrolati la un curs si progresul (cate teste, cand au dat, rzultate, etc). Aici sa nu mai poti da invite la studentii care deja sunt inrolati la un curs.
+
+4. Aici sa fac doar creaza quiz, sa vedem daca merge. Sterg Creaza quiz din navbar. rezolvat
+
+
+
+5. La calendar sa pot sa adaug quiz urile, ca apoi sa se propage la student in calendar.
+
+6. De adaugat validari peste tot: private initForm() {
+  this.lessonForm = this.fb.group({
+    title: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(100)
+      ]
+    ],
+    content: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(10)
+      ]
+    ],
+    videoUrl: [
+      '',
+      [
+        Validators.pattern(
+          /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/
+        )
+      ]
+    ],
+    orderIndex: [
+      1,
+      [
+        Validators.required,
+        Validators.min(1)
+      ]
+    ]
+  });
+}

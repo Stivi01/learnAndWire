@@ -1,0 +1,245 @@
+[Profesor logat] 
+       │
+       ▼
+[Creare Curs]
+       │
+       ▼
++------------------+
+| Courses           |
+| Id, Title, Desc   |
+| CreatedBy         |
++------------------+
+       │
+       ▼
+[Adaugă Module]
+       │
+       ▼
++------------------+
+| CourseModules     |
+| Id, CourseId      |
+| Title, OrderIndex |
++------------------+
+       │
+       ▼
+[Adaugă Lecții]
+       │
+       ▼
++-------------------+
+| CourseLessons      |
+| Id, ModuleId       |
+| Title, Content     |
+| VideoUrl, OrderIndex|
++-------------------+
+       │
+       ▼
+[Adaugă Resurse]
+       │
+       ▼
++-------------------+
+| LessonResources    |
+| Id, LessonId       |
+| Type, Url          |
++-------------------+
+       │
+       ▼
+[Invită Studenți]
+       │
+       ▼
++--------------------+
+| CourseEnrollments  |
+| Id, CourseId        |
+| StudentId, EnrolledAt|
++--------------------+
+
+
+
+
+
+-----------------QUIZ----------------------
+┌──────────────┐
+│   Profesor    │
+└──────┬───────┘
+       │
+       ▼
+┌────────────────────┐
+│ Creează Quiz       │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Adaugă Întrebări   │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Adaugă Opțiuni     │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Publică Quiz       │
+└──────┬─────────────┘
+       │
+       ▼
+      (DB)
+       │
+       ▼
+┌──────────────┐
+│   Student     │
+└──────┬───────┘
+       │
+       ▼
+┌────────────────────┐
+│ Vezi Quiz-uri      │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Completează Quiz   │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Trimite Răspunsuri │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Calcul Scor        │
+└──────┬─────────────┘
+       ▼
+┌────────────────────┐
+│ Rezultat Student   │
+└──────┬─────────────┘
+       │
+       ▼
+┌────────────────────┐
+│ Profesor vede Note │
+└────────────────────┘
+
+
+----------------------------
+
+Profesor → Pagina "Quiz-uri"
+        ↓
+Apasă "Creează Quiz"
+        ↓
+Completează Formular Quiz
+(Titlu, descriere)
+        ↓
+Apasă "Salvează"
+        ↓
+Backend: POST /api/quizzes
+        ↓
+DB: CREATE entry in CourseQuizzes
+        ↓
+Profesor redirecționat la "Editează întrebări"
+
+
+
+
+-------
+Profesor → Pagina "Editează Quiz"
+        ↓
+Apasă "Adaugă întrebare"
+        ↓
+Formular întrebare:
+ - text întrebare
+ - tip: single / multiple
+ - puncte
+        ↓
+Backend: POST /api/quizzes/:id/questions
+        ↓
+DB: INSERT → QuizQuestions
+        ↓
+Profesor adaugă opțiuni
+
+
+
+
+------
+Profesor → Adaugă opțiuni
+        ↓
+Pentru fiecare opțiune:
+ - text opțiune
+ - este corectă?
+        ↓
+Backend: POST /api/questions/:id/options
+        ↓
+DB: INSERT → QuizOptions
+        ↓
+Profesor finalizează întrebarea
+
+
+
+
+----
+Profesor → Pagina Quiz
+        ↓
+Apasă "Publică"
+        ↓
+Backend: PUT /api/quizzes/:id/publish
+        ↓
+DB: UPDATE IsPublished = 1
+        ↓
+Quiz devine vizibil pentru studenți
+
+
+
+-----
+Student → Pagina curs
+        ↓
+Secțiunea "Quiz-uri"
+        ↓
+Frontend: GET /api/student/quizzes/:courseId
+        ↓
+Backend → SQL:
+ SELECT * FROM CourseQuizzes WHERE CourseId = ... AND IsPublished = 1
+        ↓
+Student vede lista de quiz-uri disponibile
+
+
+
+
+----
+Student apasă "Începe quiz"
+        ↓
+Frontend: GET /api/quiz/:id/full
+        ↓
+Backend → JOIN QuizQuestions + QuizOptions
+        ↓
+Student completează:
+ pentru fiecare întrebare:
+  selectează 1 sau mai multe opțiuni
+        ↓
+Apasă "Trimite quiz"
+        ↓
+Frontend: POST /api/quiz/:id/submit
+           cu toate răspunsurile selectate
+
+
+
+
+------
+Backend primește răspunsurile
+        ↓
+Pentru fiecare întrebare:
+  → compară răspunsurile studentului cu cele corecte
+        ↓
+Calculare scor total
+        ↓
+INSERT → QuizResults (scor)
+        ↓
+INSERT → StudentAnswers (fiecare opțiune selectată)
+        ↓
+Trimite scorul înapoi studentului
+
+
+
+
+------
+Profesor → Pagina Quiz → "Rezultate"
+        ↓
+Frontend: GET /api/quizzes/:id/results
+        ↓
+Backend → SELECT QuizResults JOIN Users
+        ↓
+Profesor vede:
+ - listă studenți
+ - scoruri
+ - detalii
+

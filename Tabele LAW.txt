@@ -1,0 +1,266 @@
+SELECT TOP (1000) [id]
+      ,[email]
+      ,[passwordHash]
+      ,[role]
+      ,[firstName]
+      ,[lastName]
+      ,[createdAt]
+      ,[updatedAt]
+      ,[isActive]
+      ,[lastLogin]
+      ,[academicYear]
+      ,[phone]
+      ,[address]
+      ,[avatar]
+  FROM [LAW].[dbo].[Users]
+
+  SELECT TOP (1000) [Id]
+      ,[ResultId]
+      ,[QuestionId]
+      ,[OptionId]
+  FROM [LAW].[dbo].[StudentAnswers]
+
+  SELECT TOP (1000) [Id]
+      ,[QuizId]
+      ,[StudentId]
+      ,[Score]
+      ,[SubmittedAt]
+  FROM [LAW].[dbo].[QuizResults]
+
+  SELECT TOP (1000) [Id]
+      ,[QuizId]
+      ,[QuestionText]
+      ,[QuestionType]
+      ,[Points]
+  FROM [LAW].[dbo].[QuizQuestions]
+
+  SELECT TOP (1000) [Id]
+      ,[QuestionId]
+      ,[OptionText]
+      ,[IsCorrect]
+  FROM [LAW].[dbo].[QuizOptions]
+
+  SELECT TOP (1000) [Id]
+      ,[LessonId]
+      ,[StudentId]
+      ,[IsCompleted]
+      ,[CompletedAt]
+  FROM [LAW].[dbo].[LessonProgress]
+
+  SELECT TOP (1000) [Id]
+      ,[Title]
+      ,[Description]
+      ,[CreatedBy]
+      ,[CreatedAt]
+      ,[ThumbnailUrl]
+      ,[IsPublished]
+  FROM [LAW].[dbo].[Courses]
+
+  SELECT TOP (1000) [Id]
+      ,[CourseId]
+      ,[Title]
+      ,[Description]
+      ,[CreatedBy]
+      ,[CreatedAt]
+      ,[IsPublished]
+      ,[ScheduledAt]
+  FROM [LAW].[dbo].[CourseQuizzes]
+
+  SELECT TOP (1000) [Id]
+      ,[CourseId]
+      ,[Title]
+      ,[OrderIndex]
+  FROM [LAW].[dbo].[CourseModules]
+
+  SELECT TOP (1000) [Id]
+      ,[ModuleId]
+      ,[Title]
+      ,[Content]
+      ,[OrderIndex]
+      ,[VideoUrl]
+  FROM [LAW].[dbo].[CourseLessons]
+
+  SELECT TOP (1000) [Id]
+      ,[CourseId]
+      ,[StudentId]
+      ,[InvitedAt]
+      ,[Status]
+      ,[TeacherId]
+  FROM [LAW].[dbo].[CourseInvitations]
+
+  SELECT TOP (1000) [Id]
+      ,[CourseId]
+      ,[StudentId]
+      ,[EnrolledAt]
+  FROM [LAW].[dbo].[CourseEnrollments]
+
+
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    email NVARCHAR(255) NOT NULL UNIQUE,
+    passwordHash NVARCHAR(500) NOT NULL,
+    role NVARCHAR(50) NOT NULL,
+    firstName NVARCHAR(100),
+    lastName NVARCHAR(100),
+    createdAt DATETIME2 DEFAULT GETDATE(),
+    updatedAt DATETIME2,
+    isActive BIT DEFAULT 1,
+    lastLogin DATETIME2,
+    academicYear INT,
+    phone NVARCHAR(30),
+    address NVARCHAR(255),
+    avatar NVARCHAR(500)
+);
+
+CREATE TABLE Courses (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(200) NOT NULL,
+    Description NVARCHAR(MAX),
+    CreatedBy INT NOT NULL,
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+    ThumbnailUrl NVARCHAR(500),
+    IsPublished BIT DEFAULT 0,
+
+    CONSTRAINT FK_Courses_Users
+        FOREIGN KEY (CreatedBy) REFERENCES Users(id)
+);
+
+CREATE TABLE CourseModules (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    Title NVARCHAR(200),
+    OrderIndex INT,
+
+    CONSTRAINT FK_CourseModules_Courses
+        FOREIGN KEY (CourseId) REFERENCES Courses(Id)
+);
+
+CREATE TABLE CourseLessons (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ModuleId INT NOT NULL,
+    Title NVARCHAR(200),
+    Content NVARCHAR(MAX),
+    OrderIndex INT,
+    VideoUrl NVARCHAR(500),
+
+    CONSTRAINT FK_CourseLessons_Modules
+        FOREIGN KEY (ModuleId) REFERENCES CourseModules(Id)
+);
+
+CREATE TABLE LessonProgress (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    LessonId INT NOT NULL,
+    StudentId INT NOT NULL,
+    IsCompleted BIT DEFAULT 0,
+    CompletedAt DATETIME2,
+
+    CONSTRAINT FK_LessonProgress_Lesson
+        FOREIGN KEY (LessonId) REFERENCES CourseLessons(Id),
+
+    CONSTRAINT FK_LessonProgress_User
+        FOREIGN KEY (StudentId) REFERENCES Users(id)
+);
+
+CREATE TABLE CourseQuizzes (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    Title NVARCHAR(200),
+    Description NVARCHAR(MAX),
+    CreatedBy INT,
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+    IsPublished BIT DEFAULT 0,
+    ScheduledAt DATETIME2,
+
+    CONSTRAINT FK_CourseQuizzes_Course
+        FOREIGN KEY (CourseId) REFERENCES Courses(Id),
+
+    CONSTRAINT FK_CourseQuizzes_User
+        FOREIGN KEY (CreatedBy) REFERENCES Users(id)
+);
+
+CREATE TABLE QuizQuestions (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    QuizId INT NOT NULL,
+    QuestionText NVARCHAR(MAX),
+    QuestionType NVARCHAR(50),
+    Points INT,
+
+    CONSTRAINT FK_QuizQuestions_Quiz
+        FOREIGN KEY (QuizId) REFERENCES CourseQuizzes(Id)
+);
+
+CREATE TABLE QuizOptions (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    QuestionId INT NOT NULL,
+    OptionText NVARCHAR(MAX),
+    IsCorrect BIT DEFAULT 0,
+
+    CONSTRAINT FK_QuizOptions_Question
+        FOREIGN KEY (QuestionId) REFERENCES QuizQuestions(Id)
+);
+
+CREATE TABLE QuizResults (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    QuizId INT NOT NULL,
+    StudentId INT NOT NULL,
+    Score DECIMAL(5,2),
+    SubmittedAt DATETIME2 DEFAULT GETDATE(),
+
+    CONSTRAINT FK_QuizResults_Quiz
+        FOREIGN KEY (QuizId) REFERENCES CourseQuizzes(Id),
+
+    CONSTRAINT FK_QuizResults_User
+        FOREIGN KEY (StudentId) REFERENCES Users(id)
+);
+
+CREATE TABLE StudentAnswers (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    ResultId INT NOT NULL,
+    QuestionId INT NOT NULL,
+    OptionId INT NOT NULL,
+
+    CONSTRAINT FK_StudentAnswers_Result
+        FOREIGN KEY (ResultId) REFERENCES QuizResults(Id),
+
+    CONSTRAINT FK_StudentAnswers_Question
+        FOREIGN KEY (QuestionId) REFERENCES QuizQuestions(Id),
+
+    CONSTRAINT FK_StudentAnswers_Option
+        FOREIGN KEY (OptionId) REFERENCES QuizOptions(Id)
+);
+
+CREATE TABLE CourseInvitations (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    StudentId INT NOT NULL,
+    InvitedAt DATETIME2 DEFAULT GETDATE(),
+    Status NVARCHAR(50),
+    TeacherId INT,
+
+    CONSTRAINT FK_CourseInvitations_Course
+        FOREIGN KEY (CourseId) REFERENCES Courses(Id),
+
+    CONSTRAINT FK_CourseInvitations_Student
+        FOREIGN KEY (StudentId) REFERENCES Users(id),
+
+    CONSTRAINT FK_CourseInvitations_Teacher
+        FOREIGN KEY (TeacherId) REFERENCES Users(id)
+);
+
+CREATE TABLE CourseEnrollments (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    StudentId INT NOT NULL,
+    EnrolledAt DATETIME2 DEFAULT GETDATE(),
+
+    CONSTRAINT FK_CourseEnrollments_Course
+        FOREIGN KEY (CourseId) REFERENCES Courses(Id),
+
+    CONSTRAINT FK_CourseEnrollments_User
+        FOREIGN KEY (StudentId) REFERENCES Users(id)
+);
+
+CREATE INDEX IX_CourseModules_CourseId ON CourseModules(CourseId);
+CREATE INDEX IX_CourseLessons_ModuleId ON CourseLessons(ModuleId);
+CREATE INDEX IX_QuizQuestions_QuizId ON QuizQuestions(QuizId);
+CREATE INDEX IX_QuizOptions_QuestionId ON QuizOptions(QuestionId);
