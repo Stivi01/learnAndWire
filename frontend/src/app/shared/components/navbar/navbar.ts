@@ -81,6 +81,12 @@ export class Navbar {
     }
   }
 
+  navigateToTeacherCalendar() {
+  if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/calendar']);
+    }
+}
+
 
 
 

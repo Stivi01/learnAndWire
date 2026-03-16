@@ -171,6 +171,13 @@ export const routes: Routes = [
     loadComponent: () => import('./teacher/option-form/option-form').then(m => m.OptionForm)
   },
 
+   {
+    path: 'teacher/calendar',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/teacher-calendar/teacher-calendar').then(m => m.TeacherCalendar)
+  },
+
 
 
 
