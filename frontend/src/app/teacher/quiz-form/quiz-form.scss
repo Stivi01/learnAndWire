@@ -1,0 +1,87 @@
+.quiz-container {
+  max-width: 550px; /* Puțin mai îngust */
+  margin: 1rem auto;
+  padding: 1.5rem; /* Padding redus */
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem; /* Font de bază mai mic */
+}
+
+h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.4rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+/* Flexbox pentru a pune elementele pe același rând unde se poate */
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+/* Input-uri mai scunde */
+input[type="text"],
+input[type="datetime-local"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem; /* Padding vertical redus */
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background-color: #fafafa;
+}
+
+textarea {
+  min-height: 60px; /* Înălțime minimă redusă */
+  height: 80px;
+}
+
+/* Stil compact pentru checkbox (stă pe același rând cu data dacă vrei) */
+.publish-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+input[type="checkbox"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Buton mai puțin înalt */
+button {
+  width: 100%;
+  padding: 0.65rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+/* Erori mai discrete */
+.messages .error {
+  font-size: 0.8rem;
+  padding: 0.4rem;
+  margin-bottom: 0.8rem;
+}
