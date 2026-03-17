@@ -1,0 +1,174 @@
+.calendar-layout {
+  display: flex;
+  max-width: 850px; // Mărit de la 650px
+  min-height: 480px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  margin: 20px auto;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+.calendar-main {
+  flex: 1.2;
+  padding: 2rem;
+
+  .calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h3 { margin: 0; font-size: 1.3rem; color: #2d3436; text-transform: capitalize; }
+    
+    .nav-buttons button {
+      background: #f1f2f6;
+      border: none;
+      width: 35px;
+      height: 35px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      margin-left: 8px;
+      transition: 0.2s;
+      &:hover { background: #dfe4ea; }
+    }
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px; // Mai mult spațiu între zile
+  }
+
+  .weekday {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #a4b0be;
+    padding-bottom: 10px;
+  }
+
+  .day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 14px;
+    font-weight: 500;
+    position: relative;
+    transition: all 0.2s ease;
+    color: #2d3436;
+
+    &:hover:not(.empty):not(.selected) { 
+      background: #f1f2f6; 
+    }
+
+    // Ziua selectată: fundal mov plin
+    &.selected { 
+      background: #6c5ce7; 
+      color: white !important; 
+      box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+      
+      // Dacă e și azi și selectat, facem indicatorul de "azi" alb
+      &.today::after {
+        background: white;
+      }
+    }
+
+    // Ziua de astăzi: un punct mic deasupra sau un inel
+    &.today {
+      color: #6c5ce7;
+      font-weight: 800;
+      
+      // Adăugăm un mic indicator sub număr pentru "Azi"
+      &::after {
+        content: '';
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 6px;
+        height: 6px;
+        background: #6c5ce7;
+        border-radius: 50%;
+      }
+    }
+
+    &.empty { 
+      cursor: default; 
+    }
+
+    // Indicatorul pentru Quiz (bulina roșie)
+    .quiz-dot {
+      width: 5px;
+      height: 5px;
+      background: #ff7675;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 8px;
+    }
+  }
+}
+
+
+.calendar-details {
+  flex: 1;
+  background: #f9fafc;
+  border-left: 1px solid #f1f2f6;
+  padding: 2rem;
+
+  .details-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 2rem;
+
+    .date-badge {
+      background: #6c5ce7;
+      color: white;
+      padding: 10px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 50px;
+      .day { font-size: 1.2rem; font-weight: 700; }
+      .month { font-size: 0.7rem; text-transform: uppercase; }
+    }
+
+    h4 { margin: 0; color: #2d3436; }
+    p { margin: 0; font-size: 0.85rem; color: #a4b0be; }
+  }
+
+  .quiz-card {
+    display: flex;
+    background: white;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    
+    .card-accent { width: 4px; background: #00b894; } // Verde publicat
+    &.draft .card-accent { background: #fdcb6e; } // Galben draft
+
+    .card-info {
+      padding: 12px 15px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      .time { font-size: 0.75rem; font-weight: 700; color: #6c5ce7; }
+      .title { font-size: 0.95rem; font-weight: 600; color: #2d3436; margin: 2px 0; }
+      .status { font-size: 0.7rem; color: #a4b0be; text-transform: uppercase; letter-spacing: 0.5px; }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    margin-top: 3rem;
+    color: #a4b0be;
+    .icon { font-size: 2rem; display: block; margin-bottom: 10px; }
+  }
+}

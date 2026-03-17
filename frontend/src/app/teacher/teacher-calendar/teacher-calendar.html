@@ -1,1 +1,65 @@
-<p>teacher-calendar works!</p>
+<div class="calendar-layout">
+  <div class="calendar-main">
+    <div class="calendar-nav">
+      <h3>{{ currentMonth() | date:'MMMM yyyy' }}</h3>
+      <div class="nav-buttons">
+        <button (click)="changeMonth(-1)">‹</button>
+        <button (click)="changeMonth(1)">›</button>
+      </div>
+    </div>
+
+    <div class="calendar-grid">
+      <div class="weekday">Lun</div>
+      <div class="weekday">Mar</div>
+      <div class="weekday">Mie</div>
+      <div class="weekday">Joi</div>
+      <div class="weekday">Vin</div>
+      <div class="weekday">Sâm</div>
+      <div class="weekday">Dum</div>
+
+      @for (day of calendarDays(); track $index) {
+        <div class="day-cell" 
+             [class.empty]="!day"
+             [class.today]="isToday(day)"
+             [class.selected]="isSelected(day)"
+             (click)="selectDate(day)">
+          <span class="day-number">{{ day ? (day | date:'d') : '' }}</span>
+          @if (hasQuiz(day)) {
+            <span class="quiz-dot"></span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="calendar-details">
+    <div class="details-header">
+      <div class="date-badge">
+        <span class="day">{{ selectedDate() | date:'dd' }}</span>
+        <span class="month">{{ selectedDate() | date:'MMM' }}</span>
+      </div>
+      <div class="header-text">
+        <h4>Programul zilei</h4>
+        <p>{{ quizzesForSelectedDate().length }} activități</p>
+      </div>
+    </div>
+
+    <div class="details-content">
+      @for (quiz of quizzesForSelectedDate(); track quiz.id) {
+        <div class="quiz-card" [class.draft]="!quiz.isPublished">
+          <div class="card-accent"></div>
+          <div class="card-info">
+            <span class="time">{{ quiz.scheduledAt | date:'HH:mm' }}</span>
+            <span class="title">{{ quiz.title }}</span>
+            <span class="status">{{ quiz.isPublished ? 'Publicat' : 'Draft' }}</span>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-state">
+          <span class="icon">📅</span>
+          <p>Nicio activitate programată</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>
