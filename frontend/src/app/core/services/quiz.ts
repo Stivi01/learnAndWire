@@ -213,4 +213,18 @@ addOption(questionId: number, data: Partial<QuizOption>) {
       })))
     );
   }
+
+  getStudentAvailableQuizzes(): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:3000/api/student/quizzes`, this.headers()).pipe(
+      map(res => res.map(q => ({
+        id: q.Id,
+        courseId: q.CourseId,
+        title: q.Title,
+        description: q.Description,
+        scheduledAt: q.ScheduledAt,
+        courseTitle: q.CourseTitle // Numele cursului pentru a-l afișa frumos
+      })))
+    );
+  }
+
 }

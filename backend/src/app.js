@@ -1132,6 +1132,34 @@ app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res)
   }
 });
 
+
+
+// GET ALL PUBLISHED QUIZZES FOR A STUDENT
+app.get('/api/student/quizzes', protect, restrictTo('Student'), async (req, res) => {
+  try {
+    const result = await sqlPool.query`
+      SELECT 
+        q.Id, 
+        q.CourseId, 
+        q.Title, 
+        q.Description, 
+        q.ScheduledAt, 
+        c.Title AS CourseTitle
+      FROM CourseQuizzes q
+      INNER JOIN Courses c ON c.Id = q.CourseId
+      INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
+      WHERE ce.StudentId = ${req.user.id} 
+        AND q.IsPublished = 1
+      ORDER BY q.ScheduledAt DESC, q.CreatedAt DESC
+    `;
+    
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Eroare la preluarea quiz-urilor studentului:", err);
+    res.status(500).json({ message: "Eroare la preluarea quiz-urilor." });
+  }
+});
+
 // ADD QUESTION
 app.post('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async (req, res) => {
   const quizId = parseInt(req.params.quizId);

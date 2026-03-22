@@ -1,1 +1,33 @@
-<p>quiz-list-student works!</p>
+<div class="quizzes-container">
+  <h2>Testele Mele (Quiz-uri)</h2>
+
+  <div *ngIf="loading()" class="loading-state">Se încarcă testele...</div>
+  <div *ngIf="error()" class="error-state">{{ error() }}</div>
+
+  <div *ngIf="!loading() && quizzes().length === 0" class="empty-state">
+    Momentan nu ai niciun test disponibil.
+  </div>
+
+  <div class="quizzes-grid" *ngIf="quizzes().length > 0">
+    <div class="quiz-card" *ngFor="let quiz of quizzes()">
+      <div class="quiz-header">
+        <span class="course-badge">{{ quiz.courseTitle }}</span>
+      </div>
+      
+      <h3>{{ quiz.title }}</h3>
+      <p class="desc">{{ quiz.description || 'Fără descriere.' }}</p>
+      
+      <div class="quiz-meta">
+        <small *ngIf="quiz.scheduledAt">
+          📅 Programat: {{ quiz.scheduledAt | date:'short' }}
+        </small>
+      </div>
+
+     <div class="quiz-actions">
+        <button (click)="startQuiz(quiz)" class="btn-start">
+          Începe Testul
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
