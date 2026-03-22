@@ -24,9 +24,19 @@
       </div>
 
      <div class="quiz-actions">
-        <button (click)="startQuiz(quiz)" class="btn-start">
-          Începe Testul
-        </button>
+        <button 
+            *ngIf="quiz.hasTaken === 0" 
+            class="btn-start" 
+            (click)="startQuiz(quiz)">
+            Începe Testul
+            </button>
+
+            <button 
+            *ngIf="quiz.hasTaken > 0" 
+            class="btn-taken" 
+            disabled>
+            Test Susținut (Scor: {{ quiz.userScore }})
+            </button>
       </div>
     </div>
   </div>

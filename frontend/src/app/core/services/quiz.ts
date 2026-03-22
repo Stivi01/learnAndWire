@@ -215,14 +215,17 @@ addOption(questionId: number, data: Partial<QuizOption>) {
   }
 
   getStudentAvailableQuizzes(): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:3000/api/student/quizzes`, this.headers()).pipe(
+    // Schimbăm de la /api/student/quizzes la /api/quizzes/student
+    return this.http.get<any[]>(`http://localhost:3000/api/quizzes/student`, this.headers()).pipe(
       map(res => res.map(q => ({
         id: q.Id,
         courseId: q.CourseId,
         title: q.Title,
         description: q.Description,
         scheduledAt: q.ScheduledAt,
-        courseTitle: q.CourseTitle // Numele cursului pentru a-l afișa frumos
+        courseTitle: q.CourseTitle,
+        hasTaken: q.HasTaken,      // <-- Asigură-te că mapăm și aceste câmpuri noi
+        userScore: q.UserScore     // <-- pentru a le folosi în HTML
       })))
     );
   }

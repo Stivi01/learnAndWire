@@ -1135,28 +1135,28 @@ app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res)
 
 
 // GET ALL PUBLISHED QUIZZES FOR A STUDENT
-app.get('/api/student/quizzes', protect, restrictTo('Student'), async (req, res) => {
+// În app.js, caută ruta care aduce testele pentru student:
+app.get('/api/quizzes/student', protect, async (req, res) => {
   try {
+    const studentId = req.user.id; // ID-ul studentului logat
+
+    // Modificăm SELECT-ul să includă un sub-query "HasTaken"
     const result = await sqlPool.query`
       SELECT 
         q.Id, 
-        q.CourseId, 
         q.Title, 
         q.Description, 
-        q.ScheduledAt, 
-        c.Title AS CourseTitle
+        q.ScheduledAt,
+        (SELECT COUNT(*) FROM QuizResults qr WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) as HasTaken,
+        (SELECT COALESCE(MAX(Score), 0) FROM QuizResults qr WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) as UserScore
       FROM CourseQuizzes q
-      INNER JOIN Courses c ON c.Id = q.CourseId
-      INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-      WHERE ce.StudentId = ${req.user.id} 
-        AND q.IsPublished = 1
-      ORDER BY q.ScheduledAt DESC, q.CreatedAt DESC
+      WHERE q.IsPublished = 1
     `;
-    
+
     res.json(result.recordset);
   } catch (err) {
-    console.error("❌ Eroare la preluarea quiz-urilor studentului:", err);
-    res.status(500).json({ message: "Eroare la preluarea quiz-urilor." });
+    console.error(err);
+    res.status(500).json({ message: "Eroare la preluarea listei de teste." });
   }
 });
 
@@ -1165,6 +1165,20 @@ app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (
   const quizId = parseInt(req.params.id);
 
   try {
+    const quizId = parseInt(req.params.id);
+    const studentId = req.user.id;
+
+    // VERIFICARE ANTIFRAUDĂ: A mai dat testul?
+    const checkAttempt = await sqlPool.query`
+      SELECT Id FROM QuizResults WHERE QuizId = ${quizId} AND StudentId = ${studentId}
+    `;
+
+    if (checkAttempt.recordset.length > 0) {
+      return res.status(400).json({ 
+        message: "Ai susținut deja acest test! Nu este permisă trimiterea multiplă." 
+      });
+    }
+
     // 1. Verificăm dacă quiz-ul există și e publicat
     const quizResult = await sqlPool.query`
       SELECT * FROM CourseQuizzes WHERE Id = ${quizId} AND IsPublished = 1

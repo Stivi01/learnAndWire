@@ -67,20 +67,22 @@
     .quiz-actions {
       text-align: right;
 
-      .btn-start {
-        display: inline-block;
-        padding: 10px 20px;
-        background-color: #28a745;
+      .btn-taken {
+        background-color: #dc3545 !important; /* Roșu */
         color: white;
-        text-decoration: none;
+        cursor: not-allowed;
+        opacity: 0.8;
+        border: none;
+        padding: 10px 20px;
         border-radius: 5px;
-        font-weight: 500;
-        transition: background-color 0.2s;
-
-        &:hover {
-          background-color: #218838;
+        font-weight: bold;
         }
-      }
+
+        .btn-start {
+        background-color: #28a745; /* Verde */
+        color: white;
+        /* restul stilului tău */
+        }
     }
   }
 }
