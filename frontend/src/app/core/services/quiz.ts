@@ -236,4 +236,16 @@ addOption(questionId: number, data: Partial<QuizOption>) {
     return this.http.get<any>(`http://localhost:3000/api/student/quizzes/${quizId}/take`, this.headers());
   }
 
+  getMyGrades(): Observable<any[]> {
+  return this.http.get<any[]>(`http://localhost:3000/api/student/my-grades`, this.headers()).pipe(
+    map(res => res.map(g => ({
+      id: g.ResultId,
+      title: g.QuizTitle,
+      score: g.Score,
+      maxScore: g.MaxScore,
+      date: g.SubmittedAt
+    })))
+  );
+}
+
 }

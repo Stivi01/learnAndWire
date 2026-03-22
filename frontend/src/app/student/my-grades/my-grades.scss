@@ -1,0 +1,32 @@
+.grades-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  h2 { color: #333; margin-bottom: 20px; }
+
+  .grades-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th { background: #f8f9fa; font-weight: bold; }
+
+    .pass { color: #28a745; font-weight: bold; }
+    .fail { color: #dc3545; font-weight: bold; }
+  }
+
+  .empty-info {
+    text-align: center;
+    padding: 40px;
+    background: #fdfdfd;
+    border: 1px dashed #ccc;
+  }
+}

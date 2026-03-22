@@ -1160,6 +1160,31 @@ app.get('/api/quizzes/student', protect, async (req, res) => {
   }
 });
 
+// GET GRADES FOR LOGGED IN STUDENT
+app.get('/api/student/my-grades', protect, restrictTo('Student'), async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    const result = await sqlPool.query`
+      SELECT 
+        qr.Id as ResultId,
+        q.Title as QuizTitle,
+        qr.Score,
+        qr.SubmittedAt,
+        (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) as MaxScore
+      FROM QuizResults qr
+      INNER JOIN CourseQuizzes q ON qr.QuizId = q.Id
+      WHERE qr.StudentId = ${studentId}
+      ORDER BY qr.SubmittedAt DESC
+    `;
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Eroare la preluarea notelor:", err);
+    res.status(500).json({ message: "Eroare la încărcarea notelor." });
+  }
+});
+
 // GET FULL QUIZ PENTRU STUDENT (FĂRĂ RĂSPUNSURILE CORECTE)
 app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (req, res) => {
   const quizId = parseInt(req.params.id);

@@ -1,1 +1,30 @@
-<p>my-grades works!</p>
+<div class="grades-container">
+  <h2>Notele Mele</h2>
+
+  <div *ngIf="loading()" class="loader">Se încarcă notele...</div>
+
+  <div *ngIf="!loading() && grades().length === 0" class="empty-info">
+    Nu ai susținut niciun test până acum.
+  </div>
+
+  <table *ngIf="!loading() && grades().length > 0" class="grades-table">
+    <thead>
+      <tr>
+        <th>Test</th>
+        <th>Data Susținerii</th>
+        <th>Scor Obținut</th>
+        <th>Procentaj</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let grade of grades()">
+        <td>{{ grade.title }}</td>
+        <td>{{ grade.date | date:'medium' }}</td>
+        <td><strong>{{ grade.score }}</strong> / {{ grade.maxScore }} puncte</td>
+        <td [ngClass]="{'pass': (grade.score/grade.maxScore) >= 0.5, 'fail': (grade.score/grade.maxScore) < 0.5}">
+          {{ (grade.score / grade.maxScore) | percent }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

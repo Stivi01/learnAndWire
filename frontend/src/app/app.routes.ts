@@ -136,6 +136,13 @@ export const routes: Routes = [
   },
 
   {
+    path: 'student/grades',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Student' },
+    loadComponent: () => import('./student/my-grades/my-grades').then(m => m.MyGrades)
+  },
+
+  {
     path: 'teacher/quiz/:id/manage',
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Profesor' },
