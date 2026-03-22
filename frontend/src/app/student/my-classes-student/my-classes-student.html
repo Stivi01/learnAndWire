@@ -13,7 +13,7 @@
       <h3>{{ course.Title }}</h3>
       <p>{{ course.Description }}</p>
       <small>Creat la: {{ course.CreatedAt | date:'shortDate' }}</small>
-      <a [routerLink]="['/course', course.Id]">Vezi cursul</a>
+      <a [routerLink]="['/student/course', course.Id]" class="btn-view-course">Vezi cursul</a>
     </div>
   </div>
 </div>

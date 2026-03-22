@@ -284,6 +284,59 @@ app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
   }
 });
 
+// GET FULL COURSE STRUCTURE FOR STUDENT
+app.get('/api/student/courses/:id/full', protect, restrictTo('Student'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+
+  try {
+    // 1. Validare Securitate: Verificăm dacă studentul este înrolat la acest curs
+    const enrollmentCheck = await sqlPool.query`
+      SELECT 1 FROM CourseEnrollments 
+      WHERE CourseId = ${courseId} AND StudentId = ${req.user.id}
+    `;
+
+    if (enrollmentCheck.recordset.length === 0) {
+      return res.status(403).json({ message: 'Acces interzis. Nu ești înscris la acest curs.' });
+    }
+
+    // 2. Preluăm datele de bază ale cursului
+    const courseResult = await sqlPool.query`
+      SELECT * FROM Courses WHERE Id = ${courseId}
+    `;
+
+    if (courseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+    }
+
+    const course = courseResult.recordset[0];
+
+    // 3. Preluăm modulele asociate cursului
+    const modulesResult = await sqlPool.query`
+      SELECT * FROM CourseModules WHERE CourseId = ${courseId} ORDER BY OrderIndex
+    `;
+
+    const modules = modulesResult.recordset;
+
+    // 4. Preluăm lecțiile pentru fiecare modul
+    for (let mod of modules) {
+      const lessonsResult = await sqlPool.query`
+        SELECT * FROM CourseLessons WHERE ModuleId = ${mod.Id} ORDER BY OrderIndex
+      `;
+      mod.lessons = lessonsResult.recordset;
+    }
+
+    // 5. Trimitem structura completă
+    res.json({
+      course,
+      modules
+    });
+
+  } catch (err) {
+    console.error("❌ Eroare la preluarea cursului complet pentru student:", err);
+    res.status(500).json({ message: 'Eroare server la preluarea datelor cursului.' });
+  }
+});
+
 // GET COURSES BY TEACHER
 app.get('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
   try {

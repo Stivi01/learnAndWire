@@ -99,6 +99,17 @@ export class Course {
     });
   }
 
+  // 👇 ADAUGĂ ACEASTĂ METODĂ NOUĂ 👇
+  getStudentFullCourse(courseId: number): Observable<FullCourseResponse> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<FullCourseResponse>(
+      `${this.apiUrl}/student/courses/${courseId}/full`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+  }
+
   getCoursesWithStudents() {
     const token = localStorage.getItem('token') || '';
 

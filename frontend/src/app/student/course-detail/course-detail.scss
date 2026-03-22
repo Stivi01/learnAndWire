@@ -1,0 +1,138 @@
+.course-detail-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+
+  // Sidebar-ul cu module
+  .course-sidebar {
+    width: 350px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+
+    .course-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #fff;
+
+      .back-btn {
+        display: inline-block;
+        margin-bottom: 10px;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        
+        &:hover { text-decoration: underline; }
+      }
+
+      h2 { margin: 0 0 10px 0; font-size: 1.5rem; }
+      .course-desc { color: #666; font-size: 0.9rem; margin: 0; }
+    }
+
+    .modules-list {
+      .module-item {
+        border-bottom: 1px solid #e0e0e0;
+
+        .module-header {
+          padding: 15px 20px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background-color: #f1f3f5;
+          font-weight: bold;
+          
+          &:hover { background-color: #e9ecef; }
+          h3 { margin: 0; font-size: 1.1rem; }
+        }
+
+        .lessons-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          background: #fff;
+
+          li {
+            padding: 12px 20px 12px 30px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.95rem;
+            color: #333;
+            transition: background 0.2s ease;
+
+            &:hover { background-color: #f8f9fa; }
+            &.active {
+              background-color: #e6f2ff;
+              border-left: 4px solid #007bff;
+              color: #0056b3;
+              font-weight: 500;
+            }
+            &.empty-lessons {
+              color: #999;
+              font-style: italic;
+              cursor: default;
+              &:hover { background: #fff; }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Zona de conținut din dreapta
+  .lesson-content-area {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    background-color: #ffffff;
+
+    .lesson-viewer {
+      max-width: 800px;
+      margin: 0 auto;
+
+      h2 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+        color: #333;
+      }
+
+      .lesson-body {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #444;
+        margin-bottom: 40px;
+      }
+
+      .btn-close-lesson {
+        padding: 10px 20px;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        
+        &:hover { background-color: #c82333; }
+      }
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #6c757d;
+      text-align: center;
+      
+      h3 { font-size: 1.5rem; margin-bottom: 10px; }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+<div class="course-detail-container">
+  
+  <div *ngIf="loading()" class="loading">Se încarcă detaliile cursului...</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div class="course-layout" *ngIf="course() && !loading()">
+    
+    <aside class="course-sidebar">
+      <div class="course-header">
+        <a routerLink="/student/my-classes" class="back-btn">⬅ Încăpoi la cursuri</a>
+        <h2>{{ course().Title }}</h2>
+        <p class="course-desc">{{ course().Description }}</p>
+      </div>
+
+      <div class="modules-list">
+        <div class="module-item" *ngFor="let mod of course().modules">
+          
+          <div class="module-header" (click)="toggleModule(mod)">
+            <h3>{{ mod.Title }}</h3>
+            <span>{{ mod.expanded ? '▼' : '▶' }}</span>
+          </div>
+
+          <ul class="lessons-list" *ngIf="mod.expanded">
+            <li 
+              *ngFor="let lesson of mod.lessons" 
+              (click)="openLesson(lesson)"
+              [class.active]="selectedLesson()?.Id === lesson.Id">
+              📄 {{ lesson.Title }}
+            </li>
+            <li *ngIf="mod.lessons?.length === 0" class="empty-lessons">
+              Nu există lecții în acest modul.
+            </li>
+          </ul>
+
+        </div>
+      </div>
+    </aside>
+
+    <main class="lesson-content-area">
+      
+      <div *ngIf="selectedLesson(); else noLessonSelected" class="lesson-viewer">
+        <h2>{{ selectedLesson().Title }}</h2>
+        
+        <div class="lesson-body">
+          <p>{{ selectedLesson().Content }}</p>
+          </div>
+
+        <button class="btn-close-lesson" (click)="closeLesson()">Închide lecția</button>
+      </div>
+
+      <ng-template #noLessonSelected>
+        <div class="empty-state">
+          <h3>Bine ai venit!</h3>
+          <p>Selectează o lecție din meniul din stânga pentru a începe învățarea.</p>
+        </div>
+      </ng-template>
+
+    </main>
+
+  </div>
+</div>
