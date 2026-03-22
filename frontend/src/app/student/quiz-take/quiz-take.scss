@@ -1,0 +1,98 @@
+.quiz-take-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+
+  .quiz-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 20px;
+
+    h2 { font-size: 2rem; color: #333; margin-bottom: 10px; }
+    p { color: #666; font-size: 1.1rem; }
+  }
+
+  .question-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+    h3 {
+      font-size: 1.2rem;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #222;
+
+      .points {
+        font-size: 0.9rem;
+        color: #888;
+        font-weight: normal;
+      }
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .option-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        border: 2px solid #eee;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background-color: #fff;
+
+        &:hover {
+          background-color: #f8f9fa;
+          border-color: #d0d7de;
+        }
+
+        /* STILUL PENTRU OPȚIUNEA SELECTATĂ */
+        &.selected-option {
+          background-color: #e6f2ff; /* Un fundal albastru foarte deschis */
+          border-color: #007bff;     /* Margine albastră */
+          font-weight: 500;
+        }
+
+        input {
+          cursor: pointer;
+          width: 20px;
+          height: 20px;
+          accent-color: #007bff; /* Colorează bulina nativă a browser-ului */
+        }
+
+        .option-text {
+          font-size: 1.05rem;
+          color: #333;
+        }
+      }
+    }
+  }
+
+  .actions {
+    margin-top: 30px;
+    text-align: right;
+
+    .btn-submit {
+      padding: 12px 30px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+
+      &:hover:not(:disabled) { background-color: #0056b3; }
+      &:disabled { background-color: #ccc; cursor: not-allowed; }
+    }
+  }
+}

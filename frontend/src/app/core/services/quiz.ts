@@ -227,4 +227,10 @@ addOption(questionId: number, data: Partial<QuizOption>) {
     );
   }
 
+  // În quiz.ts, la secțiunea STUDENT VIEW QUIZZES
+
+  getStudentQuizToTake(quizId: number): Observable<{ quiz: any; questions: any[] }> {
+    return this.http.get<any>(`http://localhost:3000/api/student/quizzes/${quizId}/take`, this.headers());
+  }
+
 }

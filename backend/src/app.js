@@ -1160,6 +1160,137 @@ app.get('/api/student/quizzes', protect, restrictTo('Student'), async (req, res)
   }
 });
 
+// GET FULL QUIZ PENTRU STUDENT (FĂRĂ RĂSPUNSURILE CORECTE)
+app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+
+  try {
+    // 1. Verificăm dacă quiz-ul există și e publicat
+    const quizResult = await sqlPool.query`
+      SELECT * FROM CourseQuizzes WHERE Id = ${quizId} AND IsPublished = 1
+    `;
+
+    if (quizResult.recordset.length === 0) {
+      return res.status(404).json({ message: "Quiz-ul nu există sau nu este publicat." });
+    }
+
+    const quiz = quizResult.recordset[0];
+
+    // 2. Extra protecție: Verificăm din nou dacă a venit timpul
+    const now = new Date();
+    const scheduledDate = new Date(quiz.ScheduledAt);
+    if (now < scheduledDate) {
+      return res.status(403).json({ message: "Acest test nu a început încă." });
+    }
+
+    // 3. Luăm întrebările
+    const questionsResult = await sqlPool.query`
+      SELECT Id, QuestionText, QuestionType, Points 
+      FROM QuizQuestions 
+      WHERE QuizId = ${quizId}
+    `;
+    const questions = questionsResult.recordset;
+
+    // 4. Luăm opțiunile FĂRĂ coloana IsCorrect!
+    for (let q of questions) {
+      const optionsResult = await sqlPool.query`
+        SELECT Id, OptionText 
+        FROM QuizOptions 
+        WHERE QuestionId = ${q.Id}
+      `;
+      q.options = optionsResult.recordset;
+    }
+
+    res.json({ quiz, questions });
+
+  } catch (err) {
+    console.error("❌ Eroare la preluarea testului pentru student:", err);
+    res.status(500).json({ message: "Eroare la încărcarea testului." });
+  }
+});
+
+// SUBMIT QUIZ (Calculare scor și salvare)
+app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+  const studentAnswers = req.body; // ex: { '1': [2], '2': [6, 7] }
+
+  try {
+    // 1. Luăm toate întrebările acestui test și punctajele lor
+    const questionsRes = await sqlPool.query`
+      SELECT Id, Points, QuestionType FROM QuizQuestions WHERE QuizId = ${quizId}
+    `;
+    const questions = questionsRes.recordset;
+
+    // 2. Luăm toate opțiunile corecte pentru acest test
+    const correctOptionsRes = await sqlPool.query`
+      SELECT qo.Id, qo.QuestionId
+      FROM QuizOptions qo
+      INNER JOIN QuizQuestions qq ON qo.QuestionId = qq.Id
+      WHERE qq.QuizId = ${quizId} AND qo.IsCorrect = 1
+    `;
+    const correctOptions = correctOptionsRes.recordset;
+
+    let totalScore = 0;
+    let maxPossibleScore = 0;
+
+    // 3. Calculăm scorul studentului
+    for (const q of questions) {
+      maxPossibleScore += q.Points;
+      
+      // Ce a bifat studentul la această întrebare (array de ID-uri)
+      const selectedIds = studentAnswers[q.Id] || []; 
+      
+      // Ce e corect în baza de date la această întrebare (array de ID-uri)
+      const correctIdsForQ = correctOptions
+        .filter(opt => opt.QuestionId === q.Id)
+        .map(opt => opt.Id);
+
+      // Verificăm dacă a nimerit EXACT toate variantele corecte (fără să bifeze în plus sau în minus)
+      const isCorrect = 
+        selectedIds.length === correctIdsForQ.length &&
+        selectedIds.every(id => correctIdsForQ.includes(id));
+
+      if (isCorrect) {
+        totalScore += q.Points;
+      }
+    }
+
+    // 4. Salvăm Rezultatul General în tabela QuizResults
+    const resultInsert = await sqlPool.query`
+      INSERT INTO QuizResults (QuizId, StudentId, Score, SubmittedAt)
+      OUTPUT INSERTED.Id
+      VALUES (${quizId}, ${req.user.id}, ${totalScore}, GETDATE())
+    `;
+    const quizResultId = resultInsert.recordset[0].Id;
+
+    // 5. Salvăm fiecare bifă în tabela StudentAnswers (ADAPTAT LA STRUCTURA TA)
+    for (const [questionIdStr, optionIdsArray] of Object.entries(studentAnswers)) {
+      const qId = parseInt(questionIdStr);
+      
+      for (const optId of optionIdsArray) {
+        // Aici am modificat numele din QuizResultId în ResultId
+        // Și am scos cu totul coloana IsCorrect
+        await sqlPool.query`
+          INSERT INTO StudentAnswers (ResultId, QuestionId, OptionId)
+          VALUES (${quizResultId}, ${qId}, ${optId})
+        `;
+      }
+    }
+
+    // 6. Trimitem răspunsul către Frontend
+    res.status(201).json({ 
+      message: "Test finalizat cu succes!", 
+      score: totalScore,
+      maxScore: maxPossibleScore
+    });
+
+  } catch (err) {
+    console.error("❌ Eroare la trimiterea testului:", err);
+    res.status(500).json({ message: "Eroare la procesarea testului." });
+  }
+});
+
+
 // ADD QUESTION
 app.post('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async (req, res) => {
   const quizId = parseInt(req.params.quizId);

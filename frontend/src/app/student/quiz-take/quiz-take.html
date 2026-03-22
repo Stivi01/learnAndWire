@@ -1,1 +1,43 @@
-<p>quiz-take works!</p>
+<div class="quiz-take-container">
+  
+  <div *ngIf="loading()" class="loading">Se încarcă testul...</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div *ngIf="quiz() && !loading()" class="quiz-content">
+    
+    <div class="quiz-header">
+      <h2>{{ quiz().Title }}</h2>
+      <p>{{ quiz().Description }}</p>
+    </div>
+
+    <div class="questions-container">
+      
+      <div class="question-card" *ngFor="let q of questions(); let i = index">
+        <h3>{{ i + 1 }}. {{ q.QuestionText }} <span class="points">({{ q.Points }} pct)</span></h3>
+        
+        <div class="options-list">
+          
+          <label class="option-item" 
+                 *ngFor="let opt of q.options"
+                 [class.selected-option]="isOptionSelected(q.Id, opt.Id)">
+            
+            <input 
+              type="checkbox" 
+              [value]="opt.Id"
+              [checked]="isOptionSelected(q.Id, opt.Id)"
+              (change)="onOptionSelect(q.Id, opt.Id)"> 
+            
+            <span class="option-text">{{ opt.OptionText }}</span>
+          </label>
+
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-submit" (click)="submitQuiz()" [disabled]="submitting()">
+          {{ submitting() ? 'Se trimite...' : 'Trimite Răspunsurile' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
