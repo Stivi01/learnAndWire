@@ -42,6 +42,7 @@ export class StudentDashboard {
   userName = signal('');
 
   teachers = signal<Teacher[]>([]);
+  displayLimit = 4;
   selectedTeacher = signal<Teacher | null>(null);
   isModalOpen = signal(false);
   // GAUGES
@@ -70,6 +71,16 @@ export class StudentDashboard {
     { day: 19, title: 'Electronics lesson', time: '16:00' },
     { day: 20, title: 'C++ lesson', time: '17:30' },
   ]);
+
+  visibleTeachers = computed(() => 
+    this.teachers().slice(0, this.displayLimit)
+  );
+
+  hasMoreTeachers = computed(() => 
+    this.teachers().length > this.displayLimit
+  );
+
+  isAllTeachersModalOpen = signal(false);
 
   constructor() {
     const user = this.auth.getUser();
@@ -165,4 +176,6 @@ export class StudentDashboard {
   gaugeStyle(value: number, color = '#FFB86B') {
     return getGaugeStyle(value, color);
   }
+
+  
 }

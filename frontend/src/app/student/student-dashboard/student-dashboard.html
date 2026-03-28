@@ -20,7 +20,7 @@
       <div class="card card-teachers">
         <h2>Linked Teachers</h2>
 
-        <div *ngFor="let t of teachers()" class="teacher-item">
+        <div *ngFor="let t of visibleTeachers()" class="teacher-item">
           <div class="teacher-left">
             <img [src]="t.avatarUrl" [alt]="t.fullName" class="teacher-avatar"/>
             <div class="teacher-meta">
@@ -35,7 +35,12 @@
           </a>
         </div>
 
-        <a class="see-more" href="#">See more ></a>
+        <a 
+          *ngIf="hasMoreTeachers()" 
+          class="see-more" 
+          (click)="isAllTeachersModalOpen.set(true)">
+          See more >
+        </a>
       </div>
 
       <!-- EVENTS -->
@@ -140,6 +145,30 @@
     <p><strong>Rol:</strong> {{ selectedTeacher()?.role }}</p>
     <p *ngIf="selectedTeacher()?.phone"><strong>Phone:</strong> {{ selectedTeacher()?.phone }}</p>
     <p *ngIf="selectedTeacher()?.course"><strong>Curs:</strong> {{ selectedTeacher()?.course }}</p>
+  </div>
+</div>
+
+<!-- MODAL ALL TEACHERS -->
+<div class="modal-backdrop" *ngIf="isAllTeachersModalOpen()">
+  <div class="modal">
+    <button class="close-btn" (click)="isAllTeachersModalOpen.set(false)">X</button>
+    
+    <h3>All Teachers</h3>
+
+    <div *ngFor="let t of teachers()" class="teacher-item">
+      <div class="teacher-left">
+        <img [src]="t.avatarUrl" class="teacher-avatar"/>
+        <div>
+          <div class="t-name">{{ t.fullName }}</div>
+          <div class="t-role">{{ t.role }}</div>
+        </div>
+      </div>
+
+      <a class="see-more view-profile-link" (click)="openTeacherModal(t)">
+        View Profile >
+      </a>
+    </div>
+
   </div>
 </div>
 
