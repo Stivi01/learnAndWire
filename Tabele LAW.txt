@@ -260,6 +260,26 @@ CREATE TABLE CourseEnrollments (
         FOREIGN KEY (StudentId) REFERENCES Users(id)
 );
 
+CREATE TABLE CourseSchedule (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    CourseId INT NOT NULL FOREIGN KEY REFERENCES Courses(Id),
+    UserId INT NOT NULL FOREIGN KEY REFERENCES Users(Id),
+    DayOfWeek TINYINT NOT NULL,   -- 1 = Luni, 2 = Marti, ... 7 = Duminică
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    IsActive BIT DEFAULT 1        -- ca să poți dezactiva un slot fără să-l ștergi
+);
+
+
+
+CREATE TABLE CourseExceptions (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    CourseScheduleId INT NOT NULL FOREIGN KEY REFERENCES CourseSchedule(Id),
+    ExceptionDate DATE NOT NULL,
+    IsCancelled BIT DEFAULT 1,    -- dacă cursul este anulat
+    Notes NVARCHAR(255) NULL      -- motiv / observații
+);
+
 CREATE INDEX IX_CourseModules_CourseId ON CourseModules(CourseId);
 CREATE INDEX IX_CourseLessons_ModuleId ON CourseLessons(ModuleId);
 CREATE INDEX IX_QuizQuestions_QuizId ON QuizQuestions(QuizId);
