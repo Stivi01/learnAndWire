@@ -62,4 +62,19 @@ export class CourseSchedules {
     this.selectedCourse = null;
   }
 
+
+
+  getStudentSchedules() {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<any[]>(`http://localhost:3000/api/student/course-schedules`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  getUpcomingStudentSchedules() {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<any[]>(`http://localhost:3000/api/student/course-schedules/upcoming`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
 }

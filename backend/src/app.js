@@ -1629,9 +1629,9 @@ app.get('/api/course-schedules', protect, restrictTo('Profesor'), async (req, re
 
   try {
     const result = await sqlPool.query`
-      SELECT * FROM CourseSchedules
+      SELECT * FROM CourseSchedule
       WHERE CourseId = ${courseId}
-      ORDER BY Date, StartTime
+      ORDER BY DayOfWeek, StartTime
     `;
     res.json(result.recordset);
   } catch (err) {
@@ -1651,7 +1651,7 @@ app.put('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (req
 
   try {
     const result = await sqlPool.query`
-      UPDATE CourseSchedules
+      UPDATE CourseSchedule
       SET Date = ${date}, StartTime = ${startTime}, EndTime = ${endTime}, Location = ${location || ''}
       WHERE Id = ${scheduleId}
     `;
@@ -1673,7 +1673,7 @@ app.delete('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (
 
   try {
     const result = await sqlPool.query`
-      DELETE FROM CourseSchedules
+      DELETE FROM CourseSchedule
       WHERE Id = ${scheduleId}
     `;
 
@@ -1695,12 +1695,12 @@ app.get('/api/student/course-schedules', protect, restrictTo('Student'), async (
   try {
     const result = await sqlPool.query`
       SELECT cs.*, c.Title AS CourseTitle, u.FirstName AS TeacherFirstName, u.LastName AS TeacherLastName
-      FROM CourseSchedules cs
+      FROM CourseSchedule cs
       INNER JOIN Courses c ON c.Id = cs.CourseId
       INNER JOIN Users u ON u.Id = c.CreatedBy
       INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
       WHERE ce.StudentId = ${studentId}
-      ORDER BY cs.Date, cs.StartTime
+      ORDER BY cs.DayOfWeek, cs.StartTime
     `;
 
     res.json(result.recordset);
@@ -1713,17 +1713,16 @@ app.get('/api/student/course-schedules', protect, restrictTo('Student'), async (
 // GET UPCOMING SCHEDULES FOR STUDENT
 app.get('/api/student/course-schedules/upcoming', protect, restrictTo('Student'), async (req, res) => {
   const studentId = req.user.id;
-  const now = new Date();
 
   try {
     const result = await sqlPool.query`
       SELECT cs.*, c.Title AS CourseTitle, u.FirstName AS TeacherFirstName, u.LastName AS TeacherLastName
-      FROM CourseSchedules cs
+      FROM CourseSchedule cs
       INNER JOIN Courses c ON c.Id = cs.CourseId
       INNER JOIN Users u ON u.Id = c.CreatedBy
       INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-      WHERE ce.StudentId = ${studentId} AND cs.Date >= ${now}
-      ORDER BY cs.Date, cs.StartTime
+      WHERE ce.StudentId = ${studentId}
+      ORDER BY cs.DayOfWeek, cs.StartTime
     `;
     res.json(result.recordset);
   } catch (err) {

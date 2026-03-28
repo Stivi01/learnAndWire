@@ -4,18 +4,7 @@ import { AuthService } from '../../core/services/auth';
 import { User } from '../../core/services/user';
 import { Teacher } from '../../core/models/teacher.model';
 import { Quiz } from '../../core/services/quiz';
-
-interface Event {
-  title: string;
-  date: string;
-  time: string;
-  imageUrl: string;
-}
-
-interface Project {
-  title: string;
-  imageUrl: string;
-}
+import { CourseSchedules } from '../../core/services/course-schedules';
 
 interface Lesson {
   day: number;
@@ -39,60 +28,51 @@ export class StudentDashboard {
   private auth = inject(AuthService);
   private userService = inject(User);
   private quizService = inject(Quiz);
+  private courseScheduleService = inject(CourseSchedules);
 
   // USER
   userName = signal('');
 
+  // TEACHERS
   teachers = signal<Teacher[]>([]);
   displayLimit = 4;
   selectedTeacher = signal<Teacher | null>(null);
   isModalOpen = signal(false);
+  isAllTeachersModalOpen = signal(false);
+
+  visibleTeachers = computed(() => this.teachers().slice(0, this.displayLimit));
+  hasMoreTeachers = computed(() => this.teachers().length > this.displayLimit);
+
   // GAUGES
   attendance = signal(60);
   homework = signal(90);
   rating = signal(75);
 
-
-
   // EVENTS
   upcomingQuizzes = signal<any[]>([]);
+  upcomingSchedules = signal<any[]>([]);
 
-  quizEvents = computed(() => 
+  quizEvents = computed(() =>
     this.upcomingQuizzes().map(q => {
       const dateObj = new Date(q.scheduledAt);
-
       return {
         courseTitle: q.courseTitle,
         title: q.title,
         date: dateObj.toLocaleDateString('ro-RO'),
         time: dateObj.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
-        emoji: this.getQuizEmoji(q.title)
+        emoji: this.getQuizEmoji(q.title),
+        timestamp: dateObj.getTime()
       };
     })
   );
 
-  getQuizEmoji(title: string): string {
-    const t = title.toLowerCase();
-
-    if (t.includes('math')) return '📐';
-    if (t.includes('code') || t.includes('c++') || t.includes('program')) return '💻';
-    if (t.includes('robot')) return '🤖';
-    if (t.includes('test')) return '📝';
-    if (t.includes('exam')) return '📚';
-
-    return '🧠'; // default smart fallback
-  }
+  allEvents = computed(() =>
+    [...this.quizEvents(), ...this.upcomingSchedules()].sort((a, b) => a.timestamp - b.timestamp)
+  );
 
   eventDisplayLimit = 4;
-
-  visibleQuizEvents = computed(() =>
-    this.quizEvents().slice(0, this.eventDisplayLimit)
-  );
-
-  hasMoreQuizEvents = computed(() =>
-    this.quizEvents().length > this.eventDisplayLimit
-  );
-
+  visibleQuizEvents = computed(() => this.allEvents().slice(0, this.eventDisplayLimit));
+  hasMoreQuizEvents = computed(() => this.allEvents().length > this.eventDisplayLimit);
   isAllEventsModalOpen = signal(false);
 
   // CALENDAR
@@ -101,51 +81,30 @@ export class StudentDashboard {
   selectedDay = signal<number | null>(null);
   weekdays = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
-  // LECȚII
-  dailyLessons = signal<Lesson[]>([
-    { day: 18, title: 'Robotics lesson', time: '13:30' },
-    { day: 19, title: 'Electronics lesson', time: '16:00' },
-    { day: 20, title: 'C++ lesson', time: '17:30' },
-  ]);
-
-  visibleTeachers = computed(() => 
-    this.teachers().slice(0, this.displayLimit)
-  );
-
-  hasMoreTeachers = computed(() => 
-    this.teachers().length > this.displayLimit
-  );
-
-  isAllTeachersModalOpen = signal(false);
-
   constructor() {
     const user = this.auth.getUser();
     if (user) this.userName.set(`${user.firstName} ${user.lastName}`);
+
     this.generateCalendar(this.currentMonth());
-
-    // Setăm prima zi cu lecții ca selectată
-    const firstLessonDay = this.dailyLessons()[0]?.day;
-    if (firstLessonDay) this.selectedDay.set(firstLessonDay);
     this.loadTeachers();
-
     this.loadUpcomingQuizzes();
+    this.loadStudentSchedules();
+    this.loadUpcomingSchedules();
   }
 
+  // --- TEACHERS ---
   loadTeachers() {
     this.userService.getLinkedTeachers().subscribe({
-      next: (items) => {
-        console.log('Raw teachers from API:', items); // Debug API data
+      next: items => {
         const mapped = items.map(t => ({
           id: t.id,
           fullName: t.fullName,
           email: t.email,
-          role: t.role, // Poți schimba
+          role: t.role,
           avatarUrl: t.avatarUrl || 'assets/avatar-default.png',
           phone: t.phone,
           course: t.course
         }));
-
-        console.log('Mapped teachers:', mapped); // Debug mapped data
         this.teachers.set(mapped);
       },
       error: () => console.error("Failed to load teachers.")
@@ -153,8 +112,8 @@ export class StudentDashboard {
   }
 
   openTeacherModal(t: Teacher) {
-  this.selectedTeacher.set(t);
-  this.isModalOpen.set(true);
+    this.selectedTeacher.set(t);
+    this.isModalOpen.set(true);
   }
 
   closeTeacherModal() {
@@ -162,6 +121,31 @@ export class StudentDashboard {
     this.selectedTeacher.set(null);
   }
 
+  // --- EVENTS ---
+  getQuizEmoji(title: string): string {
+    const t = title.toLowerCase();
+    if (t.includes('math')) return '📐';
+    if (t.includes('code') || t.includes('c++') || t.includes('program')) return '💻';
+    if (t.includes('robot')) return '🤖';
+    if (t.includes('test')) return '📝';
+    if (t.includes('exam')) return '📚';
+    return '🧠';
+  }
+
+  loadUpcomingQuizzes() {
+    this.quizService.getStudentAvailableQuizzes().subscribe({
+      next: quizzes => {
+        const now = new Date();
+        const upcoming = quizzes
+          .filter(q => q.scheduledAt && new Date(q.scheduledAt) > now)
+          .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+        this.upcomingQuizzes.set(upcoming);
+      },
+      error: () => console.error('Failed to load quizzes')
+    });
+  }
+
+  // --- CALENDAR & SCHEDULE ---
   generateCalendar(date: Date) {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -169,12 +153,17 @@ export class StudentDashboard {
     const lastDate = new Date(year, month + 1, 0).getDate();
 
     this.days = [];
-
-    // convertim ca luni=0
-    const emptyDays = (firstDay + 6) % 7;
+    const emptyDays = (firstDay + 6) % 7; // Luni=0
     for (let i = 0; i < emptyDays; i++) this.days.push(0);
-
     for (let i = 1; i <= lastDate; i++) this.days.push(i);
+
+    // Selectăm ziua curentă dacă este luna curentă
+    const today = new Date();
+    if (today.getMonth() === month && today.getFullYear() === year) {
+      this.selectedDay.set(today.getDate());
+    } else {
+      this.selectedDay.set(null);
+    }
   }
 
   prevMonth() {
@@ -201,34 +190,101 @@ export class StudentDashboard {
     if (day !== 0) this.selectedDay.set(day);
   }
 
-  lessonsForSelectedDay(): Lesson[] {
+  // --- STUDENT SCHEDULES ---
+  studentSchedules = signal<any[]>([]);
+
+  lessonsForSelectedDay() {
     if (!this.selectedDay()) return [];
-    return this.dailyLessons().filter(l => l.day === this.selectedDay());
+    return this.studentSchedules().filter(s => {
+      const d = new Date(s.Date);
+      return d.getDate() === this.selectedDay() && d.getMonth() === this.currentMonth().getMonth();
+    });
   }
 
-  dayHasLesson(d: number): boolean {
-    if (d === 0) return false; // zilele goale
-    return this.dailyLessons().some(l => l.day === d);
+  dayHasSchedule(day: number): boolean {
+    if (day === 0) return false;
+    const date = new Date(this.currentMonth());
+    date.setDate(day);
+    const weekday = date.getDay();
+    return this.studentSchedules().some(s => s.DayOfWeek === weekday);
   }
 
   gaugeStyle(value: number, color = '#FFB86B') {
     return getGaugeStyle(value, color);
   }
 
-  loadUpcomingQuizzes() {
-    this.quizService.getStudentAvailableQuizzes().subscribe({
-      next: (quizzes) => {
-        const now = new Date();
-
-        const upcoming = quizzes
-          .filter(q => q.scheduledAt && new Date(q.scheduledAt) > now)
-          .sort((a, b) => 
-            new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-          );
-
-        this.upcomingQuizzes.set(upcoming);
+  loadStudentSchedules() {
+    this.courseScheduleService.getStudentSchedules().subscribe({
+      next: data => {
+        const month = this.currentMonth().getMonth();
+        const year = this.currentMonth().getFullYear();
+        const parsed = data.flatMap((s: any) => {
+          const dates = this.getDatesForDayInMonth(s.DayOfWeek, month, year);
+          return dates.map(date => ({
+            ...s,
+            Date: date,
+            StartTimeLocal: this.parseTimeToDate(s.StartTime, date),
+            EndTimeLocal: this.parseTimeToDate(s.EndTime, date),
+          }));
+        });
+        this.studentSchedules.set(parsed);
       },
-      error: () => console.error('Failed to load quizzes')
+      error: () => console.error('Failed to load student schedules')
     });
+  }
+
+  loadUpcomingSchedules() {
+    this.courseScheduleService.getUpcomingStudentSchedules().subscribe({
+      next: data => {
+        const now = new Date();
+        const parsed = data.map((s: any) => {
+          const nextDate = this.getNextOccurrence(s.DayOfWeek, s.StartTime);
+          return {
+            courseTitle: s.CourseTitle,
+            title: 'Curs',
+            date: nextDate.toLocaleDateString('ro-RO'),
+            time: nextDate.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+            emoji: '📘',
+            timestamp: nextDate.getTime()
+          };
+        }).filter(e => e.timestamp > now.getTime()).sort((a, b) => a.timestamp - b.timestamp);
+        this.upcomingSchedules.set(parsed);
+      },
+      error: () => console.error('Failed to load upcoming schedules')
+    });
+  }
+
+  // --- HELPERS ---
+  private parseTimeToDate(timeISO: string, day: Date): Date {
+    const t = new Date(timeISO);
+    const d = new Date(day);
+    d.setHours(t.getUTCHours(), t.getUTCMinutes(), t.getUTCSeconds(), 0);
+    return d;
+  }
+
+  private getDatesForDayInMonth(dayOfWeek: number, month: number, year: number): Date[] {
+    const dates: Date[] = [];
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= lastDay; d++) {
+      const date = new Date(year, month, d);
+      date.setHours(12, 0, 0, 0);
+      const jsDay = date.getDay();
+      const mappedDay = jsDay === 0 ? 7 : jsDay; // 1=Monday
+      if (mappedDay === dayOfWeek) dates.push(date);
+    }
+    return dates;
+  }
+
+  private getNextOccurrence(dayOfWeek: number, time: string): Date {
+    const now = new Date();
+    const result = new Date();
+    const currentDay = now.getDay() === 0 ? 7 : now.getDay();
+    let diff = dayOfWeek - currentDay;
+    if (diff < 0) diff += 7;
+    result.setDate(now.getDate() + diff);
+    const t = new Date(time);
+    result.setHours(t.getUTCHours(), t.getUTCMinutes(), 0, 0);
+    if (result < now) result.setDate(result.getDate() + 7);
+    return result;
   }
 }

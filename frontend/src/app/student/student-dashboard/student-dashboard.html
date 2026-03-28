@@ -13,7 +13,6 @@
       <!-- TEACHERS -->
       <div class="card card-teachers">
         <h2>Linked Teachers</h2>
-
         <div *ngFor="let t of visibleTeachers()" class="teacher-item">
           <div class="teacher-left">
             <img [src]="t.avatarUrl" [alt]="t.fullName" class="teacher-avatar"/>
@@ -22,17 +21,9 @@
               <div class="t-role">{{ t.role }}</div>
             </div>
           </div>
-
-          <!-- Buton pentru vizualizare profil -->
-          <a class="see-more view-profile-link" (click)="openTeacherModal(t)">
-            View Profile &gt;
-          </a>
+          <a class="see-more view-profile-link" (click)="openTeacherModal(t)">View Profile &gt;</a>
         </div>
-
-        <a 
-          *ngIf="hasMoreTeachers()" 
-          class="see-more" 
-          (click)="isAllTeachersModalOpen.set(true)">
+        <a *ngIf="hasMoreTeachers()" class="see-more" (click)="isAllTeachersModalOpen.set(true)">
           See more >
         </a>
       </div>
@@ -48,16 +39,8 @@
             <div class="e-sub"><span>{{ e.date }}</span> · <strong>{{ e.time }}</strong></div>
           </div>
         </div>
-        <a 
-          *ngIf="hasMoreQuizEvents()" 
-          class="see-more" 
-          (click)="isAllEventsModalOpen.set(true)">
-          See more >
-        </a>
-
-        <div *ngIf="quizEvents().length === 0">
-              Nu există quiz-uri programate.
-        </div>
+        <a *ngIf="hasMoreQuizEvents()" class="see-more" (click)="isAllEventsModalOpen.set(true)">See more ></a>
+        <div *ngIf="quizEvents().length === 0">Nu există quiz-uri programate.</div>
       </div>
 
       <!-- CALENDAR & SCHEDULE -->
@@ -81,7 +64,7 @@
               <div *ngFor="let d of days"
                    class="calendar-day"
                    [class.empty]="d === 0"
-                   [class.selected]="d === selectedDay() || dayHasLesson(d)"
+                   [class.selected]="d === selectedDay() || dayHasSchedule(d)"
                    (click)="selectDay(d)">
                 {{ d !== 0 ? d : '' }}
               </div>
@@ -90,11 +73,13 @@
 
           <!-- Schedule list -->
           <div class="schedule-list">
-            <h3>Lecții pentru {{ selectedDay() || dailyLessons()[0]?.day }}/{{ currentMonth().getMonth() + 1 }}</h3>
-            <div *ngFor="let l of lessonsForSelectedDay()" class="schedule-item">
+            <h3>Lecții pentru {{ selectedDay() || '' }}/{{ currentMonth().getMonth() + 1 }}</h3>
+            <div *ngFor="let s of lessonsForSelectedDay()" class="schedule-item">
               <div class="schedule-card">
-                <div class="lesson-title">{{ l.title }}</div>
-                <div class="lesson-time">{{ l.time }} - {{ l.day }}/{{ currentMonth().getMonth() + 1 }}</div>
+                <div class="lesson-title">📘 {{ s.CourseTitle }}</div>
+                <div class="lesson-time">
+                  {{ s.StartTimeLocal | date:'HH:mm' }} - {{ s.EndTimeLocal | date:'HH:mm' }}
+                </div>
               </div>
             </div>
             <div *ngIf="lessonsForSelectedDay().length === 0">Nu există lecții pentru această zi.</div>
@@ -141,24 +126,22 @@
 
   <!-- MODAL TEACHER PROFILE -->
   <div class="modal-backdrop" *ngIf="isModalOpen()">
-  <div class="modal">
-    <button class="close-btn" (click)="closeTeacherModal()">X</button>
-    <img *ngIf="selectedTeacher()?.avatarUrl" [src]="selectedTeacher()?.avatarUrl" alt="{{selectedTeacher()?.fullName}}" class="modal-avatar"/>
-    <h3>{{ selectedTeacher()?.fullName }}</h3>
-    <p><strong>Email:</strong> {{ selectedTeacher()?.email }}</p>
-    <p><strong>Rol:</strong> {{ selectedTeacher()?.role }}</p>
-    <p *ngIf="selectedTeacher()?.phone"><strong>Phone:</strong> {{ selectedTeacher()?.phone }}</p>
-    <p *ngIf="selectedTeacher()?.course"><strong>Curs:</strong> {{ selectedTeacher()?.course }}</p>
+    <div class="modal">
+      <button class="close-btn" (click)="closeTeacherModal()">X</button>
+      <img *ngIf="selectedTeacher()?.avatarUrl" [src]="selectedTeacher()?.avatarUrl" alt="{{selectedTeacher()?.fullName}}" class="modal-avatar"/>
+      <h3>{{ selectedTeacher()?.fullName }}</h3>
+      <p><strong>Email:</strong> {{ selectedTeacher()?.email }}</p>
+      <p><strong>Rol:</strong> {{ selectedTeacher()?.role }}</p>
+      <p *ngIf="selectedTeacher()?.phone"><strong>Phone:</strong> {{ selectedTeacher()?.phone }}</p>
+      <p *ngIf="selectedTeacher()?.course"><strong>Curs:</strong> {{ selectedTeacher()?.course }}</p>
+    </div>
   </div>
-</div>
 
   <!-- MODAL ALL TEACHERS -->
   <div class="modal-backdrop" *ngIf="isAllTeachersModalOpen()">
     <div class="modal">
       <button class="close-btn" (click)="isAllTeachersModalOpen.set(false)">X</button>
-      
       <h3>All Teachers</h3>
-
       <div *ngFor="let t of teachers()" class="teacher-item">
         <div class="teacher-left">
           <img [src]="t.avatarUrl" class="teacher-avatar"/>
@@ -167,24 +150,17 @@
             <div class="t-role">{{ t.role }}</div>
           </div>
         </div>
-
-        <a class="see-more view-profile-link" (click)="openTeacherModal(t)">
-          View Profile >
-        </a>
+        <a class="see-more view-profile-link" (click)="openTeacherModal(t)">View Profile ></a>
       </div>
-
     </div>
   </div>
 
   <!-- MODAL ALL EVENTS -->
   <div class="modal-backdrop" *ngIf="isAllEventsModalOpen()" (click)="isAllEventsModalOpen.set(false)">
     <div class="modal" (click)="$event.stopPropagation()">
-      
       <button class="close-btn" (click)="isAllEventsModalOpen.set(false)">X</button>
-      
-      <h3>All Quizzes ({{ quizEvents().length }})</h3>
-
-      <div *ngFor="let e of quizEvents()" class="event-item">
+      <h3>All Events ({{ allEvents().length }})</h3>
+      <div *ngFor="let e of allEvents()" class="event-item">
         <div class="event-emoji">{{ e.emoji }}</div>
         <div class="event-meta">
           <div class="e-course">📘 {{ e.courseTitle }}</div>
@@ -192,9 +168,7 @@
           <div class="e-sub">{{ e.date }} · <strong>{{ e.time }}</strong></div>
         </div>
       </div>
-
     </div>
   </div>
-
 
 </div>
