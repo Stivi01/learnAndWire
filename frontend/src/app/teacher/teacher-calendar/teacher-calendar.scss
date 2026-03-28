@@ -109,6 +109,16 @@
       position: absolute;
       bottom: 8px;
     }
+
+    .schedule-dot {
+      width: 5px;
+      height: 5px;
+      background: #6c5ce7; // aceeași culoare mov ca selectarea zilei
+      border-radius: 50%;
+      position: absolute;
+      bottom: 3px; // puțin mai sus decât marginile
+      right: 6px;  // poți ajusta poziția
+    }
   }
 }
 
@@ -170,5 +180,40 @@
     margin-top: 3rem;
     color: #a4b0be;
     .icon { font-size: 2rem; display: block; margin-bottom: 10px; }
+  }
+}
+
+.schedule-card {
+  display: flex;
+  background: white;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+
+  // Accent diferit față de quiz (mov)
+  .card-accent { 
+    width: 4px; 
+    background: #6c5ce7; 
+  }
+
+  .card-info {
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    .time { 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      color: #6c5ce7; 
+    }
+
+    .title { 
+      font-size: 0.95rem; 
+      font-weight: 600; 
+      color: #2d3436; 
+      margin: 2px 0; 
+    }
   }
 }

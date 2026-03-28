@@ -19,14 +19,20 @@
 
       @for (day of calendarDays(); track $index) {
         <div class="day-cell" 
-             [class.empty]="!day"
-             [class.today]="isToday(day)"
-             [class.selected]="isSelected(day)"
-             (click)="selectDate(day)">
+            [class.empty]="!day"
+            [class.today]="isToday(day)"
+            [class.selected]="isSelected(day)"
+            (click)="selectDate(day)">
+          
           <span class="day-number">{{ day ? (day | date:'d') : '' }}</span>
-          @if (hasQuiz(day)) {
-            <span class="quiz-dot"></span>
-          }
+
+          <!-- punct pentru quiz -->
+          <span *ngIf="hasQuiz(day)" class="quiz-dot"></span>
+
+          <!-- punct pentru cursuri -->
+          <!-- în calendar grid -->
+          <span *ngIf="hasSchedule(day)" class="schedule-dot"></span>
+
         </div>
       }
     </div>
@@ -45,6 +51,20 @@
     </div>
 
     <div class="details-content">
+      <!-- Cursuri -->
+      @for (schedule of schedulesForSelectedDate(); track schedule.Id) {
+        <div class="schedule-card">
+          <div class="card-accent"></div>
+          <div class="card-info">
+            <!-- În teacher-calendar.html -->
+            <span class="time">
+              {{ schedule.StartTimeLocal | date:'HH:mm' }} - {{ schedule.EndTimeLocal | date:'HH:mm' }}
+            </span>
+            <span class="title">Curs: {{ schedule.CourseTitle }}</span>
+          </div>
+        </div>
+      }
+      
       @for (quiz of quizzesForSelectedDate(); track quiz.id) {
         <div class="quiz-card" [class.draft]="!quiz.isPublished">
           <div class="card-accent"></div>
@@ -54,7 +74,8 @@
             <span class="status">{{ quiz.isPublished ? 'Publicat' : 'Draft' }}</span>
           </div>
         </div>
-      } @empty {
+      } 
+      @empty {
         <div class="empty-state">
           <span class="icon">📅</span>
           <p>Nicio activitate programată</p>

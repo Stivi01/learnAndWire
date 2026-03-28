@@ -1,0 +1,35 @@
+<div class="schedule-container">
+  <h2>Programează cursul: {{ course?.Title }}</h2>
+
+  <form [formGroup]="scheduleForm" (ngSubmit)="submit()">
+    <div class="form-group">
+      <label>Ziua săptămânii</label>
+      <select formControlName="dayOfWeek">
+        <option *ngFor="let d of daysOfWeek" [value]="d.value">{{ d.label }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Ora de start</label>
+      <input type="time" formControlName="startTime" />
+    </div>
+
+    <div class="form-group">
+      <label>Ora de sfârșit</label>
+      <input type="time" formControlName="endTime" />
+    </div>
+
+    <div class="form-group">
+      <label>Periodicitate</label>
+      <select formControlName="recurrence">
+        <option value="weekly">Săptămânal</option>
+        <!-- Poți adăuga mai târziu "bi-weekly", "monthly" -->
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Programează</button>
+      <button type="button" class="btn-outline" (click)="cancel()">Anulează</button>
+    </div>
+  </form>
+</div>

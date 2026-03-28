@@ -1596,6 +1596,161 @@ app.get('/api/quizzes/by-course/:courseId', protect, restrictTo('Profesor'), asy
   }
 });
 
+// =========================
+// COURSE SCHEDULE API
+// =========================
+
+// CREATE SCHEDULE (profesor)
+app.post('/api/course-schedules', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId, dayOfWeek, startTime, endTime } = req.body;
+
+  if (!courseId || !dayOfWeek || !startTime || !endTime) {
+    return res.status(400).json({ message: 'courseId, dayOfWeek, startTime și endTime sunt obligatorii.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      INSERT INTO CourseSchedule (CourseId, UserId, DayOfWeek, StartTime, EndTime)
+      OUTPUT INSERTED.*
+      VALUES (${courseId}, ${req.user.id}, ${dayOfWeek}, ${startTime}, ${endTime})
+    `;
+    res.status(201).json(result.recordset[0]);
+  } catch (err) {
+    console.error("❌ Error creating schedule:", err);
+    res.status(500).json({ message: 'Eroare la crearea programării.' });
+  }
+});
+
+// GET SCHEDULES BY COURSE (profesor)
+app.get('/api/course-schedules', protect, restrictTo('Profesor'), async (req, res) => {
+  const { courseId } = req.query;
+
+  if (!courseId) return res.status(400).json({ message: 'Parametrul courseId este obligatoriu.' });
+
+  try {
+    const result = await sqlPool.query`
+      SELECT * FROM CourseSchedules
+      WHERE CourseId = ${courseId}
+      ORDER BY Date, StartTime
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Error fetching schedules:", err);
+    res.status(500).json({ message: 'Eroare la preluarea programărilor.' });
+  }
+});
+
+// UPDATE SCHEDULE (profesor)
+app.put('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const scheduleId = parseInt(req.params.id);
+  const { date, startTime, endTime, location } = req.body;
+
+  if (!date || !startTime || !endTime) {
+    return res.status(400).json({ message: 'date, startTime și endTime sunt obligatorii.' });
+  }
+
+  try {
+    const result = await sqlPool.query`
+      UPDATE CourseSchedules
+      SET Date = ${date}, StartTime = ${startTime}, EndTime = ${endTime}, Location = ${location || ''}
+      WHERE Id = ${scheduleId}
+    `;
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Programarea nu există.' });
+    }
+
+    res.json({ message: 'Programarea a fost actualizată cu succes.' });
+  } catch (err) {
+    console.error("❌ Error updating schedule:", err);
+    res.status(500).json({ message: 'Eroare la actualizarea programării.' });
+  }
+});
+
+// DELETE SCHEDULE (profesor)
+app.delete('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const scheduleId = parseInt(req.params.id);
+
+  try {
+    const result = await sqlPool.query`
+      DELETE FROM CourseSchedules
+      WHERE Id = ${scheduleId}
+    `;
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Programarea nu există.' });
+    }
+
+    res.json({ message: 'Programarea a fost ștearsă cu succes.' });
+  } catch (err) {
+    console.error("❌ Error deleting schedule:", err);
+    res.status(500).json({ message: 'Eroare la ștergerea programării.' });
+  }
+});
+
+// GET ALL SCHEDULES FOR STUDENT (student -> toate cursurile la care e înscris)
+app.get('/api/student/course-schedules', protect, restrictTo('Student'), async (req, res) => {
+  const studentId = req.user.id;
+
+  try {
+    const result = await sqlPool.query`
+      SELECT cs.*, c.Title AS CourseTitle, u.FirstName AS TeacherFirstName, u.LastName AS TeacherLastName
+      FROM CourseSchedules cs
+      INNER JOIN Courses c ON c.Id = cs.CourseId
+      INNER JOIN Users u ON u.Id = c.CreatedBy
+      INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
+      WHERE ce.StudentId = ${studentId}
+      ORDER BY cs.Date, cs.StartTime
+    `;
+
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Error fetching student schedules:", err);
+    res.status(500).json({ message: 'Eroare la preluarea programărilor studentului.' });
+  }
+});
+
+// GET UPCOMING SCHEDULES FOR STUDENT
+app.get('/api/student/course-schedules/upcoming', protect, restrictTo('Student'), async (req, res) => {
+  const studentId = req.user.id;
+  const now = new Date();
+
+  try {
+    const result = await sqlPool.query`
+      SELECT cs.*, c.Title AS CourseTitle, u.FirstName AS TeacherFirstName, u.LastName AS TeacherLastName
+      FROM CourseSchedules cs
+      INNER JOIN Courses c ON c.Id = cs.CourseId
+      INNER JOIN Users u ON u.Id = c.CreatedBy
+      INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
+      WHERE ce.StudentId = ${studentId} AND cs.Date >= ${now}
+      ORDER BY cs.Date, cs.StartTime
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Error fetching upcoming schedules:", err);
+    res.status(500).json({ message: 'Eroare la preluarea programărilor viitoare.' });
+  }
+});
+
+// GET ALL SCHEDULES FOR TEACHER
+app.get('/api/course-schedules/teacher/all-schedules', protect, restrictTo('Profesor'), async (req, res) => {
+  const teacherId = req.user.id;
+
+  try {
+    const result = await sqlPool.query`
+      SELECT cs.*, c.Title AS CourseTitle
+      FROM CourseSchedule cs
+      INNER JOIN Courses c ON c.Id = cs.CourseId
+      WHERE cs.UserId = ${teacherId}
+      ORDER BY cs.DayOfWeek, cs.StartTime
+    `;
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("❌ Error fetching teacher schedules:", err);
+    res.status(500).json({ message: 'Eroare la preluarea programărilor profesorului.' });
+  }
+});
+
 
 
 

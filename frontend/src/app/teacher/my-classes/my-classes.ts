@@ -1,10 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Course } from '../../core/services/course';
+import { Course, CourseItem } from '../../core/services/course';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 import { filter, startWith, Subject, switchMap, take, takeUntil } from 'rxjs';
+import { CourseSchedules } from '../../core/services/course-schedules';
 
 @Component({
   selector: 'app-my-classes',
@@ -26,6 +27,7 @@ export class MyClasses implements OnInit{
   constructor(
     private courseService: Course,
     private authService: AuthService,
+    private courseScheduleService: CourseSchedules,
     private router: Router
   ) {}
 
@@ -102,6 +104,12 @@ export class MyClasses implements OnInit{
   inviteStudents(course: any) {
     this.router.navigate(['/teacher/invite-students'], { state: { course } });
   }
+
+  scheduleCourse(course: CourseItem) {
+    this.courseScheduleService.setSelectedCourse(course);
+    this.router.navigate(['/teacher/course-schedule']);
+  }
+
   goToAddCourse() {
     this.router.navigate(['/teacher/course-form']);
   }

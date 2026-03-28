@@ -1,0 +1,65 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+import { CourseItem } from './course';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class CourseSchedules {
+  private apiUrl = 'http://localhost:3000/api/course-schedules';
+  private selectedCourse: CourseItem | null = null;
+
+  constructor(private http: HttpClient) {}
+
+  // =============================
+  // API METHODS
+  // =============================
+  addCourseSchedule(payload: any): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.post<any>(this.apiUrl, payload, { headers });
+  }
+
+  getCourseSchedules(courseId: number): Observable<any[]> {
+    const token = localStorage.getItem('token') || '';
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.get<any[]>(`${this.apiUrl}?courseId=${courseId}`, { headers });
+  }
+
+  getCoursesWithSchedules() {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<any[]>(`${this.apiUrl}/teacher/all-schedules`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  updateCourseSchedule(scheduleId: number, payload: any): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.put<any>(`${this.apiUrl}/${scheduleId}`, payload, { headers });
+  }
+
+  deleteCourseSchedule(scheduleId: number): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.delete<any>(`${this.apiUrl}/${scheduleId}`, { headers });
+  }
+
+  // =============================
+  // SELECTED COURSE METHODS
+  // =============================
+  setSelectedCourse(course: CourseItem) {
+    this.selectedCourse = course;
+  }
+
+  getSelectedCourse(): CourseItem | null {
+    return this.selectedCourse;
+  }
+
+  clearSelectedCourse() {
+    this.selectedCourse = null;
+  }
+
+}

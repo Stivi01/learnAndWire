@@ -59,6 +59,13 @@ export const routes: Routes = [
   },
 
   {
+    path: 'teacher/course-schedule',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/course-schedule/course-schedule').then(m => m.CourseSchedule)
+  },
+
+  {
     path: 'teacher/lesson-form',
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Profesor' },
