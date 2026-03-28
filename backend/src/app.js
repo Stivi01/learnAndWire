@@ -1138,18 +1138,30 @@ app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res)
 // În app.js, caută ruta care aduce testele pentru student:
 app.get('/api/quizzes/student', protect, async (req, res) => {
   try {
-    const studentId = req.user.id; // ID-ul studentului logat
+    const studentId = req.user.id;
 
-    // Modificăm SELECT-ul să includă un sub-query "HasTaken"
     const result = await sqlPool.query`
       SELECT 
         q.Id, 
         q.Title, 
         q.Description, 
         q.ScheduledAt,
-        (SELECT COUNT(*) FROM QuizResults qr WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) as HasTaken,
-        (SELECT COALESCE(MAX(Score), 0) FROM QuizResults qr WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) as UserScore
+        q.CourseId,
+        c.Title AS CourseTitle,   -- 🔥 AICI ESTE CHEIA
+
+        (SELECT COUNT(*) 
+         FROM QuizResults qr 
+         WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) as HasTaken,
+
+        (SELECT COALESCE(MAX(Score), 0) 
+         FROM QuizResults qr 
+         WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) as UserScore
+
       FROM CourseQuizzes q
+      INNER JOIN Courses c ON c.Id = q.CourseId
+      INNER JOIN CourseEnrollments ce 
+        ON ce.CourseId = q.CourseId 
+        AND ce.StudentId = ${studentId}
       WHERE q.IsPublished = 1
     `;
 
@@ -1167,15 +1179,17 @@ app.get('/api/student/my-grades', protect, restrictTo('Student'), async (req, re
 
     const result = await sqlPool.query`
       SELECT 
-        qr.Id as ResultId,
-        q.Title as QuizTitle,
-        qr.Score,
-        qr.SubmittedAt,
-        (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) as MaxScore
+          qr.Id AS ResultId,
+          q.Title AS QuizTitle,
+          c.Title AS CourseTitle,
+          qr.Score,
+          qr.SubmittedAt,
+          (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) AS MaxScore
       FROM QuizResults qr
       INNER JOIN CourseQuizzes q ON qr.QuizId = q.Id
+      INNER JOIN Courses c ON q.CourseId = c.Id
       WHERE qr.StudentId = ${studentId}
-      ORDER BY qr.SubmittedAt DESC
+      ORDER BY qr.SubmittedAt DESC;
     `;
 
     res.json(result.recordset);

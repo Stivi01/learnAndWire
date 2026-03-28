@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../core/services/auth';
 import { User } from '../../core/services/user';
 import { Teacher } from '../../core/models/teacher.model';
+import { Quiz } from '../../core/services/quiz';
 
 interface Event {
   title: string;
@@ -37,6 +38,7 @@ function getGaugeStyle(percentage: number, color: string): string {
 export class StudentDashboard {
   private auth = inject(AuthService);
   private userService = inject(User);
+  private quizService = inject(Quiz);
 
   // USER
   userName = signal('');
@@ -53,11 +55,45 @@ export class StudentDashboard {
 
 
   // EVENTS
-  events = signal<Event[]>([
-    { title: 'The main event in your life', date: '12 May 2025', time: '13:00', imageUrl: 'https://placehold.co/48x48/A48DAE/ffffff?text=E1' },
-    { title: 'Webinar of new tools in Minecraft', date: '16 May 2025', time: '18:00', imageUrl: 'https://placehold.co/48x48/64B5F6/ffffff?text=E2' },
-    { title: 'Robotics Workshop', date: '22 May 2025', time: '10:00', imageUrl: 'https://placehold.co/48x48/FFD54F/ffffff?text=E3' },
-  ]);
+  upcomingQuizzes = signal<any[]>([]);
+
+  quizEvents = computed(() => 
+    this.upcomingQuizzes().map(q => {
+      const dateObj = new Date(q.scheduledAt);
+
+      return {
+        courseTitle: q.courseTitle,
+        title: q.title,
+        date: dateObj.toLocaleDateString('ro-RO'),
+        time: dateObj.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+        emoji: this.getQuizEmoji(q.title)
+      };
+    })
+  );
+
+  getQuizEmoji(title: string): string {
+    const t = title.toLowerCase();
+
+    if (t.includes('math')) return '📐';
+    if (t.includes('code') || t.includes('c++') || t.includes('program')) return '💻';
+    if (t.includes('robot')) return '🤖';
+    if (t.includes('test')) return '📝';
+    if (t.includes('exam')) return '📚';
+
+    return '🧠'; // default smart fallback
+  }
+
+  eventDisplayLimit = 4;
+
+  visibleQuizEvents = computed(() =>
+    this.quizEvents().slice(0, this.eventDisplayLimit)
+  );
+
+  hasMoreQuizEvents = computed(() =>
+    this.quizEvents().length > this.eventDisplayLimit
+  );
+
+  isAllEventsModalOpen = signal(false);
 
   // CALENDAR
   currentMonth = signal(new Date());
@@ -91,6 +127,8 @@ export class StudentDashboard {
     const firstLessonDay = this.dailyLessons()[0]?.day;
     if (firstLessonDay) this.selectedDay.set(firstLessonDay);
     this.loadTeachers();
+
+    this.loadUpcomingQuizzes();
   }
 
   loadTeachers() {
@@ -177,5 +215,20 @@ export class StudentDashboard {
     return getGaugeStyle(value, color);
   }
 
-  
+  loadUpcomingQuizzes() {
+    this.quizService.getStudentAvailableQuizzes().subscribe({
+      next: (quizzes) => {
+        const now = new Date();
+
+        const upcoming = quizzes
+          .filter(q => q.scheduledAt && new Date(q.scheduledAt) > now)
+          .sort((a, b) => 
+            new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+          );
+
+        this.upcomingQuizzes.set(upcoming);
+      },
+      error: () => console.error('Failed to load quizzes')
+    });
+  }
 }

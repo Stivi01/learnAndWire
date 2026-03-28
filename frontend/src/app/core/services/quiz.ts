@@ -241,6 +241,7 @@ addOption(questionId: number, data: Partial<QuizOption>) {
     map(res => res.map(g => ({
       id: g.ResultId,
       title: g.QuizTitle,
+      courseTitle: g.CourseTitle,
       score: g.Score,
       maxScore: g.MaxScore,
       date: g.SubmittedAt

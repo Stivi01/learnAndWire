@@ -10,6 +10,7 @@
   <table *ngIf="!loading() && grades().length > 0" class="grades-table">
     <thead>
       <tr>
+        <th>Curs</th>
         <th>Test</th>
         <th>Data Susținerii</th>
         <th>Scor Obținut</th>
@@ -18,6 +19,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let grade of grades()">
+        <td>{{ grade.courseTitle }}</td>
         <td>{{ grade.title }}</td>
         <td>{{ grade.date | date:'medium' }}</td>
         <td><strong>{{ grade.score }}</strong> / {{ grade.maxScore }} puncte</td>
