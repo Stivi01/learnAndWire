@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { AuthService } from './auth';
 import { CourseItem } from './course';
 
@@ -45,6 +45,31 @@ export class CourseSchedules {
     const token = localStorage.getItem('token') || '';
     const headers = { Authorization: `Bearer ${token}` };
     return this.http.delete<any>(`${this.apiUrl}/${scheduleId}`, { headers });
+  }
+
+  getScheduleForCourse(courseId: number): Observable<any | null> {
+    const token = localStorage.getItem('token') || '';
+
+    return this.http
+      .get<any[]>(`${this.apiUrl}?courseId=${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .pipe(
+        map(res => {
+          if (!res || res.length === 0) return null;
+
+          const s = res[0]; // presupunem 1 schedule / curs
+
+          return {
+            id: s.Id,
+            courseId: s.CourseId,
+            dayOfWeek: s.DayOfWeek,
+            startTime: s.StartTime,
+            endTime: s.EndTime,
+            isActive: s.IsActive
+          };
+        })
+      );
   }
 
   // =============================

@@ -1,3 +1,10 @@
+<div *ngIf="!hasSchedule" class="no-schedule">
+  ⚠️ Acest curs nu a fost încă programat.
+</div>
+
+<div *ngIf="hasSchedule" class="has-schedule">
+  ✅ Acest curs este deja programat. Poți modifica mai jos.
+</div>
 <div class="schedule-container">
   <h2>Programează cursul: {{ course?.Title }}</h2>
 

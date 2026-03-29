@@ -14,6 +14,8 @@ import { CommonModule } from '@angular/common';
 export class CourseSchedule {
   course: any;
   scheduleForm: FormGroup;
+  existingSchedule: any = null;
+  hasSchedule = false;
 
   daysOfWeek = [
     { value: 1, label: 'Luni' },
@@ -42,29 +44,61 @@ export class CourseSchedule {
     recurrence: ['weekly', Validators.required],
   });
 }
-  submit() {
-    if (this.scheduleForm.invalid) return;
 
-    const payload = {
-      courseId: this.course!.Id,
-      dayOfWeek: this.scheduleForm.value.dayOfWeek, // <- important
-      startTime: this.scheduleForm.value.startTime,
-      endTime: this.scheduleForm.value.endTime,
-      // location: this.scheduleForm.value.location || '', // opțional
-    };
+  ngOnInit() {
+    if (!this.course) return;
 
-    this.courseScheduleService.addCourseSchedule(payload).subscribe({
-      next: () => {
-        alert('Curs programat cu succes!');
-        this.router.navigate(['/teacher/my-classes']);
-        this.courseScheduleService.clearSelectedCourse();
-      },
-      error: err => {
-        console.error(err);
-        alert('A apărut o eroare la programarea cursului.');
-      }
-    });
+    this.courseScheduleService
+      .getScheduleForCourse(this.course.Id)
+      .subscribe({
+        next: (data: any | null) => {
+
+          if (!data) {
+            this.hasSchedule = false;
+            return;
+          }
+
+          this.existingSchedule = data;
+          this.hasSchedule = true;
+
+          this.scheduleForm.patchValue({
+            dayOfWeek: data.dayOfWeek,
+            startTime: this.formatTime(data.startTime),
+            endTime: this.formatTime(data.endTime),
+            recurrence: 'weekly'
+          });
+        },
+        error: () => {
+          console.error('Failed to load schedule');
+          this.hasSchedule = false;
+        }
+      });
   }
+  submit() {
+  if (this.scheduleForm.invalid) return;
+
+  const payload = {
+    courseId: this.course!.Id,
+    dayOfWeek: this.scheduleForm.value.dayOfWeek,
+    startTime: this.scheduleForm.value.startTime,
+    endTime: this.scheduleForm.value.endTime,
+  };
+
+  // 🔥 UPDATE sau CREATE
+  const request = this.hasSchedule
+    ? this.courseScheduleService.updateCourseSchedule(this.existingSchedule.id, payload)
+    : this.courseScheduleService.addCourseSchedule(payload);
+
+  request.subscribe({
+    next: () => {
+      alert(this.hasSchedule ? 'Programare actualizată!' : 'Curs programat!');
+      this.router.navigate(['/teacher/my-classes']);
+    },
+    error: () => {
+      alert('Eroare.');
+    }
+  });
+}
 
   private getNextDateForDay(dayOfWeek: number): string {
     const today = new Date();
@@ -77,9 +111,24 @@ export class CourseSchedule {
     return nextDate.toISOString().split('T')[0];
   }
 
-cancel() {
-  this.router.navigate(['/teacher/my-classes']);
-  this.courseScheduleService.clearSelectedCourse();
-}
+  cancel() {
+    this.router.navigate(['/teacher/my-classes']);
+    this.courseScheduleService.clearSelectedCourse();
+  }
+  formatTime(time: string): string {
+    if (!time) return '';
+
+    // dacă vine ca ISO string (1970-01-01T08:00:00)
+    if (time.includes('T')) {
+      return time.split('T')[1].substring(0, 5); // 08:00
+    }
+
+    // dacă vine ca 08:00:00
+    if (time.length >= 5) {
+      return time.substring(0, 5); // 08:00
+    }
+
+    return time;
+  }
 
 }

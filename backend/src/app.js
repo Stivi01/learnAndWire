@@ -1643,16 +1643,21 @@ app.get('/api/course-schedules', protect, restrictTo('Profesor'), async (req, re
 // UPDATE SCHEDULE (profesor)
 app.put('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const scheduleId = parseInt(req.params.id);
-  const { date, startTime, endTime, location } = req.body;
+  const { dayOfWeek, startTime, endTime } = req.body;
 
-  if (!date || !startTime || !endTime) {
-    return res.status(400).json({ message: 'date, startTime și endTime sunt obligatorii.' });
+  if (!dayOfWeek || !startTime || !endTime) {
+    return res.status(400).json({ 
+      message: 'dayOfWeek, startTime și endTime sunt obligatorii.' 
+    });
   }
 
   try {
     const result = await sqlPool.query`
       UPDATE CourseSchedule
-      SET Date = ${date}, StartTime = ${startTime}, EndTime = ${endTime}, Location = ${location || ''}
+      SET 
+        DayOfWeek = ${dayOfWeek},
+        StartTime = ${startTime}, 
+        EndTime = ${endTime}
       WHERE Id = ${scheduleId}
     `;
 
