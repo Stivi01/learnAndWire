@@ -66,6 +66,13 @@ export const routes: Routes = [
   },
 
   {
+    path: 'teacher/edit-course',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/course-edit/course-edit').then(m => m.CourseEdit)
+  },
+
+  {
     path: 'teacher/lesson-form',
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Profesor' },

@@ -284,6 +284,30 @@ app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
   }
 });
 
+// UPDATE COURSE
+app.put('/api/courses/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+  const { title, description, thumbnailUrl, isPublished } = req.body;
+
+  if (!title) return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+
+  try {
+    const result = await sqlPool.query`
+      UPDATE Courses
+      SET Title = ${title},
+          Description = ${description},
+          ThumbnailUrl = ${thumbnailUrl},
+          IsPublished = ${isPublished}
+      WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+    `;
+
+    res.json({ message: 'Curs actualizat cu succes!' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la actualizarea cursului.' });
+  }
+});
+
 // GET FULL COURSE STRUCTURE FOR STUDENT
 app.get('/api/student/courses/:id/full', protect, restrictTo('Student'), async (req, res) => {
   const courseId = parseInt(req.params.id);

@@ -11,6 +11,15 @@ export interface FullCourseResponse {
   }[];
 }
 
+export interface EditableCourse {
+  Id: number;
+  Title: string;
+  Description: string;
+  ThumbnailUrl?: string;
+  IsPublished: boolean;
+  CreatedAt?: string;
+}
+
 export interface CourseItem {
   Id: number;
   Title: string;
@@ -63,8 +72,20 @@ export class Course {
 
 
   // 3️⃣ Editare curs
-  updateCourse(courseId: number, course: Partial<Course>): Observable<Course> {
-    return this.http.put<Course>(`${this.apiUrl}/courses/${courseId}`, course);
+  updateCourse(courseId: number, course: any): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.put(`${this.apiUrl}/courses/${courseId}`, course, { headers });
+  }
+
+  getEditableCoursesByTeacher(teacherId: number): Observable<EditableCourse[]> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<EditableCourse[]>(
+      `${this.apiUrl}/courses?createdBy=${teacherId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
   }
 
   // 4️⃣ Invitare studenți
