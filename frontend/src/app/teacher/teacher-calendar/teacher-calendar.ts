@@ -58,11 +58,17 @@ export class TeacherCalendar {
     });
   });
 
-  constructor(private quizService: Quiz, private courseScheduleService: CourseSchedules) {}
+  constructor(private quizService: Quiz, private courseScheduleService: CourseSchedules, private auth: AuthService) {}
 
   ngOnInit() {
-    // Înlocuiește cu ID-ul real al profesorului din AuthService
-    this.quizService.getQuizzesByTeacher(1).subscribe(data => {
+    const user = this.auth.currentUserValue;
+
+    if (!user) {
+      console.error('No logged user');
+      return;
+    }
+
+    this.quizService.getQuizzesByTeacher(user.id).subscribe(data => {
       this.quizzes.set(data);
     });
 
