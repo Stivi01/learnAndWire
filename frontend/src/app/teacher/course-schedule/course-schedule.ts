@@ -3,6 +3,7 @@ import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CourseSchedules } from '../../core/services/course-schedules';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-course-schedule',
@@ -28,7 +29,8 @@ export class CourseSchedule {
   constructor(
   private fb: FormBuilder,
   private router: Router,
-  private courseScheduleService: CourseSchedules
+  private courseScheduleService: CourseSchedules,
+  private toast: ToastService
 ) {
   this.course = this.courseScheduleService.getSelectedCourse();
 
@@ -77,6 +79,16 @@ export class CourseSchedule {
   submit() {
   if (this.scheduleForm.invalid) return;
 
+  const { startTime, endTime } = this.scheduleForm.value;
+
+  if (startTime >= endTime) {
+    this.toast.show(
+      'Ora de început trebuie să fie mai mică decât ora de sfârșit.',
+      'error'
+    );
+    return;
+  }
+
   const payload = {
     courseId: this.course!.Id,
     dayOfWeek: this.scheduleForm.value.dayOfWeek,
@@ -91,11 +103,21 @@ export class CourseSchedule {
 
   request.subscribe({
     next: () => {
-      alert(this.hasSchedule ? 'Programare actualizată!' : 'Curs programat!');
+      this.toast.show(
+        this.hasSchedule
+          ? 'Programare actualizată!'
+          : 'Curs programat!',
+        'success'
+      );
       this.router.navigate(['/teacher/my-classes']);
     },
     error: () => {
-      alert('Eroare.');
+      this.toast.show(
+        this.hasSchedule
+          ? 'Eroare la actualizarea programării.'
+          : 'Eroare la programarea cursului.',
+        'error'
+      );
     }
   });
 }

@@ -35,7 +35,9 @@
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="btn-primary">Programează</button>
+      <button type="submit" class="btn-primary">
+        {{ hasSchedule ? 'Actualizează' : 'Programează' }}
+      </button>
       <button type="button" class="btn-outline" (click)="cancel()">Anulează</button>
     </div>
   </form>
