@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 
 export interface CourseLesson {
   Id?: number;
-  moduleId: number;
+  ModuleId?: number;
+  moduleId?: number;
   Title: string;
   Content: string;
   VideoUrl?: string;

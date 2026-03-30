@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Lesson } from '../../core/services/lesson';
+import { Module } from '../../core/services/module';
 import { ToastService } from '../../core/services/toast';
 import { CommonModule } from '@angular/common';
 
@@ -21,6 +22,7 @@ export class LessonEdit implements OnInit{
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private lessonService: Lesson,
+    private moduleService: Module,
     private router: Router,
     private toastService: ToastService,
     private cd: ChangeDetectorRef
@@ -49,12 +51,42 @@ export class LessonEdit implements OnInit{
     next: lesson => {
       console.log('Lesson primit din backend:', lesson);
 
-      this.lessonForm.patchValue(lesson);
+      const moduleId = Number((lesson as any).ModuleId ?? (lesson as any).moduleId);
+      if (!moduleId) {
+        this.toastService.show('Nu s-a putut identifica modulul lecției.', 'error');
+        this.loading = false;
+        this.cd.detectChanges();
+        return;
+      }
 
-      console.log('Form value după patch:', this.lessonForm.value);
+      this.moduleService.getModuleById(moduleId).subscribe({
+        next: module => {
+          if (module.CourseIsPublished) {
+            this.toastService.show('Cursul este publicat și nu mai poți edita subcapitolele.', 'info');
+            this.loading = false;
+            this.cd.detectChanges();
+            this.router.navigate(['/teacher/my-classes']);
+            return;
+          }
 
-      this.loading = false;
-      this.cd.detectChanges();
+          this.lessonForm.patchValue({
+            Title: (lesson as any).Title ?? (lesson as any).title ?? '',
+            Content: (lesson as any).Content ?? (lesson as any).content ?? '',
+            VideoUrl: (lesson as any).VideoUrl ?? (lesson as any).videoUrl ?? '',
+            OrderIndex: (lesson as any).OrderIndex ?? (lesson as any).orderIndex ?? 1,
+            ModuleId: moduleId
+          });
+
+          console.log('Form value după patch:', this.lessonForm.value);
+          this.loading = false;
+          this.cd.detectChanges();
+        },
+        error: () => {
+          this.toastService.show('Nu s-au putut încărca informațiile modulului.', 'error');
+          this.loading = false;
+          this.cd.detectChanges();
+        }
+      });
     },
     error: () => {
       this.toastService.show('Eroare la încărcarea lecției.', 'error');

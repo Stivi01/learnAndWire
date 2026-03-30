@@ -91,11 +91,21 @@ export class MyClasses implements OnInit{
     lesson.expanded = !lesson.expanded;
   }
 
-  addModule(courseId: number) {
-    this.router.navigate(['/teacher/module-form'], { queryParams: { courseId } });
+  addModule(course: any) {
+    if (course.IsPublished) {
+      this.toast.show('Cursul este publicat și nu mai poți modifica capitolele.', 'info');
+      return;
+    }
+
+    this.router.navigate(['/teacher/module-form'], { queryParams: { courseId: course.Id } });
   }
 
-  addLesson(moduleId: number) {
+  addLesson(moduleId: number, course: any) {
+    if (course.IsPublished) {
+      this.toast.show('Cursul este publicat și nu mai poți modifica subcapitolele.', 'info');
+      return;
+    }
+
     this.router.navigate(['/teacher/lesson-form'], { queryParams: { moduleId } });
   }
 

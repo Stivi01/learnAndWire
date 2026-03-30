@@ -797,7 +797,7 @@ app.get('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) =>
 
   try {
     const result = await sqlPool.query`
-      SELECT m.*, c.Title AS CourseTitle
+      SELECT m.*, c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
       FROM CourseModules m
       INNER JOIN Courses c ON c.Id = m.CourseId
       WHERE m.Id = ${moduleId} AND c.CreatedBy = ${req.user.id}

@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Module } from '../../core/services/module';
-import { AuthService } from '../../core/services/auth';
+import { Course } from '../../core/services/course';
 import { CourseLesson, Lesson } from '../../core/services/lesson';
 import { ToastService } from '../../core/services/toast';
 import { forkJoin, map, switchMap } from 'rxjs';
@@ -39,6 +39,7 @@ export class ModuleForm implements OnInit{
   moduleForm!: FormGroup;
   loading = false;
   error = '';
+  courseIsPublished = false;
   expandedModuleIds = new Set<number>();
   selectedLesson = signal<any | null>(null);
   isModalOpening = signal(false);
@@ -47,6 +48,7 @@ export class ModuleForm implements OnInit{
     private fb: FormBuilder,
     private moduleService: Module,
     private lessonService: Lesson,
+    private courseService: Course,
     private route: ActivatedRoute,
     private router: Router,
     private toastService: ToastService,
@@ -64,7 +66,31 @@ export class ModuleForm implements OnInit{
       title: ['', Validators.required]
     });
 
+    this.loadCourseStatus();
     this.loadModules();
+  }
+
+  private loadCourseStatus() {
+    this.courseService.getMyCourses().subscribe({
+      next: (courses: any[]) => {
+        const currentCourse = courses.find(course => Number(course.Id) === this.courseId);
+        this.courseIsPublished = !!currentCourse?.IsPublished;
+
+        if (this.courseIsPublished) {
+          this.toastService.show('Cursul este publicat. Poți doar vizualiza structura, nu o mai poți edita.', 'info');
+        }
+      },
+      error: err => console.error('Eroare la verificarea stării cursului:', err)
+    });
+  }
+
+  private canModifyCourseContent(): boolean {
+    if (this.courseIsPublished) {
+      this.toastService.show('Cursul este publicat și nu mai poți modifica capitolele sau subcapitolele.', 'info');
+      return false;
+    }
+
+    return true;
   }
 
   // --- Load Modules + lessons ---
@@ -107,6 +133,7 @@ export class ModuleForm implements OnInit{
 
   // --- CRUD Module ---
   addModule() {
+    if (!this.canModifyCourseContent()) return;
     if (this.moduleForm.invalid) return;
 
     const newModule = {
@@ -139,10 +166,12 @@ export class ModuleForm implements OnInit{
   }
 
   editModule(mod: any) {
+    if (!this.canModifyCourseContent()) return;
     this.router.navigate(['/teacher/module-edit'], { queryParams: { moduleId: mod.id } });
   }
 
   startEditing(mod: any) {
+    if (!this.canModifyCourseContent()) return;
     mod.editing = true;
     mod.editTitle = mod.title ?? '';
   }
@@ -152,6 +181,7 @@ export class ModuleForm implements OnInit{
   }
 
   saveModuleEdit(mod: any) {
+  if (!this.canModifyCourseContent()) return;
   if (!mod.editTitle || mod.editTitle.trim() === '') return;
 
   const updatedData = {
@@ -173,6 +203,7 @@ export class ModuleForm implements OnInit{
 }
 
   deleteModule(mod: any) {
+    if (!this.canModifyCourseContent()) return;
     if (!confirm('Sigur ștergi capitolul?')) return;
 
     this.moduleService.deleteModule(mod.id).subscribe({
@@ -190,6 +221,7 @@ export class ModuleForm implements OnInit{
   }
 
   deleteAllModules() {
+    if (!this.canModifyCourseContent()) return;
     if (!confirm('Sigur vrei să ștergi toate capitolele și lecțiile asociate?')) return;
 
     this.moduleService.deleteAllModulesByCourse(this.courseId).subscribe({
@@ -219,10 +251,12 @@ export class ModuleForm implements OnInit{
 
   // --- CRUD Lessons ---
   showAddLesson(mod: any) {
+    if (!this.canModifyCourseContent()) return;
     mod.showAddLessonForm = true;
   }
 
   addLesson(mod: any) {
+  if (!this.canModifyCourseContent()) return;
   if (!mod.newLessonTitle) return;
 
   // Asigură-te că lecțiile sunt sortate după orderIndex
@@ -265,10 +299,12 @@ export class ModuleForm implements OnInit{
 }
 
   editLesson(lesson: any) {
+    if (!this.canModifyCourseContent()) return;
     this.router.navigate(['/teacher/lesson-edit', lesson.id]);
   }
 
   deleteLesson(lesson: any, mod: any) {
+    if (!this.canModifyCourseContent()) return;
     if (!confirm('Sigur ștergi subcapitolul?')) return;
 
     this.lessonService.deleteLesson(lesson.id).subscribe({
@@ -310,6 +346,7 @@ export class ModuleForm implements OnInit{
 
   // ModuleForm.ts
   goToAddLesson(mod: any) {
+    if (!this.canModifyCourseContent()) return;
     this.router.navigate(['/teacher/lesson-form'], {
       queryParams: {
         moduleId: mod.id,
@@ -319,6 +356,7 @@ export class ModuleForm implements OnInit{
   }
 
   moveLessonUp(lesson: LessonItem, mod: any) {
+    if (!this.canModifyCourseContent()) return;
     // Sortează lecțiile după orderIndex înainte de orice mutare
     mod.lessons.sort((a: LessonItem, b: LessonItem) => (a.orderIndex! - b.orderIndex!));
 
@@ -344,6 +382,7 @@ export class ModuleForm implements OnInit{
   }
 
   moveLessonDown(lesson: LessonItem, mod: any) {
+    if (!this.canModifyCourseContent()) return;
     mod.lessons.sort((a: LessonItem, b: LessonItem) => (a.orderIndex! - b.orderIndex!));
 
     const index = mod.lessons.findIndex((l: LessonItem) => l.id === lesson.id);
