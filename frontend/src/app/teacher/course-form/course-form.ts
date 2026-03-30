@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Course } from '../../core/services/course';
 import { AuthService } from '../../core/services/auth';
 import { Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-course-form',
@@ -18,7 +19,8 @@ export class CourseForm implements OnInit{
     private fb: FormBuilder,
     private courseService: Course,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -49,12 +51,12 @@ export class CourseForm implements OnInit{
 
     this.courseService.createCourse(courseData, headers).subscribe({
       next: () => {
-      alert('Curs creat cu succes ca draft! Îl poți publica după ce adaugi descriere, module și lecții.');
+      this.toast.show('Curs creat cu succes ca draft! Îl poți publica după ce adaugi descriere, module și lecții.', 'success');
       this.router.navigate(['/teacher/my-classes']);
     },
       error: (err) => {
         console.error(err);
-        alert('Eroare la crearea cursului.');
+        this.toast.show(err?.error?.message || 'Eroare la crearea cursului.', 'error');
       }
     });
   }

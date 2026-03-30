@@ -5,6 +5,7 @@ import { QuizData } from '../../core/models/quiz.model';
 import { Quiz } from '../../core/services/quiz';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Course, CourseItem } from '../../core/services/course';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-quiz-form',
@@ -30,7 +31,8 @@ export class QuizForm {
     private quizService: Quiz,
     private route: ActivatedRoute,
     private router: Router,
-    private courseService: Course
+    private courseService: Course,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -64,7 +66,7 @@ export class QuizForm {
     },
     error: (err) => {
       console.error('❌ Error loading courses for quiz:', err);
-      alert('Nu s-au putut încărca cursurile profesorului.');
+      this.toast.show('Nu s-au putut încărca cursurile profesorului.', 'error');
       this.loadingCourses.set(false);
     }
   });
@@ -102,11 +104,11 @@ export class QuizForm {
   saveQuiz() {
   const quizData = this.quiz();
   if (!quizData.title?.trim()) {
-    alert("Titlul quiz-ului este obligatoriu!");
+    this.toast.show('Titlul quiz-ului este obligatoriu!', 'error');
     return;
   }
   if (!quizData.courseId) {
-    alert("Selectează un curs!");
+    this.toast.show('Selectează un curs!', 'error');
     return;
   }
 
@@ -115,7 +117,7 @@ export class QuizForm {
     const scheduled = new Date(quizData.scheduledAt);
 
     if (scheduled <= now) {
-      alert("Data trebuie să fie în viitor.");
+      this.toast.show('Data trebuie să fie în viitor.', 'error');
       return;
     }
   }
@@ -131,24 +133,24 @@ export class QuizForm {
   if (this.quizId) {
     this.quizService.updateQuiz(this.quizId, payload).subscribe({
       next: () => {
-        alert("Quiz actualizat!");
+        this.toast.show('Quiz actualizat!', 'success');
         this.router.navigate(['/teacher/quizzes']);
       },
       error: err => {
         console.error(err);
-        const details = Array.isArray(err?.error?.missingItems) ? `\n${err.error.missingItems.join('\n')}` : '';
-        alert((err?.error?.message || 'Eroare la actualizarea quiz-ului.') + details);
+        const details = Array.isArray(err?.error?.missingItems) ? ` ${err.error.missingItems.join(' ')}` : '';
+        this.toast.show((err?.error?.message || 'Eroare la actualizarea quiz-ului.') + details, 'error');
       }
     });
   } else {
     this.quizService.createQuiz(payload).subscribe({
       next: (res) => {
-        alert("Quiz creat ca draft! Acum poți adăuga întrebări și apoi îl publici din administrare.");
+        this.toast.show('Quiz creat ca draft! Acum poți adăuga întrebări și apoi îl publici din administrare.', 'success');
         this.router.navigate([`/teacher/quiz/${res.id}/manage`]);
       },
       error: err => {
         console.error("Eroare la crearea quiz-ului:", err);
-        alert(err?.error?.message || 'Eroare la crearea quiz-ului.');
+        this.toast.show(err?.error?.message || 'Eroare la crearea quiz-ului.', 'error');
       }
     });
   }

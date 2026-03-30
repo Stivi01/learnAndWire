@@ -41,7 +41,7 @@ export class QuestionForm {
 
   this.quizService.getQuizFull(this.quizId).subscribe(res => {
     if (res.quiz.IsPublished) {
-      alert('Quiz-ul este publicat și nu mai poate fi modificat');
+      this.toast.show('Quiz-ul este publicat și nu mai poate fi modificat.', 'info');
       this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
       return;
     }

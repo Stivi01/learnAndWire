@@ -168,6 +168,89 @@ const restrictTo = (role) => (req, res, next) => {
   next();
 };
 
+async function getTeacherOwnedCourse(courseId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT Id, Title, IsPublished
+    FROM Courses
+    WHERE Id = ${courseId} AND CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+async function getTeacherOwnedModule(moduleId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT m.Id, m.Title, m.CourseId, c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
+    FROM CourseModules m
+    INNER JOIN Courses c ON c.Id = m.CourseId
+    WHERE m.Id = ${moduleId} AND c.CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+async function getTeacherOwnedLesson(lessonId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT l.Id, l.Title, l.ModuleId, m.CourseId, c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
+    FROM CourseLessons l
+    INNER JOIN CourseModules m ON m.Id = l.ModuleId
+    INNER JOIN Courses c ON c.Id = m.CourseId
+    WHERE l.Id = ${lessonId} AND c.CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+async function getTeacherOwnedQuiz(quizId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT q.Id, q.Title, q.CourseId, q.IsPublished, c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
+    FROM CourseQuizzes q
+    INNER JOIN Courses c ON c.Id = q.CourseId
+    WHERE q.Id = ${quizId} AND q.CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+async function getTeacherOwnedQuestion(questionId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT qq.Id, qq.QuestionText, qq.QuestionType, qq.QuizId, q.Title AS QuizTitle, q.IsPublished AS QuizIsPublished
+    FROM QuizQuestions qq
+    INNER JOIN CourseQuizzes q ON q.Id = qq.QuizId
+    WHERE qq.Id = ${questionId} AND q.CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+async function getTeacherOwnedOption(optionId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT qo.Id, qo.OptionText, qo.QuestionId, qq.QuizId, q.Title AS QuizTitle, q.IsPublished AS QuizIsPublished
+    FROM QuizOptions qo
+    INNER JOIN QuizQuestions qq ON qq.Id = qo.QuestionId
+    INNER JOIN CourseQuizzes q ON q.Id = qq.QuizId
+    WHERE qo.Id = ${optionId} AND q.CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+async function getTeacherOwnedSchedule(scheduleId, teacherId) {
+  const result = await sqlPool.query`
+    SELECT cs.Id, cs.CourseId, cs.UserId, c.Title AS CourseTitle
+    FROM CourseSchedule cs
+    INNER JOIN Courses c ON c.Id = cs.CourseId
+    WHERE cs.Id = ${scheduleId} AND cs.UserId = ${teacherId} AND c.CreatedBy = ${teacherId}
+  `;
+  return result.recordset[0] || null;
+}
+
+function rejectPublishedCourseContentEdit(res) {
+  return res.status(400).json({
+    message: 'Cursul este publicat. Retrage-l din publicare înainte de a modifica modulele sau lecțiile.'
+  });
+}
+
+function rejectPublishedQuizContentEdit(res) {
+  return res.status(400).json({
+    message: 'Quiz-ul este publicat. Retrage-l din publicare înainte de a modifica întrebările sau opțiunile.'
+  });
+}
+
 // ------------------------------
 const PORT = process.env.PORT || 3000;
 connectDb().then(() => {
@@ -554,7 +637,7 @@ app.get('/api/student/courses', protect, restrictTo('Student'), async (req, res)
     const result = await sqlPool.query`
       SELECT c.* FROM Courses c
       INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-      WHERE ce.StudentId = ${req.user.id}
+      WHERE ce.StudentId = ${req.user.id} AND c.IsPublished = 1
       ORDER BY c.CreatedAt DESC
     `;
     res.json(result.recordset);
@@ -565,8 +648,13 @@ app.get('/api/student/courses', protect, restrictTo('Student'), async (req, res)
 });
 
 app.get('/api/courses/:id/students', protect, restrictTo('Profesor'), async (req, res) => {
-  const courseId = req.params.id;
+  const courseId = parseInt(req.params.id);
   try {
+    const course = await getTeacherOwnedCourse(courseId, req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear
       FROM Users u
@@ -615,16 +703,26 @@ console.log("COURSES WITH STUDENTS:", courses);
 // CREATE MODULE
 app.post('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
   const { courseId, title, orderIndex } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
 
-  if (!courseId || !title) {
+  if (!courseId || !cleanTitle) {
     return res.status(400).json({ message: 'CourseId și Title sunt obligatorii.' });
   }
 
   try {
+    const course = await getTeacherOwnedCourse(courseId, req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
+    if (course.IsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       INSERT INTO CourseModules (CourseId, Title, OrderIndex)
       OUTPUT INSERTED.*
-      VALUES (${courseId}, ${title}, ${orderIndex || 0})
+      VALUES (${courseId}, ${cleanTitle}, ${orderIndex || 0})
     `;
 
     res.status(201).json(result.recordset[0]);
@@ -639,15 +737,25 @@ app.post('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
 app.put('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const moduleId = parseInt(req.params.id);
   const { title, orderIndex } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
 
-  if (!title) {
+  if (!cleanTitle) {
     return res.status(400).json({ message: 'Titlul este obligatoriu.' });
   }
 
   try {
+    const module = await getTeacherOwnedModule(moduleId, req.user.id);
+    if (!module) {
+      return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
+    }
+
+    if (module.CourseIsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     await sqlPool.query`
       UPDATE CourseModules
-      SET Title = ${title}, OrderIndex = ${orderIndex}
+      SET Title = ${cleanTitle}, OrderIndex = ${orderIndex}
       WHERE Id = ${moduleId}
     `;
     res.json({ message: 'Capitol actualizat cu succes.' });
@@ -670,11 +778,11 @@ app.get('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res) =>
       SELECT m.*, c.Title AS CourseTitle
       FROM CourseModules m
       INNER JOIN Courses c ON c.Id = m.CourseId
-      WHERE m.Id = ${moduleId}
+      WHERE m.Id = ${moduleId} AND c.CreatedBy = ${req.user.id}
     `;
 
     if (result.recordset.length === 0) {
-      return res.status(404).json({ message: 'Modulul nu există.' });
+      return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
     }
 
     res.json(result.recordset[0]);
@@ -690,13 +798,20 @@ app.delete('/api/modules/:id', protect, restrictTo('Profesor'), async (req, res)
   const moduleId = parseInt(req.params.id);
 
   try {
-    // 1️⃣ Șterge lecțiile asociate
+    const module = await getTeacherOwnedModule(moduleId, req.user.id);
+    if (!module) {
+      return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
+    }
+
+    if (module.CourseIsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     await sqlPool.query`
       DELETE FROM CourseLessons
       WHERE ModuleId = ${moduleId}
     `;
 
-    // 2️⃣ Șterge modulul
     await sqlPool.query`
       DELETE FROM CourseModules
       WHERE Id = ${moduleId}
@@ -714,7 +829,15 @@ app.delete('/api/courses/:courseId/modules', protect, restrictTo('Profesor'), as
   const courseId = parseInt(req.params.courseId);
 
   try {
-    // 1️⃣ Șterge lecțiile tuturor modulelor
+    const course = await getTeacherOwnedCourse(courseId, req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
+    if (course.IsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     await sqlPool.query`
       DELETE FROM CourseLessons
       WHERE ModuleId IN (
@@ -722,7 +845,6 @@ app.delete('/api/courses/:courseId/modules', protect, restrictTo('Profesor'), as
       )
     `;
 
-    // 2️⃣ Șterge toate modulele cursului
     await sqlPool.query`
       DELETE FROM CourseModules
       WHERE CourseId = ${courseId}
@@ -738,16 +860,27 @@ app.delete('/api/courses/:courseId/modules', protect, restrictTo('Profesor'), as
 // CREATE LESSON
 app.post('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
   const { moduleId, title, content, videoUrl, orderIndex } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
+  const cleanContent = typeof content === 'string' ? content.trim() : '';
 
-  if (!moduleId || !title) {
-    return res.status(400).json({ message: 'ModuleId și Title sunt obligatorii.' });
+  if (!moduleId || !cleanTitle || !cleanContent) {
+    return res.status(400).json({ message: 'ModuleId, Title și Content sunt obligatorii.' });
   }
 
   try {
+    const module = await getTeacherOwnedModule(moduleId, req.user.id);
+    if (!module) {
+      return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
+    }
+
+    if (module.CourseIsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       INSERT INTO CourseLessons (ModuleId, Title, Content, VideoUrl, OrderIndex)
       OUTPUT INSERTED.*
-      VALUES (${moduleId}, ${title}, ${content}, ${videoUrl}, ${orderIndex || 0})
+      VALUES (${moduleId}, ${cleanTitle}, ${cleanContent}, ${videoUrl}, ${orderIndex || 0})
     `;
 
     res.status(201).json(result.recordset[0]);
@@ -767,6 +900,15 @@ app.delete('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res)
   }
 
   try {
+    const lesson = await getTeacherOwnedLesson(lessonId, req.user.id);
+    if (!lesson) {
+      return res.status(404).json({ message: 'Lecția nu există sau nu îți aparține.' });
+    }
+
+    if (lesson.CourseIsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       DELETE FROM CourseLessons
       WHERE Id = ${lessonId}
@@ -788,21 +930,32 @@ app.delete('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res)
 app.put('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const lessonId = parseInt(req.params.id);
   const { title, content, videoUrl, orderIndex } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
+  const cleanContent = typeof content === 'string' ? content.trim() : '';
 
   if (isNaN(lessonId)) {
     return res.status(400).json({ message: 'ID lecție invalid.' });
   }
 
-  if (!title) {
-    return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  if (!cleanTitle || !cleanContent) {
+    return res.status(400).json({ message: 'Titlul și conținutul sunt obligatorii.' });
   }
 
   try {
+    const lesson = await getTeacherOwnedLesson(lessonId, req.user.id);
+    if (!lesson) {
+      return res.status(404).json({ message: 'Lecția nu există sau nu îți aparține.' });
+    }
+
+    if (lesson.CourseIsPublished) {
+      return rejectPublishedCourseContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       UPDATE CourseLessons
       SET 
-        Title = ${title},
-        Content = ${content || ''},
+        Title = ${cleanTitle},
+        Content = ${cleanContent},
         VideoUrl = ${videoUrl || ''},
         OrderIndex = ${orderIndex || 0}
       WHERE Id = ${lessonId}
@@ -824,13 +977,15 @@ app.get('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res) =>
   const lessonId = parseInt(req.params.id);
 
   const result = await sqlPool.query`
-    SELECT *
-    FROM CourseLessons
-    WHERE Id = ${lessonId}
+    SELECT l.*
+    FROM CourseLessons l
+    INNER JOIN CourseModules m ON m.Id = l.ModuleId
+    INNER JOIN Courses c ON c.Id = m.CourseId
+    WHERE l.Id = ${lessonId} AND c.CreatedBy = ${req.user.id}
   `;
 
   if (result.recordset.length === 0)
-    return res.status(404).json({ message: 'Lecția nu există.' });
+    return res.status(404).json({ message: 'Lecția nu există sau nu îți aparține.' });
 
   res.json(result.recordset[0]);
 });
@@ -840,13 +995,12 @@ app.get('/api/courses/:id/full', protect, restrictTo('Profesor'), async (req, re
   const courseId = req.params.id;
 
   try {
-    // 1. course
     const courseResult = await sqlPool.query`
-      SELECT * FROM Courses WHERE Id = ${courseId}
+      SELECT * FROM Courses WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
     `;
 
     if (courseResult.recordset.length === 0) {
-      return res.status(404).json({ message: 'Cursul nu există.' });
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
     }
 
     const course = courseResult.recordset[0];
@@ -910,6 +1064,11 @@ app.get('/api/modules', protect, restrictTo('Profesor'), async (req, res) => {
   }
 
   try {
+    const course = await getTeacherOwnedCourse(Number(courseId), req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT *
       FROM CourseModules
@@ -934,6 +1093,11 @@ app.get('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
   }
 
   try {
+    const module = await getTeacherOwnedModule(Number(moduleId), req.user.id);
+    if (!module) {
+      return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT *
       FROM CourseLessons
@@ -1309,12 +1473,10 @@ app.post('/api/quizzes', protect, restrictTo('Profesor'), async (req, res) => {
 
 // GET QUIZZES BY TEACHER
 app.get('/api/quizzes/teacher/:teacherId', protect, restrictTo('Profesor'), async (req, res) => {
-  const teacherId = parseInt(req.params.teacherId);
-
   try {
     const result = await sqlPool.query`
       SELECT * FROM CourseQuizzes
-      WHERE CreatedBy = ${teacherId}
+      WHERE CreatedBy = ${req.user.id}
       ORDER BY CreatedAt DESC
     `;
     res.json(result.recordset);
@@ -1330,11 +1492,11 @@ app.get('/api/quizzes/:id/full', protect, restrictTo('Profesor'), async (req, re
 
   try {
     const quizResult = await sqlPool.query`
-      SELECT * FROM CourseQuizzes WHERE Id = ${quizId}
+      SELECT * FROM CourseQuizzes WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
     `;
 
     if (quizResult.recordset.length === 0)
-      return res.status(404).json({ message: "Quiz-ul nu există." });
+      return res.status(404).json({ message: "Quiz-ul nu există sau nu îți aparține." });
 
     const quiz = quizResult.recordset[0];
 
@@ -1468,7 +1630,11 @@ app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res)
   const quizId = parseInt(req.params.id);
 
   try {
-    // DELETE options -> questions -> quiz
+    const quiz = await getTeacherOwnedQuiz(quizId, req.user.id);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz-ul nu există sau nu îți aparține.' });
+    }
+
     await sqlPool.query`
       DELETE FROM QuizOptions
       WHERE QuestionId IN (SELECT Id FROM QuizQuestions WHERE QuizId = ${quizId})
@@ -1477,7 +1643,7 @@ app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res)
       DELETE FROM QuizQuestions WHERE QuizId = ${quizId}
     `;
     await sqlPool.query`
-      DELETE FROM CourseQuizzes WHERE Id = ${quizId}
+      DELETE FROM CourseQuizzes WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
     `;
 
     res.json({ message: "Quiz șters." });
@@ -1715,16 +1881,26 @@ app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, 
 app.post('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async (req, res) => {
   const quizId = parseInt(req.params.quizId);
   const { questionText, questionType, points } = req.body;
+  const cleanQuestionText = typeof questionText === 'string' ? questionText.trim() : '';
 
-  if (!questionText || !questionType) {
+  if (!cleanQuestionText || !questionType) {
     return res.status(400).json({ message: 'Textul și tipul întrebării sunt obligatorii.' });
   }
 
   try {
+    const quiz = await getTeacherOwnedQuiz(quizId, req.user.id);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz-ul nu există sau nu îți aparține.' });
+    }
+
+    if (quiz.IsPublished) {
+      return rejectPublishedQuizContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       INSERT INTO QuizQuestions (QuizId, QuestionText, QuestionType, Points)
       OUTPUT INSERTED.*
-      VALUES (${quizId}, ${questionText}, ${questionType}, ${points || 1})
+      VALUES (${quizId}, ${cleanQuestionText}, ${questionType}, ${points || 1})
     `;
     res.status(201).json(result.recordset[0]);
   } catch (err) {
@@ -1737,16 +1913,26 @@ app.post('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), asyn
 app.post('/api/questions/:questionId/options', protect, restrictTo('Profesor'), async (req, res) => {
   const questionId = parseInt(req.params.questionId);
   const { optionText, isCorrect } = req.body;
+  const cleanOptionText = typeof optionText === 'string' ? optionText.trim() : '';
 
-  if (!optionText) {
+  if (!cleanOptionText) {
     return res.status(400).json({ message: "OptionText este obligatoriu." });
   }
 
   try {
+    const question = await getTeacherOwnedQuestion(questionId, req.user.id);
+    if (!question) {
+      return res.status(404).json({ message: 'Întrebarea nu există sau nu îți aparține.' });
+    }
+
+    if (question.QuizIsPublished) {
+      return rejectPublishedQuizContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       INSERT INTO QuizOptions (QuestionId, OptionText, IsCorrect)
       OUTPUT INSERTED.*
-      VALUES (${questionId}, ${optionText}, ${isCorrect || 0})
+      VALUES (${questionId}, ${cleanOptionText}, ${isCorrect || 0})
     `;
     res.status(201).json(result.recordset[0]);
   } catch (err) {
@@ -1760,6 +1946,11 @@ app.get('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async
   const quizId = parseInt(req.params.quizId);
 
   try {
+    const quiz = await getTeacherOwnedQuiz(quizId, req.user.id);
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz-ul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT *
       FROM QuizQuestions
@@ -1779,11 +1970,21 @@ app.get('/api/quizzes/:quizId/questions', protect, restrictTo('Profesor'), async
 app.put('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const questionId = parseInt(req.params.id);
   const { questionText, questionType, points } = req.body;
+  const cleanQuestionText = typeof questionText === 'string' ? questionText.trim() : '';
 
   try {
+    const question = await getTeacherOwnedQuestion(questionId, req.user.id);
+    if (!question) {
+      return res.status(404).json({ message: 'Întrebarea nu există sau nu îți aparține.' });
+    }
+
+    if (question.QuizIsPublished) {
+      return rejectPublishedQuizContentEdit(res);
+    }
+
     await sqlPool.query`
       UPDATE QuizQuestions
-      SET QuestionText = ${questionText},
+      SET QuestionText = ${cleanQuestionText},
           QuestionType = ${questionType},
           Points = ${points}
       WHERE Id = ${questionId}
@@ -1801,6 +2002,11 @@ app.put('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) 
 app.get('/api/questions/:questionId/options', protect, restrictTo('Profesor'), async (req, res) => {
   const questionId = parseInt(req.params.questionId);
   try {
+    const question = await getTeacherOwnedQuestion(questionId, req.user.id);
+    if (!question) {
+      return res.status(404).json({ message: 'Întrebarea nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT * FROM QuizOptions WHERE QuestionId = ${questionId}
     `;
@@ -1818,6 +2024,15 @@ app.delete('/api/questions/:id', protect, restrictTo('Profesor'), async (req, re
   const questionId = parseInt(req.params.id);
 
   try {
+    const question = await getTeacherOwnedQuestion(questionId, req.user.id);
+    if (!question) {
+      return res.status(404).json({ message: 'Întrebarea nu există sau nu îți aparține.' });
+    }
+
+    if (question.QuizIsPublished) {
+      return rejectPublishedQuizContentEdit(res);
+    }
+
     await sqlPool.query`
       DELETE FROM QuizOptions WHERE QuestionId = ${questionId}
     `;
@@ -1843,13 +2058,14 @@ app.get('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) 
 
   try {
     const result = await sqlPool.query`
-      SELECT *
-      FROM QuizQuestions
-      WHERE Id = ${questionId}
+      SELECT qq.*
+      FROM QuizQuestions qq
+      INNER JOIN CourseQuizzes q ON q.Id = qq.QuizId
+      WHERE qq.Id = ${questionId} AND q.CreatedBy = ${req.user.id}
     `;
 
     if (result.recordset.length === 0) {
-      return res.status(404).json({ message: 'Întrebarea nu există.' });
+      return res.status(404).json({ message: 'Întrebarea nu există sau nu îți aparține.' });
     }
 
     res.json(result.recordset[0]);
@@ -1866,14 +2082,21 @@ app.get('/api/questions/:id', protect, restrictTo('Profesor'), async (req, res) 
 app.put('/api/options/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const optionId = parseInt(req.params.id);
   const { optionText, isCorrect } = req.body;
-
-  console.log('💡 Received update request for optionId:', optionId);
-  console.log('💡 Payload:', { optionText, isCorrect });
+  const cleanOptionText = typeof optionText === 'string' ? optionText.trim() : '';
 
   try {
+    const option = await getTeacherOwnedOption(optionId, req.user.id);
+    if (!option) {
+      return res.status(404).json({ message: 'Opțiunea nu există sau nu îți aparține.' });
+    }
+
+    if (option.QuizIsPublished) {
+      return rejectPublishedQuizContentEdit(res);
+    }
+
     const result = await sqlPool.query`
       UPDATE QuizOptions
-      SET OptionText = ${optionText},
+      SET OptionText = ${cleanOptionText},
           IsCorrect = ${isCorrect}
       WHERE Id = ${optionId}
     `;
@@ -1894,6 +2117,15 @@ app.delete('/api/options/:id', protect, restrictTo('Profesor'), async (req, res)
   const optionId = parseInt(req.params.id);
 
   try {
+    const option = await getTeacherOwnedOption(optionId, req.user.id);
+    if (!option) {
+      return res.status(404).json({ message: 'Opțiunea nu există sau nu îți aparține.' });
+    }
+
+    if (option.QuizIsPublished) {
+      return rejectPublishedQuizContentEdit(res);
+    }
+
     await sqlPool.query`
       DELETE FROM QuizOptions WHERE Id = ${optionId}
     `;
@@ -1952,10 +2184,15 @@ app.get('/api/quizzes/by-course/:courseId', protect, restrictTo('Profesor'), asy
   const courseId = parseInt(req.params.courseId);
 
   try {
+    const course = await getTeacherOwnedCourse(courseId, req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT *
       FROM CourseQuizzes
-      WHERE CourseId = ${courseId}
+      WHERE CourseId = ${courseId} AND CreatedBy = ${req.user.id}
       ORDER BY CreatedAt DESC
     `;
     res.json(result.recordset);
@@ -1979,6 +2216,11 @@ app.post('/api/course-schedules', protect, restrictTo('Profesor'), async (req, r
   }
 
   try {
+    const course = await getTeacherOwnedCourse(courseId, req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       INSERT INTO CourseSchedule (CourseId, UserId, DayOfWeek, StartTime, EndTime)
       OUTPUT INSERTED.*
@@ -1998,9 +2240,14 @@ app.get('/api/course-schedules', protect, restrictTo('Profesor'), async (req, re
   if (!courseId) return res.status(400).json({ message: 'Parametrul courseId este obligatoriu.' });
 
   try {
+    const course = await getTeacherOwnedCourse(Number(courseId), req.user.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       SELECT * FROM CourseSchedule
-      WHERE CourseId = ${courseId}
+      WHERE CourseId = ${courseId} AND UserId = ${req.user.id}
       ORDER BY DayOfWeek, StartTime
     `;
     res.json(result.recordset);
@@ -2022,13 +2269,18 @@ app.put('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (req
   }
 
   try {
+    const schedule = await getTeacherOwnedSchedule(scheduleId, req.user.id);
+    if (!schedule) {
+      return res.status(404).json({ message: 'Programarea nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       UPDATE CourseSchedule
       SET 
         DayOfWeek = ${dayOfWeek},
         StartTime = ${startTime}, 
         EndTime = ${endTime}
-      WHERE Id = ${scheduleId}
+      WHERE Id = ${scheduleId} AND UserId = ${req.user.id}
     `;
 
     if (result.rowsAffected[0] === 0) {
@@ -2047,9 +2299,14 @@ app.delete('/api/course-schedules/:id', protect, restrictTo('Profesor'), async (
   const scheduleId = parseInt(req.params.id);
 
   try {
+    const schedule = await getTeacherOwnedSchedule(scheduleId, req.user.id);
+    if (!schedule) {
+      return res.status(404).json({ message: 'Programarea nu există sau nu îți aparține.' });
+    }
+
     const result = await sqlPool.query`
       DELETE FROM CourseSchedule
-      WHERE Id = ${scheduleId}
+      WHERE Id = ${scheduleId} AND UserId = ${req.user.id}
     `;
 
     if (result.rowsAffected[0] === 0) {

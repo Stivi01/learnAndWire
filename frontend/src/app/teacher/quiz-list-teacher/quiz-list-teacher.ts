@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Quiz } from '../../core/services/quiz';
 import { AuthService } from '../../core/services/auth';
 import { Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-quiz-list-teacher',
@@ -19,7 +20,12 @@ export class QuizListTeacher {
   editingQuiz = signal<Partial<QuizData> | null>(null); // quizul curent din modal
   showModal = signal(false);
 
-  constructor(private quizService: Quiz, private auth: AuthService, private router: Router) {}
+  constructor(
+    private quizService: Quiz,
+    private auth: AuthService,
+    private router: Router,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     const user = this.auth.getUser();
@@ -33,7 +39,10 @@ export class QuizListTeacher {
   loadQuizzes(teacherId: number) {
     this.quizService.getQuizzesByTeacher(teacherId).subscribe({
       next: quizzes => this.quizzes.set(quizzes),
-      error: err => console.error("Error loading quizzes:", err)
+      error: err => {
+        console.error('Error loading quizzes:', err);
+        this.toast.show('Nu s-au putut încărca quiz-urile.', 'error');
+      }
     });
   }
 
@@ -60,36 +69,43 @@ export class QuizListTeacher {
 
   saveQuiz() {
   const quiz = this.editingQuiz();
-  if (!quiz || !quiz.title) {
-    alert("Titlul quiz-ului este obligatoriu!");
+  if (!quiz || !quiz.title?.trim()) {
+    this.toast.show('Titlul quiz-ului este obligatoriu!', 'error');
     return;
   }
 
   const payload = {
-    title: quiz.title,
-    description: quiz.description || '',
+    title: quiz.title.trim(),
+    description: quiz.description?.trim() || '',
     isPublished: quiz.isPublished,
     courseId: quiz.courseId,
-    scheduledAt: quiz.scheduledAt || null  // ← adaugă aici
+    scheduledAt: quiz.scheduledAt || null
   };
 
   if (quiz.id) {
     this.quizService.updateQuiz(quiz.id, payload).subscribe({
       next: () => {
-        alert("Quiz actualizat!");
+        this.toast.show('Quiz actualizat!', 'success');
         this.showModal.set(false);
         this.reloadQuizzes();
       },
-      error: err => console.error(err)
+      error: err => {
+        console.error(err);
+        const details = Array.isArray(err?.error?.missingItems) ? ` ${err.error.missingItems.join(' ')}` : '';
+        this.toast.show((err?.error?.message || 'Eroare la actualizarea quiz-ului.') + details, 'error');
+      }
     });
   } else {
     this.quizService.createQuiz(payload).subscribe({
       next: () => {
-        alert("Quiz creat!");
+        this.toast.show('Quiz creat!', 'success');
         this.showModal.set(false);
         this.reloadQuizzes();
       },
-      error: err => console.error(err)
+      error: err => {
+        console.error(err);
+        this.toast.show(err?.error?.message || 'Eroare la crearea quiz-ului.', 'error');
+      }
     });
   }
 }
