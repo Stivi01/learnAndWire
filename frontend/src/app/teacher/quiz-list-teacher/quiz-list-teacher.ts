@@ -51,7 +51,11 @@ export class QuizListTeacher {
   }
 
   editQuiz(quiz: QuizData) {
-  // 🔥 Conversie scheduledAt pentru datetime-local
+  if (quiz.isPublished) {
+    this.toast.show('Quiz-ul este publicat și nu mai poate fi editat.', 'info');
+    return;
+  }
+
   let scheduledAt: string | null = null;
   if (quiz.scheduledAt) {
     const d = new Date(quiz.scheduledAt);

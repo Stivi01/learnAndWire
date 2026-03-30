@@ -18,7 +18,7 @@
     </p>
 
     <div class="actions">
-      <button class="edit-btn" (click)="editQuiz(q)">Editează</button>
+      <button class="edit-btn" [disabled]="q.isPublished" (click)="editQuiz(q)">Editează</button>
       <span class="status" [class.published]="q.isPublished">
         {{ q.isPublished ? 'Publicat' : 'Nepublicat' }}
       </span>

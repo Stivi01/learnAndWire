@@ -6,6 +6,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 import { filter, startWith, Subject, switchMap, take, takeUntil } from 'rxjs';
 import { CourseSchedules } from '../../core/services/course-schedules';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-my-classes',
@@ -28,7 +29,8 @@ export class MyClasses implements OnInit{
     private courseService: Course,
     private authService: AuthService,
     private courseScheduleService: CourseSchedules,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -97,8 +99,13 @@ export class MyClasses implements OnInit{
     this.router.navigate(['/teacher/lesson-form'], { queryParams: { moduleId } });
   }
 
-  editCourse(courseId: number) {
-    this.router.navigate(['/teacher/edit-course'], { queryParams: { id: courseId } });
+  editCourse(course: any) {
+    if (course.IsPublished) {
+      this.toast.show('Cursul este publicat și nu mai poate fi editat.', 'info');
+      return;
+    }
+
+    this.router.navigate(['/teacher/edit-course'], { queryParams: { id: course.Id } });
   }
 
   inviteStudents(course: any) {

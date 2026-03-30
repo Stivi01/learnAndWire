@@ -119,6 +119,14 @@ export class CourseEdit {
           return;
         }
 
+        if (course.IsPublished) {
+          this.toast.show('Cursul este publicat și nu mai poate fi editat din această pagină.', 'info');
+          this.loading = false;
+          this.cdr.detectChanges();
+          this.router.navigate(['/teacher/my-classes']);
+          return;
+        }
+
         this.publishReadiness = readiness;
         this.courseForm.patchValue({
           title: course.Title,

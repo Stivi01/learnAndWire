@@ -464,6 +464,28 @@ app.put('/api/courses/:id', protect, restrictTo('Profesor'), async (req, res) =>
   }
 
   try {
+    const currentCourseResult = await sqlPool.query`
+      SELECT Id, Title, Description, ThumbnailUrl, IsPublished
+      FROM Courses
+      WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+    `;
+
+    if (currentCourseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+    }
+
+    const currentCourse = currentCourseResult.recordset[0];
+    const metadataChanged =
+      cleanTitle !== (currentCourse.Title || '').trim() ||
+      cleanDescription !== (currentCourse.Description || '').trim() ||
+      (thumbnailUrl || '') !== (currentCourse.ThumbnailUrl || '');
+
+    if (currentCourse.IsPublished && (nextPublishedState || metadataChanged)) {
+      return res.status(400).json({
+        message: 'Cursul este deja publicat și nu mai poate fi editat. Dacă vrei modificări, retrage-l mai întâi din publicare.'
+      });
+    }
+
     if (nextPublishedState) {
       const readiness = await getCoursePublishReadiness(courseId, req.user.id, {
         title: cleanTitle,
@@ -1546,6 +1568,8 @@ app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) =>
       return res.status(404).json({ message: "Quiz inexistent." });
     }
 
+    const currentQuiz = quizCheck.recordset[0];
+
     const courseResult = await sqlPool.query`
       SELECT Id FROM Courses WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
     `;
@@ -1564,6 +1588,18 @@ app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) =>
       if (scheduledDate <= now) {
         return res.status(400).json({ message: "Data quiz-ului trebuie să fie în viitor." });
       }
+    }
+
+    const metadataChanged =
+      cleanTitle !== (currentQuiz.Title || '').trim() ||
+      cleanDescription !== (currentQuiz.Description || '').trim() ||
+      Number(courseId) !== Number(currentQuiz.CourseId) ||
+      (scheduledDate ? scheduledDate.toISOString() : null) !== (currentQuiz.ScheduledAt ? new Date(currentQuiz.ScheduledAt).toISOString() : null);
+
+    if (currentQuiz.IsPublished && (nextPublishedState || metadataChanged)) {
+      return res.status(400).json({
+        message: 'Quiz-ul este deja publicat și nu mai poate fi editat. Dacă vrei modificări, retrage-l mai întâi din publicare.'
+      });
     }
 
     if (nextPublishedState) {
