@@ -18,8 +18,31 @@
           {{ quiz().IsPublished ? 'Publicat' : 'Nepublicat' }}
         </span>
 
-        <button *ngIf="!quiz().IsPublished" class="btn btn-primary" (click)="publishQuiz()">Publică Quiz</button>
+        <button *ngIf="!quiz().IsPublished" class="btn btn-primary" [disabled]="!canPublish" (click)="publishQuiz()">Publică Quiz</button>
       </div>
+    </div>
+
+    <div class="publish-card" *ngIf="publishReadiness() as readiness">
+      <h3>Condiții pentru publicare</h3>
+      <ul class="publish-checklist">
+        <li *ngFor="let item of publishChecklist" [class.done]="item.done">
+          <span>{{ item.done ? '✅' : '⬜' }}</span>
+          {{ item.label }}
+        </li>
+      </ul>
+
+      <div class="publish-warning" *ngIf="missingPublishItems.length">
+        <p><strong>Mai trebuie:</strong></p>
+        <ul>
+          <li *ngFor="let item of missingPublishItems">{{ item }}</li>
+        </ul>
+      </div>
+
+      <p class="publish-hint" [class.ready]="canPublish" [class.blocked]="!canPublish">
+        {{ canPublish
+          ? 'Quiz-ul este pregătit și poate fi publicat.'
+          : 'Publicarea devine disponibilă după ce completezi toate condițiile de mai sus.' }}
+      </p>
     </div>
 
     <hr>

@@ -2,7 +2,23 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth';
 import { map, Observable } from 'rxjs';
-import { QuizData,QuizOption, QuizQuestion, QuizResult } from '../models/quiz.model';
+import { QuizData, QuizOption, QuizQuestion, QuizResult } from '../models/quiz.model';
+
+export interface QuizPublishReadinessResponse {
+  found?: boolean;
+  canPublish: boolean;
+  checks: {
+    hasTitle: boolean;
+    hasDescription: boolean;
+    coursePublished: boolean;
+    hasScheduledAt: boolean;
+    hasFutureSchedule: boolean;
+    hasQuestion: boolean;
+    everyQuestionHasEnoughOptions: boolean;
+    everyQuestionHasValidAnswers: boolean;
+  };
+  missingItems: string[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -96,8 +112,15 @@ export class Quiz {
     );
   }
 
-  publishQuiz(quizId: number) {
-    return this.http.put(`${this.api}/${quizId}/publish`, {}, this.headers());
+  publishQuiz(quizId: number, isPublished = true) {
+    return this.http.patch(`${this.api}/${quizId}/publish`, { isPublished }, this.headers());
+  }
+
+  getPublishReadiness(quizId: number): Observable<QuizPublishReadinessResponse> {
+    return this.http.get<QuizPublishReadinessResponse>(
+      `${this.api}/${quizId}/publish-readiness`,
+      this.headers()
+    );
   }
 
   // -------------------------

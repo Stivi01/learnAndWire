@@ -101,17 +101,12 @@ export class QuizForm {
 
   saveQuiz() {
   const quizData = this.quiz();
-  if (!quizData.title) {
+  if (!quizData.title?.trim()) {
     alert("Titlul quiz-ului este obligatoriu!");
     return;
   }
   if (!quizData.courseId) {
     alert("Selectează un curs!");
-    return;
-  }
-
-  if (quizData.isPublished && !quizData.scheduledAt) {
-    alert("Trebuie să setezi data înainte de publicare.");
     return;
   }
 
@@ -126,11 +121,11 @@ export class QuizForm {
   }
 
   const payload = {
-    title: quizData.title,
-    description: quizData.description || '',
+    title: quizData.title.trim(),
+    description: quizData.description?.trim() || '',
     courseId: quizData.courseId,
-    isPublished: quizData.isPublished,
-    scheduledAt: quizData.scheduledAt || null   // ← ADAUGĂ
+    isPublished: this.quizId ? !!quizData.isPublished : false,
+    scheduledAt: quizData.scheduledAt || null
   };
 
   if (this.quizId) {
@@ -139,15 +134,22 @@ export class QuizForm {
         alert("Quiz actualizat!");
         this.router.navigate(['/teacher/quizzes']);
       },
-      error: err => console.error(err)
+      error: err => {
+        console.error(err);
+        const details = Array.isArray(err?.error?.missingItems) ? `\n${err.error.missingItems.join('\n')}` : '';
+        alert((err?.error?.message || 'Eroare la actualizarea quiz-ului.') + details);
+      }
     });
   } else {
     this.quizService.createQuiz(payload).subscribe({
       next: (res) => {
-        alert("Quiz creat!");
-        this.router.navigate([`/teacher/quiz/${res.id}/edit`]);
+        alert("Quiz creat ca draft! Acum poți adăuga întrebări și apoi îl publici din administrare.");
+        this.router.navigate([`/teacher/quiz/${res.id}/manage`]);
       },
-      error: err => console.error("Eroare la crearea quiz-ului:", err)
+      error: err => {
+        console.error("Eroare la crearea quiz-ului:", err);
+        alert(err?.error?.message || 'Eroare la crearea quiz-ului.');
+      }
     });
   }
 }

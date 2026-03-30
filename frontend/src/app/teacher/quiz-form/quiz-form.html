@@ -24,11 +24,8 @@
     <textarea [(ngModel)]="quiz().description" (ngModelChange)="updateDescription($event)"></textarea>
   </div>
 
-  <div class="form-group">
-    <label>
-      <input type="checkbox" [(ngModel)]="quiz().isPublished" (ngModelChange)="updateIsPublished($event)">
-      Publicat
-    </label>
+  <div class="draft-note">
+    Quiz-ul se creează ca draft. Publicarea se face după ce adaugi întrebări și opțiuni valide din pagina de administrare.
   </div>
 
   <div class="form-group">

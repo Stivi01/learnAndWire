@@ -38,6 +38,55 @@
   background-color: #28a745;
 }
 
+.publish-card {
+  margin: 16px 0 24px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+}
+
+.publish-card h3 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+}
+
+.publish-checklist,
+.publish-warning ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.publish-checklist li {
+  margin-bottom: 8px;
+  color: #334155;
+}
+
+.publish-checklist li.done {
+  color: #166534;
+}
+
+.publish-warning {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fff7ed;
+  border-radius: 6px;
+  color: #9a3412;
+}
+
+.publish-hint {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.publish-hint.ready {
+  color: #166534;
+}
+
+.publish-hint.blocked {
+  color: #b45309;
+}
+
 .btn {
   padding: 6px 14px;
   border-radius: 6px;

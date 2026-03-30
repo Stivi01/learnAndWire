@@ -1128,44 +1128,165 @@ app.get('/api/student/teachers', protect, restrictTo('Student'), async (req, res
 // QUIZZES (TEACHER)
 // =========================
 
-// CREATE QUIZ
+async function getQuizPublishReadiness(quizId, teacherId, draftData = {}) {
+  const quizResult = await sqlPool.query`
+    SELECT q.Id, q.Title, q.Description, q.ScheduledAt, q.CourseId,
+           c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
+    FROM CourseQuizzes q
+    INNER JOIN Courses c ON c.Id = q.CourseId
+    WHERE q.Id = ${quizId} AND q.CreatedBy = ${teacherId}
+  `;
+
+  if (quizResult.recordset.length === 0) {
+    return {
+      found: false,
+      canPublish: false,
+      checks: {
+        hasTitle: false,
+        hasDescription: false,
+        coursePublished: false,
+        hasScheduledAt: false,
+        hasFutureSchedule: false,
+        hasQuestion: false,
+        everyQuestionHasEnoughOptions: false,
+        everyQuestionHasValidAnswers: false
+      },
+      missingItems: ['Quiz-ul nu a fost găsit.']
+    };
+  }
+
+  const quiz = quizResult.recordset[0];
+  const title = typeof draftData.title === 'string' ? draftData.title.trim() : (quiz.Title || '').trim();
+  const description = typeof draftData.description === 'string' ? draftData.description.trim() : (quiz.Description || '').trim();
+  const targetCourseId = draftData.courseId ?? quiz.CourseId;
+
+  const courseResult = await sqlPool.query`
+    SELECT Id, Title, IsPublished
+    FROM Courses
+    WHERE Id = ${targetCourseId} AND CreatedBy = ${teacherId}
+  `;
+
+  const course = courseResult.recordset[0] || null;
+
+  const scheduleSource = Object.prototype.hasOwnProperty.call(draftData, 'scheduledAt')
+    ? draftData.scheduledAt
+    : quiz.ScheduledAt;
+
+  let hasFutureSchedule = false;
+  if (scheduleSource) {
+    const parsed = new Date(scheduleSource);
+    hasFutureSchedule = !Number.isNaN(parsed.getTime()) && parsed > new Date();
+  }
+
+  const questionsResult = await sqlPool.query`
+    SELECT
+      qq.Id,
+      qq.QuestionText,
+      qq.QuestionType,
+      COUNT(qo.Id) AS OptionCount,
+      SUM(CASE WHEN qo.IsCorrect = 1 THEN 1 ELSE 0 END) AS CorrectCount
+    FROM QuizQuestions qq
+    LEFT JOIN QuizOptions qo ON qo.QuestionId = qq.Id
+    WHERE qq.QuizId = ${quizId}
+    GROUP BY qq.Id, qq.QuestionText, qq.QuestionType
+    ORDER BY qq.Id
+  `;
+
+  const questions = questionsResult.recordset;
+  const optionIssues = [];
+  const answerIssues = [];
+
+  for (const question of questions) {
+    const label = question.QuestionText || `Întrebarea #${question.Id}`;
+    const normalizedType = (question.QuestionType || '').toLowerCase();
+    const optionCount = Number(question.OptionCount || 0);
+    const correctCount = Number(question.CorrectCount || 0);
+    const requiresOptions = normalizedType !== 'open';
+
+    if (requiresOptions && optionCount < 2) {
+      optionIssues.push(`Întrebarea "${label}" trebuie să aibă cel puțin 2 opțiuni.`);
+    }
+
+    if (requiresOptions && normalizedType === 'single' && correctCount !== 1) {
+      answerIssues.push(`Întrebarea "${label}" trebuie să aibă exact 1 răspuns corect.`);
+    }
+
+    if (requiresOptions && normalizedType === 'multiple' && correctCount < 2) {
+      answerIssues.push(`Întrebarea "${label}" trebuie să aibă cel puțin 2 răspunsuri corecte.`);
+    }
+  }
+
+  const checks = {
+    hasTitle: !!title,
+    hasDescription: !!description,
+    coursePublished: !!course?.IsPublished,
+    hasScheduledAt: !!scheduleSource,
+    hasFutureSchedule,
+    hasQuestion: questions.length > 0,
+    everyQuestionHasEnoughOptions: optionIssues.length === 0,
+    everyQuestionHasValidAnswers: answerIssues.length === 0
+  };
+
+  const missingItems = [];
+
+  if (!checks.hasTitle) missingItems.push('Adaugă titlul quiz-ului.');
+  if (!checks.hasDescription) missingItems.push('Adaugă descrierea quiz-ului.');
+  if (!course) missingItems.push('Selectează un curs valid pentru acest quiz.');
+  else if (!checks.coursePublished) missingItems.push(`Publică mai întâi cursul asociat: "${course.Title}".`);
+  if (!checks.hasScheduledAt) missingItems.push('Setează data și ora susținerii.');
+  else if (!checks.hasFutureSchedule) missingItems.push('Data quiz-ului trebuie să fie în viitor la momentul publicării.');
+  if (!checks.hasQuestion) missingItems.push('Adaugă cel puțin o întrebare.');
+
+  missingItems.push(...optionIssues, ...answerIssues);
+
+  return {
+    found: true,
+    canPublish: missingItems.length === 0,
+    checks,
+    missingItems
+  };
+}
+
 // CREATE QUIZ
 app.post('/api/quizzes', protect, restrictTo('Profesor'), async (req, res) => {
-  const { courseId, title, description, isPublished, scheduledAt } = req.body;
+  const { courseId, title, description, scheduledAt } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
+  const cleanDescription = typeof description === 'string' ? description.trim() : '';
 
-  if (!courseId || !title) {
+  if (!courseId || !cleanTitle) {
     return res.status(400).json({
       message: "courseId și title sunt obligatorii."
     });
   }
 
   try {
-    // 🔴 VALIDARE PUBLICARE FĂRĂ DATĂ
-    if (isPublished && !scheduledAt) {
-      return res.status(400).json({
-        message: "Nu poți publica un quiz fără dată programată."
-      });
+    const courseResult = await sqlPool.query`
+      SELECT Id
+      FROM Courses
+      WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+    `;
+
+    if (courseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul selectat nu a fost găsit.' });
     }
 
-    // 🔴 VALIDARE DATĂ ÎN VIITOR
     let scheduledDate = null;
     if (scheduledAt) {
       scheduledDate = new Date(scheduledAt);
       const now = new Date();
-      if (scheduledDate <= now) {
+      if (Number.isNaN(scheduledDate.getTime()) || scheduledDate <= now) {
         return res.status(400).json({
           message: "Data quiz-ului trebuie să fie în viitor."
         });
       }
     }
 
-    // Folosim SQL tipizat
     const request = sqlPool.request()
       .input('CourseId', sql.Int, courseId)
-      .input('Title', sql.NVarChar(255), title)
-      .input('Description', sql.NVarChar(sql.MAX), description || '')
+      .input('Title', sql.NVarChar(255), cleanTitle)
+      .input('Description', sql.NVarChar(sql.MAX), cleanDescription || '')
       .input('CreatedBy', sql.Int, req.user.id)
-      .input('IsPublished', sql.Bit, isPublished ? 1 : 0)
+      .input('IsPublished', sql.Bit, 0)
       .input('ScheduledAt', sql.DateTime2, scheduledDate);
 
     const result = await request.query(`
@@ -1175,7 +1296,10 @@ app.post('/api/quizzes', protect, restrictTo('Profesor'), async (req, res) => {
       VALUES (@CourseId, @Title, @Description, @CreatedBy, GETDATE(), @IsPublished, @ScheduledAt)
     `);
 
-    res.status(201).json(result.recordset[0]);
+    res.status(201).json({
+      ...result.recordset[0],
+      message: 'Quiz-ul a fost creat ca draft. Îl poți publica după ce adaugi întrebări și opțiuni valide.'
+    });
 
   } catch (err) {
     console.error("❌ Error creating quiz:", err);
@@ -1238,30 +1362,40 @@ app.get('/api/quizzes/:id/full', protect, restrictTo('Profesor'), async (req, re
 // UPDATE QUIZ
 app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const quizId = parseInt(req.params.id);
-  const { title, description, isPublished, scheduledAt } = req.body;
+  const { title, description, courseId, isPublished, scheduledAt } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
+  const cleanDescription = typeof description === 'string' ? description.trim() : '';
+  const nextPublishedState = isPublished === true || isPublished === 1;
 
-  if (!title) {
-    return res.status(400).json({ message: "Title este obligatoriu." });
+  if (!cleanTitle) {
+    return res.status(400).json({ message: "Titlul este obligatoriu." });
+  }
+
+  if (!courseId) {
+    return res.status(400).json({ message: "Selectează un curs pentru quiz." });
   }
 
   try {
     const quizCheck = await sqlPool.query`
-      SELECT * FROM CourseQuizzes WHERE Id = ${quizId}
+      SELECT * FROM CourseQuizzes WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
     `;
 
     if (quizCheck.recordset.length === 0) {
       return res.status(404).json({ message: "Quiz inexistent." });
     }
 
-    // Validări
-    if (isPublished && !scheduledAt) {
-      return res.status(400).json({ message: "Nu poți publica un quiz fără dată programată." });
+    const courseResult = await sqlPool.query`
+      SELECT Id FROM Courses WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+    `;
+
+    if (courseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul selectat nu a fost găsit.' });
     }
 
     let scheduledDate = null;
     if (scheduledAt) {
       scheduledDate = new Date(scheduledAt);
-      if (isNaN(scheduledDate.getTime())) {
+      if (Number.isNaN(scheduledDate.getTime())) {
         return res.status(400).json({ message: "Data programată este invalidă." });
       }
       const now = new Date();
@@ -1270,19 +1404,38 @@ app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) =>
       }
     }
 
+    if (nextPublishedState) {
+      const readiness = await getQuizPublishReadiness(quizId, req.user.id, {
+        title: cleanTitle,
+        description: cleanDescription,
+        courseId,
+        scheduledAt
+      });
+
+      if (!readiness.canPublish) {
+        return res.status(400).json({
+          message: 'Quiz-ul nu poate fi publicat încă.',
+          missingItems: readiness.missingItems,
+          checks: readiness.checks
+        });
+      }
+    }
+
     await sqlPool.request()
-      .input('Title', sql.NVarChar(255), title)
-      .input('Description', sql.NVarChar(sql.MAX), description || '')
-      .input('IsPublished', sql.Bit, isPublished ? 1 : 0)
+      .input('CourseId', sql.Int, courseId)
+      .input('Title', sql.NVarChar(255), cleanTitle)
+      .input('Description', sql.NVarChar(sql.MAX), cleanDescription || '')
+      .input('IsPublished', sql.Bit, nextPublishedState ? 1 : 0)
       .input('ScheduledAt', sql.DateTime2, scheduledDate)
       .query(`
         UPDATE CourseQuizzes
         SET 
+          CourseId = @CourseId,
           Title = @Title,
           Description = @Description,
           IsPublished = @IsPublished,
           ScheduledAt = @ScheduledAt
-        WHERE Id = ${quizId}
+        WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
       `);
 
     res.json({ message: "Quiz actualizat cu succes." });
@@ -1290,6 +1443,23 @@ app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) =>
   } catch (err) {
     console.error("❌ Error updating quiz:", err);
     res.status(500).json({ message: "Eroare la actualizare." });
+  }
+});
+
+app.get('/api/quizzes/:id/publish-readiness', protect, restrictTo('Profesor'), async (req, res) => {
+  const quizId = parseInt(req.params.id);
+
+  try {
+    const readiness = await getQuizPublishReadiness(quizId, req.user.id);
+
+    if (!readiness.found) {
+      return res.status(404).json({ message: 'Quiz-ul nu a fost găsit.' });
+    }
+
+    res.json(readiness);
+  } catch (err) {
+    console.error('❌ Error checking quiz publish readiness:', err);
+    res.status(500).json({ message: 'Eroare la verificarea condițiilor de publicare.' });
   }
 });
 
@@ -1321,7 +1491,7 @@ app.delete('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res)
 
 // GET ALL PUBLISHED QUIZZES FOR A STUDENT
 // În app.js, caută ruta care aduce testele pentru student:
-app.get('/api/quizzes/student', protect, async (req, res) => {
+app.get('/api/quizzes/student', protect, restrictTo('Student'), async (req, res) => {
   try {
     const studentId = req.user.id;
 
@@ -1332,7 +1502,7 @@ app.get('/api/quizzes/student', protect, async (req, res) => {
         q.Description, 
         q.ScheduledAt,
         q.CourseId,
-        c.Title AS CourseTitle,   -- 🔥 AICI ESTE CHEIA
+        c.Title AS CourseTitle,
 
         (SELECT COUNT(*) 
          FROM QuizResults qr 
@@ -1347,7 +1517,8 @@ app.get('/api/quizzes/student', protect, async (req, res) => {
       INNER JOIN CourseEnrollments ce 
         ON ce.CourseId = q.CourseId 
         AND ce.StudentId = ${studentId}
-      WHERE q.IsPublished = 1
+      WHERE q.IsPublished = 1 AND c.IsPublished = 1
+      ORDER BY q.ScheduledAt ASC, q.CreatedAt DESC
     `;
 
     res.json(result.recordset);
@@ -1389,10 +1560,8 @@ app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (
   const quizId = parseInt(req.params.id);
 
   try {
-    const quizId = parseInt(req.params.id);
     const studentId = req.user.id;
 
-    // VERIFICARE ANTIFRAUDĂ: A mai dat testul?
     const checkAttempt = await sqlPool.query`
       SELECT Id FROM QuizResults WHERE QuizId = ${quizId} AND StudentId = ${studentId}
     `;
@@ -1403,25 +1572,26 @@ app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (
       });
     }
 
-    // 1. Verificăm dacă quiz-ul există și e publicat
-    const quizResult = await sqlPool.query`
-      SELECT * FROM CourseQuizzes WHERE Id = ${quizId} AND IsPublished = 1
+    const accessResult = await sqlPool.query`
+      SELECT q.*
+      FROM CourseQuizzes q
+      INNER JOIN Courses c ON c.Id = q.CourseId
+      INNER JOIN CourseEnrollments ce ON ce.CourseId = q.CourseId AND ce.StudentId = ${studentId}
+      WHERE q.Id = ${quizId} AND q.IsPublished = 1 AND c.IsPublished = 1
     `;
 
-    if (quizResult.recordset.length === 0) {
-      return res.status(404).json({ message: "Quiz-ul nu există sau nu este publicat." });
+    if (accessResult.recordset.length === 0) {
+      return res.status(404).json({ message: "Quiz-ul nu există, nu este publicat sau nu ai acces la el." });
     }
 
-    const quiz = quizResult.recordset[0];
+    const quiz = accessResult.recordset[0];
 
-    // 2. Extra protecție: Verificăm din nou dacă a venit timpul
     const now = new Date();
     const scheduledDate = new Date(quiz.ScheduledAt);
-    if (now < scheduledDate) {
+    if (quiz.ScheduledAt && now < scheduledDate) {
       return res.status(403).json({ message: "Acest test nu a început încă." });
     }
 
-    // 3. Luăm întrebările
     const questionsResult = await sqlPool.query`
       SELECT Id, QuestionText, QuestionType, Points 
       FROM QuizQuestions 
@@ -1429,7 +1599,6 @@ app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (
     `;
     const questions = questionsResult.recordset;
 
-    // 4. Luăm opțiunile FĂRĂ coloana IsCorrect!
     for (let q of questions) {
       const optionsResult = await sqlPool.query`
         SELECT Id, OptionText 
@@ -1450,16 +1619,39 @@ app.get('/api/student/quizzes/:id/take', protect, restrictTo('Student'), async (
 // SUBMIT QUIZ (Calculare scor și salvare)
 app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, res) => {
   const quizId = parseInt(req.params.id);
-  const studentAnswers = req.body; // ex: { '1': [2], '2': [6, 7] }
+  const studentAnswers = req.body;
 
   try {
-    // 1. Luăm toate întrebările acestui test și punctajele lor
+    const accessResult = await sqlPool.query`
+      SELECT q.*
+      FROM CourseQuizzes q
+      INNER JOIN Courses c ON c.Id = q.CourseId
+      INNER JOIN CourseEnrollments ce ON ce.CourseId = q.CourseId AND ce.StudentId = ${req.user.id}
+      WHERE q.Id = ${quizId} AND q.IsPublished = 1 AND c.IsPublished = 1
+    `;
+
+    if (accessResult.recordset.length === 0) {
+      return res.status(403).json({ message: 'Nu ai acces la acest quiz.' });
+    }
+
+    const quiz = accessResult.recordset[0];
+    if (quiz.ScheduledAt && new Date() < new Date(quiz.ScheduledAt)) {
+      return res.status(403).json({ message: 'Acest test nu a început încă.' });
+    }
+
+    const existingAttempt = await sqlPool.query`
+      SELECT Id FROM QuizResults WHERE QuizId = ${quizId} AND StudentId = ${req.user.id}
+    `;
+
+    if (existingAttempt.recordset.length > 0) {
+      return res.status(400).json({ message: 'Ai trimis deja răspunsurile pentru acest test.' });
+    }
+
     const questionsRes = await sqlPool.query`
       SELECT Id, Points, QuestionType FROM QuizQuestions WHERE QuizId = ${quizId}
     `;
     const questions = questionsRes.recordset;
 
-    // 2. Luăm toate opțiunile corecte pentru acest test
     const correctOptionsRes = await sqlPool.query`
       SELECT qo.Id, qo.QuestionId
       FROM QuizOptions qo
@@ -1471,20 +1663,14 @@ app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, 
     let totalScore = 0;
     let maxPossibleScore = 0;
 
-    // 3. Calculăm scorul studentului
     for (const q of questions) {
       maxPossibleScore += q.Points;
-      
-      // Ce a bifat studentul la această întrebare (array de ID-uri)
-      const selectedIds = studentAnswers[q.Id] || []; 
-      
-      // Ce e corect în baza de date la această întrebare (array de ID-uri)
+      const selectedIds = Array.isArray(studentAnswers[q.Id]) ? studentAnswers[q.Id] : [];
       const correctIdsForQ = correctOptions
         .filter(opt => opt.QuestionId === q.Id)
         .map(opt => opt.Id);
 
-      // Verificăm dacă a nimerit EXACT toate variantele corecte (fără să bifeze în plus sau în minus)
-      const isCorrect = 
+      const isCorrect =
         selectedIds.length === correctIdsForQ.length &&
         selectedIds.every(id => correctIdsForQ.includes(id));
 
@@ -1493,7 +1679,6 @@ app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, 
       }
     }
 
-    // 4. Salvăm Rezultatul General în tabela QuizResults
     const resultInsert = await sqlPool.query`
       INSERT INTO QuizResults (QuizId, StudentId, Score, SubmittedAt)
       OUTPUT INSERTED.Id
@@ -1501,13 +1686,11 @@ app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, 
     `;
     const quizResultId = resultInsert.recordset[0].Id;
 
-    // 5. Salvăm fiecare bifă în tabela StudentAnswers (ADAPTAT LA STRUCTURA TA)
     for (const [questionIdStr, optionIdsArray] of Object.entries(studentAnswers)) {
       const qId = parseInt(questionIdStr);
-      
-      for (const optId of optionIdsArray) {
-        // Aici am modificat numele din QuizResultId în ResultId
-        // Și am scos cu totul coloana IsCorrect
+      const optionIds = Array.isArray(optionIdsArray) ? optionIdsArray : [];
+
+      for (const optId of optionIds) {
         await sqlPool.query`
           INSERT INTO StudentAnswers (ResultId, QuestionId, OptionId)
           VALUES (${quizResultId}, ${qId}, ${optId})
@@ -1515,7 +1698,6 @@ app.post('/api/quizzes/:id/submit', protect, restrictTo('Student'), async (req, 
       }
     }
 
-    // 6. Trimitem răspunsul către Frontend
     res.status(201).json({ 
       message: "Test finalizat cu succes!", 
       score: totalScore,
@@ -1728,32 +1910,35 @@ app.delete('/api/options/:id', protect, restrictTo('Profesor'), async (req, res)
 // PUBLISH / UNPUBLISH QUIZ
 app.patch('/api/quizzes/:id/publish', protect, restrictTo('Profesor'), async (req, res) => {
   const quizId = parseInt(req.params.id);
-  const { isPublished } = req.body;
+  const nextPublishedState = typeof req.body?.isPublished === 'boolean' ? req.body.isPublished : true;
 
   try {
     const quizResult = await sqlPool.query`
-      SELECT ScheduledAt FROM CourseQuizzes WHERE Id = ${quizId}
+      SELECT Id FROM CourseQuizzes WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
     `;
 
     if (quizResult.recordset.length === 0) {
       return res.status(404).json({ message: "Quiz inexistent." });
     }
 
-    const quiz = quizResult.recordset[0];
-
-    if (isPublished && !quiz.ScheduledAt) {
-      return res.status(400).json({ 
-        message: "Nu poți publica fără dată programată." 
-      });
+    if (nextPublishedState) {
+      const readiness = await getQuizPublishReadiness(quizId, req.user.id);
+      if (!readiness.canPublish) {
+        return res.status(400).json({
+          message: 'Quiz-ul nu poate fi publicat încă.',
+          missingItems: readiness.missingItems,
+          checks: readiness.checks
+        });
+      }
     }
 
     await sqlPool.query`
       UPDATE CourseQuizzes
-      SET IsPublished = ${isPublished}
-      WHERE Id = ${quizId}
+      SET IsPublished = ${nextPublishedState}
+      WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
     `;
 
-    res.json({ message: isPublished ? "Quiz publicat." : "Quiz ascuns." });
+    res.json({ message: nextPublishedState ? "Quiz publicat." : "Quiz ascuns." });
 
   } catch (err) {
     console.error(err);
