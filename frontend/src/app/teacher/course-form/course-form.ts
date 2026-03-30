@@ -43,12 +43,13 @@ export class CourseForm implements OnInit{
 
     const courseData = {
       ...this.courseForm.value,
+      isPublished: false,
       createdBy: userId
     };
 
     this.courseService.createCourse(courseData, headers).subscribe({
       next: () => {
-      alert('Curs creat cu succes!');
+      alert('Curs creat cu succes ca draft! Îl poți publica după ce adaugi descriere, module și lecții.');
       this.router.navigate(['/teacher/my-classes']);
     },
       error: (err) => {

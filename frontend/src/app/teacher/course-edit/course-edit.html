@@ -19,10 +19,33 @@
       <input id="thumbnailUrl" type="text" formControlName="thumbnailUrl" />
     </div>
 
+    <div class="publish-card">
+      <h3>Condiții pentru publicare</h3>
+      <ul class="publish-checklist">
+        <li *ngFor="let item of publishChecklist" [class.done]="item.done">
+          <span>{{ item.done ? '✅' : '⬜' }}</span>
+          {{ item.label }}
+        </li>
+      </ul>
+
+      <div class="publish-warning" *ngIf="missingPublishItems.length">
+        <p><strong>Mai trebuie:</strong></p>
+        <ul>
+          <li *ngFor="let item of missingPublishItems">{{ item }}</li>
+        </ul>
+      </div>
+    </div>
+
     <div class="form-group checkbox-group">
       <input id="isPublished" type="checkbox" formControlName="isPublished" />
       <label for="isPublished">Publicat</label>
     </div>
+
+    <p class="publish-hint" [class.ready]="canPublish" [class.blocked]="!canPublish">
+      {{ canPublish
+        ? 'Cursul este pregătit și poate fi publicat.'
+        : 'Publicarea devine disponibilă după ce completezi descrierea, modulele și lecțiile.' }}
+    </p>
 
     <button type="submit" [disabled]="courseForm.invalid">Actualizează Curs</button>
   </form>

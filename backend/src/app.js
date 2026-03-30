@@ -262,21 +262,105 @@ app.post('/api/profile/avatar', protect, upload.single('avatar'), async (req, re
   }
 });
 
+async function getCoursePublishReadiness(courseId, teacherId, draftData = {}) {
+  const courseResult = await sqlPool.query`
+    SELECT Id, Title, Description, IsPublished
+    FROM Courses
+    WHERE Id = ${courseId} AND CreatedBy = ${teacherId}
+  `;
+
+  if (courseResult.recordset.length === 0) {
+    return {
+      found: false,
+      canPublish: false,
+      checks: {
+        hasTitle: false,
+        hasDescription: false,
+        hasModule: false,
+        everyModuleHasLesson: false
+      },
+      missingItems: ['Cursul nu a fost găsit.']
+    };
+  }
+
+  const course = courseResult.recordset[0];
+  const title = typeof draftData.title === 'string'
+    ? draftData.title.trim()
+    : (course.Title || '').trim();
+  const description = typeof draftData.description === 'string'
+    ? draftData.description.trim()
+    : (course.Description || '').trim();
+
+  const modulesResult = await sqlPool.query`
+    SELECT Id, Title
+    FROM CourseModules
+    WHERE CourseId = ${courseId}
+    ORDER BY OrderIndex, Id
+  `;
+
+  const modules = modulesResult.recordset;
+  const modulesWithoutLessons = [];
+
+  for (const module of modules) {
+    const lessonCountResult = await sqlPool.query`
+      SELECT COUNT(1) AS LessonCount
+      FROM CourseLessons
+      WHERE ModuleId = ${module.Id}
+    `;
+
+    const lessonCount = lessonCountResult.recordset[0]?.LessonCount || 0;
+    if (lessonCount === 0) {
+      modulesWithoutLessons.push(module.Title);
+    }
+  }
+
+  const checks = {
+    hasTitle: !!title,
+    hasDescription: !!description,
+    hasModule: modules.length > 0,
+    everyModuleHasLesson: modules.length > 0 && modulesWithoutLessons.length === 0
+  };
+
+  const missingItems = [];
+
+  if (!checks.hasTitle) missingItems.push('Adaugă titlul cursului.');
+  if (!checks.hasDescription) missingItems.push('Adaugă descrierea cursului.');
+  if (!checks.hasModule) missingItems.push('Adaugă cel puțin un modul.');
+
+  for (const moduleTitle of modulesWithoutLessons) {
+    missingItems.push(`Adaugă cel puțin o lecție la modulul "${moduleTitle}".`);
+  }
+
+  return {
+    found: true,
+    canPublish: missingItems.length === 0,
+    checks,
+    missingItems
+  };
+}
+
 // CREATE COURSE
 app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
-  const { title, description, thumbnailUrl, isPublished } = req.body;
+  const { title, description, thumbnailUrl } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
+  const cleanDescription = typeof description === 'string' ? description.trim() : '';
 
-  if (!title) return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  if (!cleanTitle) {
+    return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  }
 
   try {
     const result = await sqlPool.query`
       INSERT INTO Courses (title, description, createdBy, createdAt, thumbnailUrl, isPublished)
       OUTPUT INSERTED.*
-      VALUES (${title}, ${description}, ${req.user.id}, GETDATE(), ${thumbnailUrl}, ${isPublished})
+      VALUES (${cleanTitle}, ${cleanDescription || null}, ${req.user.id}, GETDATE(), ${thumbnailUrl}, ${false})
     `;
 
     const course = result.recordset[0];
-    res.status(201).json(course);
+    res.status(201).json({
+      ...course,
+      message: 'Cursul a fost creat ca draft. Îl poți publica după ce adaugi descriere, module și lecții.'
+    });
 
   } catch (err) {
     console.error(err);
@@ -288,23 +372,68 @@ app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
 app.put('/api/courses/:id', protect, restrictTo('Profesor'), async (req, res) => {
   const courseId = parseInt(req.params.id);
   const { title, description, thumbnailUrl, isPublished } = req.body;
+  const cleanTitle = typeof title === 'string' ? title.trim() : '';
+  const cleanDescription = typeof description === 'string' ? description.trim() : '';
+  const nextPublishedState = isPublished === true || isPublished === 1;
 
-  if (!title) return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  if (!cleanTitle) {
+    return res.status(400).json({ message: 'Titlul este obligatoriu.' });
+  }
 
   try {
+    if (nextPublishedState) {
+      const readiness = await getCoursePublishReadiness(courseId, req.user.id, {
+        title: cleanTitle,
+        description: cleanDescription
+      });
+
+      if (!readiness.found) {
+        return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+      }
+
+      if (!readiness.canPublish) {
+        return res.status(400).json({
+          message: 'Cursul nu poate fi publicat încă.',
+          missingItems: readiness.missingItems,
+          checks: readiness.checks
+        });
+      }
+    }
+
     const result = await sqlPool.query`
       UPDATE Courses
-      SET Title = ${title},
-          Description = ${description},
+      SET Title = ${cleanTitle},
+          Description = ${cleanDescription || null},
           ThumbnailUrl = ${thumbnailUrl},
-          IsPublished = ${isPublished}
+          IsPublished = ${nextPublishedState}
       WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
     `;
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+    }
 
     res.json({ message: 'Curs actualizat cu succes!' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Eroare la actualizarea cursului.' });
+  }
+});
+
+app.get('/api/courses/:id/publish-readiness', protect, restrictTo('Profesor'), async (req, res) => {
+  const courseId = parseInt(req.params.id);
+
+  try {
+    const readiness = await getCoursePublishReadiness(courseId, req.user.id);
+
+    if (!readiness.found) {
+      return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+    }
+
+    res.json(readiness);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Eroare la verificarea condițiilor de publicare.' });
   }
 });
 
@@ -385,6 +514,22 @@ app.post('/api/course-enrollments', protect, restrictTo('Profesor'), async (req,
   }
 
   try {
+    const courseResult = await sqlPool.query`
+      SELECT Id, IsPublished
+      FROM Courses
+      WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+    `;
+
+    if (courseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+    }
+
+    if (!courseResult.recordset[0].IsPublished) {
+      return res.status(400).json({
+        message: 'Poți adăuga sau invita studenți doar după publicarea cursului.'
+      });
+    }
+
     for (const studentId of studentIds) {
       await sqlPool.query`
         IF NOT EXISTS (
@@ -812,6 +957,22 @@ app.post('/api/course-invitations', protect, restrictTo('Profesor'), async (req,
   }
 
   try {
+    const courseResult = await sqlPool.query`
+      SELECT Id, IsPublished
+      FROM Courses
+      WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+    `;
+
+    if (courseResult.recordset.length === 0) {
+      return res.status(404).json({ message: 'Cursul nu a fost găsit.' });
+    }
+
+    if (!courseResult.recordset[0].IsPublished) {
+      return res.status(400).json({
+        message: 'Poți invita studenți doar după ce cursul este publicat.'
+      });
+    }
+
     for (const studentId of studentIds) {
       // verificăm dacă invitația există deja
       const exists = await sqlPool.query`

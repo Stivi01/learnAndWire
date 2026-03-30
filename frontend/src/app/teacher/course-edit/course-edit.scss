@@ -35,10 +35,64 @@
 .checkbox-group {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .checkbox-group label {
-  margin-left: 5px;
+  margin-left: 0;
+}
+
+.checkbox-group input {
+  width: auto;
+}
+
+.publish-card {
+  margin: 20px 0;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+}
+
+.publish-card h3 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+}
+
+.publish-checklist,
+.publish-warning ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.publish-checklist li {
+  margin-bottom: 8px;
+  color: #334155;
+}
+
+.publish-checklist li.done {
+  color: #166534;
+}
+
+.publish-warning {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fff7ed;
+  border-radius: 6px;
+  color: #9a3412;
+}
+
+.publish-hint {
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+
+.publish-hint.ready {
+  color: #166534;
+}
+
+.publish-hint.blocked {
+  color: #b45309;
 }
 
 button[type="submit"] {

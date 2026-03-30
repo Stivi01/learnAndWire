@@ -1,6 +1,7 @@
 <div class="invite-container">
 
   <h2>Invită studenți la curs</h2>
+  <p>Sunt afișate doar cursurile deja publicate.</p>
 
   <div class="messages">
     <p class="error" *ngIf="error()">{{ error() }}</p>
@@ -13,6 +14,10 @@
     <select [(ngModel)]="selectedCourse">
       <option *ngFor="let c of courses()" [ngValue]="c">{{ c.Title }}</option>
     </select>
+  </div>
+
+  <div *ngIf="!loadingCourses() && !courses().length" class="empty-state">
+    Nu ai încă niciun curs publicat disponibil pentru invitații.
   </div>
 
   <div *ngIf="loadingStudents()">Se încarcă studenții...</div>
@@ -33,12 +38,12 @@
         <td>{{ s.firstName }} {{ s.lastName }}</td>
         <td>{{ s.email }}</td>
         <td>{{ s.academicYear }}</td>
-        <td><button (click)="sendSingleInvitation(s.id)">Trimite</button></td>
+        <td><button [disabled]="!selectedCourse" (click)="sendSingleInvitation(s.id)">Trimite</button></td>
       </tr>
     </tbody>
   </table>
 
-  <button [disabled]="selectedStudents().length === 0" (click)="sendBulkInvitations()">
+  <button [disabled]="selectedStudents().length === 0 || !selectedCourse" (click)="sendBulkInvitations()">
     Trimite invitații la cei selectați
   </button>
 

@@ -29,6 +29,18 @@ export interface CourseItem {
   modules?: ModuleItem[];
 }
 
+export interface PublishReadinessResponse {
+  found?: boolean;
+  canPublish: boolean;
+  checks: {
+    hasTitle: boolean;
+    hasDescription: boolean;
+    hasModule: boolean;
+    everyModuleHasLesson: boolean;
+  };
+  missingItems: string[];
+}
+
 export interface ModuleItem {
   Id: number;
   Title: string;
@@ -76,6 +88,16 @@ export class Course {
     const token = localStorage.getItem('token') || '';
     const headers = { Authorization: `Bearer ${token}` };
     return this.http.put(`${this.apiUrl}/courses/${courseId}`, course, { headers });
+  }
+
+  getPublishReadiness(courseId: number): Observable<PublishReadinessResponse> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<PublishReadinessResponse>(
+      `${this.apiUrl}/courses/${courseId}/publish-readiness`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
   }
 
   getEditableCoursesByTeacher(teacherId: number): Observable<EditableCourse[]> {

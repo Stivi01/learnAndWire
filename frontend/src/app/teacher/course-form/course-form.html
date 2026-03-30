@@ -17,11 +17,8 @@
       <input formControlName="thumbnailUrl" />
     </div>
 
-    <div>
-      <label>
-        <input type="checkbox" formControlName="isPublished" />
-        Publică cursul
-      </label>
+    <div class="draft-note">
+      Cursul nou se creează ca draft. Îl poți publica după ce adaugi descriere, module și lecții.
     </div>
 
     <button type="submit" [disabled]="courseForm.invalid">Creează curs</button>
