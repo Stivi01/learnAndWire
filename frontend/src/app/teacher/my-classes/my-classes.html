@@ -31,7 +31,7 @@
       </div>
 
       <div class="course-actions">
-        <button class="btn-outline" [disabled]="course.IsPublished" (click)="editCourse(course); $event.stopPropagation()">Editează</button>
+        <button class="btn-outline" (click)="editCourse(course); $event.stopPropagation()">Editează</button>
         <button class="btn-outline" (click)="inviteStudents(course.Id); $event.stopPropagation()">Invită</button>
         <button class="btn-outline" (click)="scheduleCourse(course); $event.stopPropagation()">Programează curs</button>
         <button class="btn-text" (click)="addModule(course.Id); $event.stopPropagation()">+ Capitol</button>
