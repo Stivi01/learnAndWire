@@ -2,20 +2,60 @@
   <div class="dashboard-content">
     <h1>Bun venit, Profesor!</h1>
 
-    <div class="grid-cards">
-      <div class="card">
-        <h2>Total Cursuri</h2>
-        <p>{{ totalCourses }}</p>
+    <div *ngIf="isLoading()" class="loading">Se încarcă...</div>
+
+    <div *ngIf="!isLoading()">
+      <!-- Statistics Cards -->
+      <div class="grid-cards">
+        <div class="card">
+          <h2>Total Cursuri</h2>
+          <p>{{ totalCourses() }}</p>
+        </div>
+        <div class="card">
+          <h2>Studenți Înscriși</h2>
+          <p>{{ totalStudents() }}</p>
+        </div>
+        <div class="card">
+          <h2>Quiz-uri Create</h2>
+          <p>{{ totalQuizzes() }}</p>
+        </div>
+        <div class="card">
+          <h2>Teme Pendinte</h2>
+          <p>{{ pendingAssignments() }}</p>
+        </div>
       </div>
-      <div class="card">
-        <h2>Teme Pendinte</h2>
-        <p>{{ pendingAssignments }}</p>
+
+      <!-- Recent Courses -->
+      <div class="recent-section">
+        <h2>Cursuri Recente</h2>
+        <div class="courses-list">
+          <div *ngFor="let course of recentCourses()" class="course-item">
+            <div class="course-info">
+              <h3>{{ course.Title }}</h3>
+              <p>{{ course.Description }}</p>
+            </div>
+            <div class="course-stats">
+              <span class="badge">{{ getStudentCount(course) }} studenți</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <h2>Studenți Înscriși</h2>
-        <p>{{ studentsEnrolled }}</p>
+
+      <!-- Quick Shortcuts -->
+      <div class="shortcuts-section">
+        <div class="shortcut-btn" routerLink="/teacher/my-classes">
+          <i class="fas fa-book"></i>
+          <span>Cursuri</span>
+        </div>
+        <div class="shortcut-btn" routerLink="/teacher/quizzes">
+          <i class="fas fa-question-circle"></i>
+          <span>Quiz-uri</span>
+        </div>
+        <div class="shortcut-btn" routerLink="/teacher/students">
+          <i class="fas fa-users"></i>
+          <span>Studenți</span>
+        </div>
       </div>
     </div>
-
-    <div class="recent-section">
-      <h2>Cursuri Recente</h2>
+  </div>
+</div>
