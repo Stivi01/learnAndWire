@@ -14,6 +14,7 @@ export interface StudentProfileData {
   address?: string;
   avatar?: string;
   updatedAt?: string;
+  lastLogin?: string;
 }
 
 

@@ -78,16 +78,32 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
         { expiresIn: '1h' }
       );
 
+      // Actualizează ultima logare
+      await sqlPool.query`
+        UPDATE Users
+        SET lastLogin = GETDATE()
+        WHERE id = ${user.id}
+      `;
+
+      // Preia din nou pentru a obține valoarea exactă a lastLogin
+      const userResult = await sqlPool.query`
+        SELECT id, email, role, firstName, lastName, avatar, lastLogin
+        FROM Users
+        WHERE id = ${user.id}
+      `;
+      const userWithLastLogin = userResult.recordset[0];
+
       res.json({
         message: 'Autentificare reușită!',
         token,
         user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          avatar: user.avatar
+          id: userWithLastLogin.id,
+          email: userWithLastLogin.email,
+          role: userWithLastLogin.role,
+          firstName: userWithLastLogin.firstName,
+          lastName: userWithLastLogin.lastName,
+          avatar: userWithLastLogin.avatar,
+          lastLogin: userWithLastLogin.lastLogin
         }
       });
     } catch (err) {

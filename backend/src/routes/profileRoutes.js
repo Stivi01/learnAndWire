@@ -19,7 +19,7 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
     try {
       const sqlPool = getSqlPool();
       const result = await sqlPool.query`
-        SELECT id, email, role, firstName, lastName, phone, address, academicYear, avatar, updatedAt
+        SELECT id, email, role, firstName, lastName, phone, address, academicYear, avatar, updatedAt, lastLogin
         FROM Users
         WHERE id = ${req.user.id}
       `;
