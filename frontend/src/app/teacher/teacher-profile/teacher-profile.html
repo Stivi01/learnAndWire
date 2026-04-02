@@ -48,7 +48,7 @@
     <button (click)="saveProfile()">Salvează modificările</button>
 
     <div *ngIf="profile().updatedAt" class="updated-at">
-      Ultima actualizare: {{ profile().updatedAt | date:'dd/MM/yyyy HH:mm' }}
+      Ultima actualizare: {{ profile().updatedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}
     </div>
 
   </div>
