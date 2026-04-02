@@ -74,7 +74,7 @@ export class User {
       fullName: `${t.FirstName} ${t.LastName}`, // combinăm
       email: t.Email,
       role: t.Role,
-      avatarUrl: t.Avatar || 'assets/avatar-default.png',
+      avatarUrl: t.Avatar ? `http://localhost:3000/${t.Avatar}` : 'assets/avatar-default.png',
       phone: t.Phone || '',
       course: t.course || ''
     })))

@@ -83,12 +83,14 @@ export class AuthService {
       const user = this.currentUserSubject.getValue();
       if (user) {
         const updatedUser = { ...user, avatar: newAvatarPath };
-        
+
         // 1. Actualizează localStorage
-        this.saveUser(updatedUser); 
-        
-        // 2. Notifică toți abonații
-        this.currentUserSubject.next(updatedUser);
+        this.saveUser(updatedUser);
+
+        // 2. Notifică toți abonații într-un ciclu async pentru a evita ExpressionChangedAfterItHasBeenCheckedError
+        Promise.resolve().then(() => {
+          this.currentUserSubject.next(updatedUser);
+        });
       }
     }
 
