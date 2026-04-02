@@ -75,21 +75,13 @@ export class ModuleForm implements OnInit{
       next: (courses: any[]) => {
         const currentCourse = courses.find(course => Number(course.Id) === this.courseId);
         this.courseIsPublished = !!currentCourse?.IsPublished;
-
-        if (this.courseIsPublished) {
-          this.toastService.show('Cursul este publicat. Poți doar vizualiza structura, nu o mai poți edita.', 'info');
-        }
       },
       error: err => console.error('Eroare la verificarea stării cursului:', err)
     });
   }
 
   private canModifyCourseContent(): boolean {
-    if (this.courseIsPublished) {
-      this.toastService.show('Cursul este publicat și nu mai poți modifica capitolele sau subcapitolele.', 'info');
-      return false;
-    }
-
+    // Permitem modificarea capitolelor/subcapitolelor chiar dacă cursul este publicat.
     return true;
   }
 

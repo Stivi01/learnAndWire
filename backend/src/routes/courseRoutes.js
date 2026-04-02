@@ -5,8 +5,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
   const {
     getTeacherOwnedCourse,
     getTeacherOwnedModule,
-    getTeacherOwnedLesson,
-    rejectPublishedCourseContentEdit
+    getTeacherOwnedLesson
   } = createOwnershipHelpers({ getSqlPool });
 
   const { getCoursePublishReadiness } = createPublishReadinessHelpers({ getSqlPool });
@@ -68,11 +67,8 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         cleanDescription !== (currentCourse.Description || '').trim() ||
         (thumbnailUrl || '') !== (currentCourse.ThumbnailUrl || '');
 
-      if (currentCourse.IsPublished && (nextPublishedState || metadataChanged)) {
-        return res.status(400).json({
-          message: 'Cursul este deja publicat și nu mai poate fi editat. Dacă vrei modificări, retrage-l mai întâi din publicare.'
-        });
-      }
+      // Permitem editarea unui curs chiar dacă este publicat;
+      // doar verificăm condițiile de publicare dacă se cere trecerea în publicat.
 
       if (nextPublishedState) {
         const readiness = await getCoursePublishReadiness(courseId, req.user.id, {
@@ -319,10 +315,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
       }
 
-      if (course.IsPublished) {
-        return rejectPublishedCourseContentEdit(res);
-      }
-
       const result = await sqlPool.query`
         INSERT INTO CourseModules (CourseId, Title, OrderIndex)
         OUTPUT INSERTED.*
@@ -351,10 +343,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
       if (!module) {
         return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
-      }
-
-      if (module.CourseIsPublished) {
-        return rejectPublishedCourseContentEdit(res);
       }
 
       await sqlPool.query`
@@ -408,10 +396,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
       }
 
-      if (module.CourseIsPublished) {
-        return rejectPublishedCourseContentEdit(res);
-      }
-
       await sqlPool.query`
         DELETE FROM CourseLessons
         WHERE ModuleId = ${moduleId}
@@ -438,10 +422,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
       if (!course) {
         return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
-      }
-
-      if (course.IsPublished) {
-        return rejectPublishedCourseContentEdit(res);
       }
 
       await sqlPool.query`
@@ -480,10 +460,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
       }
 
-      if (module.CourseIsPublished) {
-        return rejectPublishedCourseContentEdit(res);
-      }
-
       const result = await sqlPool.query`
         INSERT INTO CourseLessons (ModuleId, Title, Content, VideoUrl, OrderIndex)
         OUTPUT INSERTED.*
@@ -510,10 +486,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
       if (!lesson) {
         return res.status(404).json({ message: 'Lecția nu există sau nu îți aparține.' });
-      }
-
-      if (lesson.CourseIsPublished) {
-        return rejectPublishedCourseContentEdit(res);
       }
 
       const result = await sqlPool.query`
@@ -552,10 +524,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
       if (!lesson) {
         return res.status(404).json({ message: 'Lecția nu există sau nu îți aparține.' });
-      }
-
-      if (lesson.CourseIsPublished) {
-        return rejectPublishedCourseContentEdit(res);
       }
 
       const result = await sqlPool.query`

@@ -61,13 +61,7 @@ export class LessonEdit implements OnInit{
 
       this.moduleService.getModuleById(moduleId).subscribe({
         next: module => {
-          if (module.CourseIsPublished) {
-            this.toastService.show('Cursul este publicat și nu mai poți edita subcapitolele.', 'info');
-            this.loading = false;
-            this.cd.detectChanges();
-            this.router.navigate(['/teacher/my-classes']);
-            return;
-          }
+          // Permitem editarea subcapitolelor chiar dacă cursul este publicat.
 
           this.lessonForm.patchValue({
             Title: (lesson as any).Title ?? (lesson as any).title ?? '',

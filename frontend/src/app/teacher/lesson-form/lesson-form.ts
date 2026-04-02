@@ -61,14 +61,7 @@ private initForm() {
       this.moduleTitle = module.Title ?? '';
       this.courseTitle = module.CourseTitle ?? '';
 
-      if (module.CourseIsPublished) {
-        this.toastService.show('Cursul este publicat și nu mai poți adăuga subcapitole.', 'info');
-        this.loading = false;
-        this.cd.detectChanges();
-        this.router.navigate(['/teacher/my-classes']);
-        return;
-      }
-
+      // Condiții la publicare nu blochează adăugarea de subcapitole.
       // Preia lecțiile existente ca să calculăm orderIndex
       this.lessonService.getLessonsByModule(this.moduleId).subscribe({
         next: lessons => {
