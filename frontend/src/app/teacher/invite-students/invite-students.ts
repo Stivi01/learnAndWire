@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CourseInvitation } from '../../core/services/course-invitation';
 import { StudentProfileData, User } from '../../core/services/user';
 import { Course } from '../../core/services/course';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-invite-students',
@@ -29,7 +30,8 @@ export class InviteStudents implements OnInit {
   constructor(
     private courseService: Course,
     private userService: User,
-    private inviteService: CourseInvitation
+    private inviteService: CourseInvitation,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -101,12 +103,12 @@ export class InviteStudents implements OnInit {
 
   private canSendInvitations(): boolean {
     if (!this.selectedCourse) {
-      this.error.set('Selectează un curs publicat.');
+      this.toastService.show('Selectează un curs publicat.', 'error');
       return false;
     }
 
     if (!this.selectedCourse.IsPublished) {
-      this.error.set('Poți invita studenți doar la cursuri publicate.');
+      this.toastService.show('Poți invita studenți doar la cursuri publicate.', 'error');
       return false;
     }
 
@@ -118,14 +120,12 @@ export class InviteStudents implements OnInit {
       return;
     }
 
-    this.success.set('');
-    this.error.set('');
-
     this.inviteService.inviteStudents(this.selectedCourse.Id, [studentId]).subscribe({
-      next: () => this.success.set('Invitația a fost trimisă!'),
+      next: () => this.toastService.show('Invitația a fost trimisă!', 'success'),
       error: (err) => {
         console.error(err);
-        this.error.set(err?.error?.message || 'Eroare la trimiterea invitației.');
+        const message = err?.error?.message || 'Eroare la trimiterea invitației.';
+        this.toastService.show(message, 'error');
       }
     });
   }
@@ -137,20 +137,19 @@ export class InviteStudents implements OnInit {
 
     const list = this.selectedStudents();
     if (!list.length) {
+      this.toastService.show('Selectează cel puțin un student.', 'info');
       return;
     }
 
-    this.success.set('');
-    this.error.set('');
-
     this.inviteService.inviteStudents(this.selectedCourse.Id, list).subscribe({
       next: () => {
-        this.success.set('Invitațiile au fost trimise!');
+        this.toastService.show('Invitațiile au fost trimise!', 'success');
         this.selectedStudents.set([]);
       },
       error: (err) => {
         console.error(err);
-        this.error.set(err?.error?.message || 'Eroare la trimiterea invitațiilor.');
+        const message = err?.error?.message || 'Eroare la trimiterea invitațiilor.';
+        this.toastService.show(message, 'error');
       }
     });
   }

@@ -688,18 +688,57 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         });
       }
 
-      for (const studentId of studentIds) {
-        const exists = await sqlPool.query`
-          SELECT 1 FROM CourseInvitations
-          WHERE CourseId = ${courseId} AND StudentId = ${studentId} AND Status = 'Pending'
+      const normalizedStudentIds = studentIds
+        .map(id => Number(id))
+        .filter(id => Number.isInteger(id) && id > 0);
+
+      if (normalizedStudentIds.length === 0) {
+        return res.status(400).json({ message: 'Lista de studenți este invalidă.' });
+      }
+
+      const duplicatedStudentsNames = [];
+
+      for (const studentId of normalizedStudentIds) {
+        const invitationCheck = await sqlPool.query`
+          SELECT u.FirstName, u.LastName
+          FROM CourseInvitations ci
+          INNER JOIN Users u ON u.Id = ci.StudentId
+          WHERE ci.CourseId = ${courseId}
+            AND ci.StudentId = ${studentId}
+            AND ci.Status IN ('Pending', 'Accepted')
         `;
 
-        if (exists.recordset.length === 0) {
-          await sqlPool.query`
-            INSERT INTO CourseInvitations (CourseId, StudentId, TeacherId, Status)
-            VALUES (${courseId}, ${studentId}, ${req.user.id}, 'Pending')
-          `;
+        if (invitationCheck.recordset.length > 0) {
+          const user = invitationCheck.recordset[0];
+          duplicatedStudentsNames.push(`${user.FirstName} ${user.LastName}`);
+          continue;
         }
+
+        const enrollmentCheck = await sqlPool.query`
+          SELECT u.FirstName, u.LastName
+          FROM CourseEnrollments ce
+          INNER JOIN Users u ON u.Id = ce.StudentId
+          WHERE ce.CourseId = ${courseId} AND ce.StudentId = ${studentId}
+        `;
+
+        if (enrollmentCheck.recordset.length > 0) {
+          const user = enrollmentCheck.recordset[0];
+          duplicatedStudentsNames.push(`${user.FirstName} ${user.LastName}`);
+          continue;
+        }
+      }
+
+      if (duplicatedStudentsNames.length > 0) {
+        return res.status(400).json({
+          message: `Următorii studenți au deja invitație sau sunt înrolați: ${duplicatedStudentsNames.join(', ')}.`
+        });
+      }
+
+      for (const studentId of normalizedStudentIds) {
+        await sqlPool.query`
+          INSERT INTO CourseInvitations (CourseId, StudentId, TeacherId, Status)
+          VALUES (${courseId}, ${studentId}, ${req.user.id}, 'Pending')
+        `;
       }
 
       res.json({ message: 'Invitațiile au fost trimise cu succes.' });
