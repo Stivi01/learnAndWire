@@ -30,6 +30,10 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
         profile.avatar = 'assets/avatar-default.png';
       }
 
+      if (profile.academicYear === -1 || profile.academicYear === null) {
+        profile.academicYear = '-';
+      }
+
       res.json(profile);
     } catch (err) {
       console.error(err);
@@ -40,6 +44,8 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
   app.put('/api/profile', protect, async (req, res) => {
     const { firstName, lastName, phone, address, academicYear } = req.body;
 
+    const parsedAcademicYear = academicYear === '-' ? -1 : (Number.isNaN(Number(academicYear)) ? null : Number(academicYear));
+
     try {
       const sqlPool = getSqlPool();
       await sqlPool.query`
@@ -49,7 +55,7 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
           lastName = ${lastName},
           phone = ${phone},
           address = ${address},
-          academicYear = ${academicYear}
+          academicYear = ${parsedAcademicYear}
         WHERE id = ${req.user.id}
       `;
 

@@ -20,10 +20,11 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
       const passwordHash = await bcrypt.hash(password, 10);
       const role = getRoleFromEmail(email);
 
+      const academicYearValue = role === 'Profesor' ? -1 : 1;
       const result = await sqlPool.query`
-        INSERT INTO Users (email, passwordHash, role, firstName, lastName)
-        OUTPUT INSERTED.id, INSERTED.email, INSERTED.role, INSERTED.firstName, INSERTED.lastName
-        VALUES (${email}, ${passwordHash}, ${role}, ${firstName}, ${lastName})
+        INSERT INTO Users (email, passwordHash, role, firstName, lastName, academicYear)
+        OUTPUT INSERTED.id, INSERTED.email, INSERTED.role, INSERTED.firstName, INSERTED.lastName, INSERTED.academicYear
+        VALUES (${email}, ${passwordHash}, ${role}, ${firstName}, ${lastName}, ${academicYearValue})
       `;
 
       const newUser = result.recordset[0];

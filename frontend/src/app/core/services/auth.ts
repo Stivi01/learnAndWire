@@ -18,12 +18,15 @@ export interface UserInfo{
 export class AuthService {
 
   private apiUrl = 'http://localhost:3000/api/auth';
+  private sessionTimeoutMs = 30 * 60 * 1000; // 30 minute
+  private sessionTimerId: ReturnType<typeof setTimeout> | null = null;
 
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(this.getStoredUser());
   public currentUser$ = this.currentUserSubject.asObservable(); // Observable public
 
   constructor(private http: HttpClient) {
     this.initializeUser();
+    this.setupIdleAutoLogout();
   }
 
   private initializeUser() {
@@ -32,16 +35,45 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
+  private clearSessionTimeout() {
+    if (this.sessionTimerId !== null) {
+      clearTimeout(this.sessionTimerId);
+      this.sessionTimerId = null;
+    }
+  }
+
+  private scheduleLogout() {
+    this.clearSessionTimeout();
+    this.sessionTimerId = setTimeout(() => {
+      this.logout();
+      window.location.href = '/login';
+    }, this.sessionTimeoutMs);
+  }
+
+  private setupIdleAutoLogout() {
+    const events = ['click', 'keydown', 'mousemove', 'touchstart'];
+    events.forEach(ev => {
+      window.addEventListener(ev, () => {
+        if (this.isLoggedIn()) {
+          this.scheduleLogout();
+        }
+      });
+    });
+
+    if (this.isLoggedIn()) {
+      this.scheduleLogout();
+    }
+  }
+
   login(credentials: { email: string; password: string; }): Observable<any> {
-    return this.http.post<{ token: string, user: UserInfo }>(`${this.apiUrl}/login`, credentials) // 👈 Tiparește răspunsul
+    return this.http.post<{ token: string, user: UserInfo }>(`${this.apiUrl}/login`, credentials)
       .pipe(
         tap(response => {
           if (response?.token) {
             this.saveToken(response.token);
-            // ASIGURĂ-TE că serverul trimite datele user-ului (inclusiv avatarul)
-            this.saveUser(response.user); 
-             // Emite noua valoare către abonați (Navbar)
-             this.currentUserSubject.next(response.user); 
+            this.saveUser(response.user);
+            this.currentUserSubject.next(response.user);
+           this.scheduleLogout();
           }
         })
       );
@@ -61,12 +93,23 @@ export class AuthService {
     }
 
   register(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, data);
+    return this.http.post<{ token: string; user: UserInfo }>(`${this.apiUrl}/register`, data).pipe(
+      tap(response => {
+        if (response?.token) {
+          this.saveToken(response.token);
+          this.saveUser(response.user);
+          this.currentUserSubject.next(response.user);
+          this.scheduleLogout();
+        }
+      })
+    );
   }
 
   logout() {
     localStorage.removeItem('token');
-    localStorage.removeItem('user'); // optional: dacă vrei să salvezi user
+    localStorage.removeItem('user');
+    this.currentUserSubject.next(null);
+    this.clearSessionTimeout();
   }
 
   saveToken(token: string) {
