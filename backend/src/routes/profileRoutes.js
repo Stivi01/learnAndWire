@@ -19,7 +19,7 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
     try {
       const sqlPool = getSqlPool();
       const result = await sqlPool.query`
-        SELECT id, email, role, firstName, lastName, phone, address, academicYear, avatar
+        SELECT id, email, role, firstName, lastName, phone, address, academicYear, avatar, updatedAt
         FROM Users
         WHERE id = ${req.user.id}
       `;
@@ -55,7 +55,8 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
           lastName = ${lastName},
           phone = ${phone},
           address = ${address},
-          academicYear = ${parsedAcademicYear}
+          academicYear = ${parsedAcademicYear},
+          updatedAt = GETDATE()
         WHERE id = ${req.user.id}
       `;
 
@@ -75,7 +76,7 @@ function registerProfileRoutes(app, { getSqlPool, protect }) {
 
       await sqlPool.query`
         UPDATE Users
-        SET avatar = ${avatarPath}
+        SET avatar = ${avatarPath}, updatedAt = GETDATE()
         WHERE id = ${req.user.id}
       `;
 

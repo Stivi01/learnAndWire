@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StudentProfileData, User } from '../../core/services/user';
 import { AuthService } from '../../core/services/auth';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-teacher-profile',
@@ -14,6 +15,7 @@ import { AuthService } from '../../core/services/auth';
 export class TeacherProfile {
   private userService = inject(User);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
 
   profile = signal<StudentProfileData>({
     id: 0,
@@ -25,8 +27,6 @@ export class TeacherProfile {
   });
 
   isLoading = signal(true);
-  successMessage = signal('');
-  errorMessage = signal('');
 
   constructor() {
     this.loadProfile();
@@ -40,7 +40,7 @@ export class TeacherProfile {
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Eroare la încărcarea profilului.');
+        this.toastService.show('Eroare la încărcarea profilului.', 'error');
         this.isLoading.set(false);
       }
     });
@@ -57,10 +57,11 @@ export class TeacherProfile {
       next: (res) => {
         this.profile.set({ ...this.profile(), avatar: res.avatar });
         this.authService.updateUserAvatar(res.avatar || '');
-        this.successMessage.set('Avatar actualizat!');
+        this.toastService.show('Avatar actualizat!', 'success');
+        this.loadProfile(); // reload to get updatedAt
       },
       error: () => {
-        this.errorMessage.set('Eroare la încărcarea avatarului.');
+        this.toastService.show('Eroare la încărcarea avatarului.', 'error');
       }
     });
   }
@@ -68,10 +69,11 @@ export class TeacherProfile {
   saveProfile() {
     this.userService.updateProfile(this.profile()).subscribe({
       next: () => {
-        this.successMessage.set('Profilul a fost actualizat cu succes!');
+        this.toastService.show('Profilul a fost actualizat cu succes!', 'success');
+        this.loadProfile(); // reload to get updatedAt
       },
       error: () => {
-        this.errorMessage.set('Eroare la actualizarea profilului.');
+        this.toastService.show('Eroare la actualizarea profilului.', 'error');
       }
     });
   }

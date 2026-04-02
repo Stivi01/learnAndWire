@@ -13,6 +13,7 @@ export interface StudentProfileData {
   phone?: string;
   address?: string;
   avatar?: string;
+  updatedAt?: string;
 }
 
 

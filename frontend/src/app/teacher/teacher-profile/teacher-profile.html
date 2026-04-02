@@ -47,8 +47,9 @@
 
     <button (click)="saveProfile()">Salvează modificările</button>
 
-    <div *ngIf="successMessage()" class="success">{{ successMessage() }}</div>
-    <div *ngIf="errorMessage()" class="error">{{ errorMessage() }}</div>
+    <div *ngIf="profile().updatedAt" class="updated-at">
+      Ultima actualizare: {{ profile().updatedAt | date:'dd/MM/yyyy HH:mm' }}
+    </div>
 
   </div>
 </div>
