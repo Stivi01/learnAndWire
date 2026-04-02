@@ -1,11 +1,13 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth-guard';
+import { NoAuthGuard } from './core/guards/no-auth-guard';
 import { roleGuard } from './core/guards/role-guard';
+import { Home } from './home/home';
 
 export const routes: Routes = [
 
-    { path: 'login', loadComponent: () => import('./auth/login/login').then(m => m.Login) },
-    { path: 'register', loadComponent: () => import('./auth/register/register').then(m => m.Register) },
+    { path: 'login', canActivate: [NoAuthGuard], loadComponent: () => import('./auth/login/login').then(m => m.Login) },
+    { path: 'register', canActivate: [NoAuthGuard], loadComponent: () => import('./auth/register/register').then(m => m.Register) },
     
     { 
     path: 'teacher-dashboard',
@@ -226,7 +228,7 @@ export const routes: Routes = [
 
 
 
-    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: '', canActivate: [AuthGuard], component: Home },
     { path: '**', redirectTo: '/login' }
 
 
