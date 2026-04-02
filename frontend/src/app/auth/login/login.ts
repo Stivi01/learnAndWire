@@ -59,24 +59,18 @@ export class Login {
 
     this.auth.login(data).subscribe({
       next: (res: LoginResponse) => {
-        this.auth.saveToken(res.token);
-        this.auth.saveUser(res.user);
-
+        // Serviciul AuthService deja salvează tokenul și userul
         this.showFeedback('Autentificare reușită! Se încarcă tabloul de bord...', 'success');
 
         // Reset form
         this.email = '';
         this.password = '';
-        this.loading = false;
 
-        // Redirect în funcție de rol
-        setTimeout(() => {
-          if (res.user.role.toLowerCase() === 'profesor') {
-            this.router.navigate(['/teacher-dashboard']);
-          } else {
-            this.router.navigate(['/student-dashboard']);
-          }
-        }, 1000);
+        // Navigare imediată (fără întârziere artificială)
+        const destination = res.user.role.toLowerCase() === 'profesor' ? '/teacher-dashboard' : '/student-dashboard';
+        this.router.navigate([destination]).then(() => {
+          this.loading = false;
+        });
       },
       error: (err) => {
         console.error('Login error:', err);

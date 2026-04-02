@@ -14,12 +14,7 @@ import { Toast } from './shared/components/toast/toast';
 export class App {
   protected readonly title = signal('frontend');
   auth = inject(AuthService);
-  currentUser = signal<UserInfo | null>(this.auth.currentUserValue);
+  isLoggedIn = this.auth.isLoggedInSignal;
 
-  constructor() {
-    // Sincronizăm semnalul cu BehaviorSubject-ul din AuthService
-    this.auth.currentUser$.subscribe(user => {
-      this.currentUser.set(user);
-    });
-  }
+  constructor() {}
 }

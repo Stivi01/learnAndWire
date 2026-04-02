@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StudentProfileData, User } from '../../core/services/user';
 import { AuthService } from '../../core/services/auth';
 import { ToastService } from '../../core/services/toast';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-teacher-profile',
@@ -12,10 +13,11 @@ import { ToastService } from '../../core/services/toast';
   templateUrl: './teacher-profile.html',
   styleUrl: './teacher-profile.scss',
 })
-export class TeacherProfile {
+export class TeacherProfile implements OnDestroy {
   private userService = inject(User);
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
+  private destroy$ = new Subject<void>();
 
   profile = signal<StudentProfileData>({
     id: 0,
@@ -32,18 +34,25 @@ export class TeacherProfile {
     this.loadProfile();
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadProfile() {
-    this.userService.getProfile().subscribe({
-      next: (data) => {
-        console.log("Avatar value from server:", data.avatar);
-        this.profile.set(data);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.toastService.show('Eroare la încărcarea profilului.', 'error');
-        this.isLoading.set(false);
-      }
-    });
+    this.userService.getProfile()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          console.log("Avatar value from server:", data.avatar);
+          this.profile.set(data);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.toastService.show('Eroare la încărcarea profilului.', 'error');
+          this.isLoading.set(false);
+        }
+      });
   }
 
   uploadAvatar(event: any) {
@@ -53,28 +62,32 @@ export class TeacherProfile {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    this.userService.uploadAvatar(formData).subscribe({
-      next: (res) => {
-        this.profile.set({ ...this.profile(), avatar: res.avatar });
-        this.authService.updateUserAvatar(res.avatar || '');
-        this.toastService.show('Avatar actualizat!', 'success');
-        this.loadProfile(); // reload to get updatedAt
-      },
-      error: () => {
-        this.toastService.show('Eroare la încărcarea avatarului.', 'error');
-      }
-    });
+    this.userService.uploadAvatar(formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.profile.set({ ...this.profile(), avatar: res.avatar });
+          this.authService.updateUserAvatar(res.avatar || '');
+          this.toastService.show('Avatar actualizat!', 'success');
+          this.loadProfile();
+        },
+        error: () => {
+          this.toastService.show('Eroare la încărcarea avatarului.', 'error');
+        }
+      });
   }
 
   saveProfile() {
-    this.userService.updateProfile(this.profile()).subscribe({
-      next: () => {
-        this.toastService.show('Profilul a fost actualizat cu succes!', 'success');
-        this.loadProfile(); // reload to get updatedAt
-      },
-      error: () => {
-        this.toastService.show('Eroare la actualizarea profilului.', 'error');
-      }
-    });
+    this.userService.updateProfile(this.profile())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastService.show('Profilul a fost actualizat cu succes!', 'success');
+          this.loadProfile();
+        },
+        error: () => {
+          this.toastService.show('Eroare la actualizarea profilului.', 'error');
+        }
+      });
   }
 }
