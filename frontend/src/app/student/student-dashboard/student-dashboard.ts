@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnDestroy } from '@angular/core';
 import { AuthService } from '../../core/services/auth';
 import { User } from '../../core/services/user';
 import { Teacher } from '../../core/models/teacher.model';
 import { Quiz } from '../../core/services/quiz';
 import { CourseSchedules } from '../../core/services/course-schedules';
+import { Subject, catchError, of, takeUntil } from 'rxjs';
+import { Router } from '@angular/router';
 
 interface Lesson {
   day: number;
@@ -24,11 +26,14 @@ function getGaugeStyle(percentage: number, color: string): string {
   templateUrl: './student-dashboard.html',
   styleUrl: './student-dashboard.scss',
 })
-export class StudentDashboard {
+export class StudentDashboard implements OnDestroy {
   private auth = inject(AuthService);
   private userService = inject(User);
   private quizService = inject(Quiz);
   private courseScheduleService = inject(CourseSchedules);
+  private router = inject(Router);
+
+  private destroy$ = new Subject<void>();
 
   // USER
   userName = signal('');
@@ -94,20 +99,29 @@ export class StudentDashboard {
 
   // --- TEACHERS ---
   loadTeachers() {
-    this.userService.getLinkedTeachers().subscribe({
-      next: items => {
-        const mapped = items.map(t => ({
-          id: t.id,
-          fullName: t.fullName,
-          email: t.email,
-          role: t.role,
-          avatarUrl: t.avatarUrl || 'assets/avatar-default.png',
-          phone: t.phone,
-          course: t.course
-        }));
-        this.teachers.set(mapped);
-      },
-      error: () => console.error("Failed to load teachers.")
+    if (!this.auth.isLoggedIn()) return;
+
+    this.userService.getLinkedTeachers().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        if (err.status === 401) {
+          this.auth.logout();
+          this.router.navigate(['/login']);
+        }
+        console.error('Failed to load teachers.', err);
+        return of([]);
+      })
+    ).subscribe(items => {
+      const mapped = items.map(t => ({
+        id: t.id,
+        fullName: t.fullName,
+        email: t.email,
+        role: t.role,
+        avatarUrl: t.avatarUrl || 'assets/avatar-default.png',
+        phone: t.phone,
+        course: t.course
+      }));
+      this.teachers.set(mapped);
     });
   }
 
@@ -133,15 +147,24 @@ export class StudentDashboard {
   }
 
   loadUpcomingQuizzes() {
-    this.quizService.getStudentAvailableQuizzes().subscribe({
-      next: quizzes => {
-        const now = new Date();
-        const upcoming = quizzes
-          .filter(q => q.scheduledAt && new Date(q.scheduledAt) > now)
-          .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
-        this.upcomingQuizzes.set(upcoming);
-      },
-      error: () => console.error('Failed to load quizzes')
+    if (!this.auth.isLoggedIn()) return;
+
+    this.quizService.getStudentAvailableQuizzes().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        if (err.status === 401) {
+          this.auth.logout();
+          this.router.navigate(['/login']);
+        }
+        console.error('Failed to load quizzes', err);
+        return of([]);
+      })
+    ).subscribe(quizzes => {
+      const now = new Date();
+      const upcoming = quizzes
+        .filter(q => q.scheduledAt && new Date(q.scheduledAt) > now)
+        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+      this.upcomingQuizzes.set(upcoming);
     });
   }
 
@@ -214,43 +237,61 @@ export class StudentDashboard {
   }
 
   loadStudentSchedules() {
-    this.courseScheduleService.getStudentSchedules().subscribe({
-      next: data => {
-        const month = this.currentMonth().getMonth();
-        const year = this.currentMonth().getFullYear();
-        const parsed = data.flatMap((s: any) => {
-          const dates = this.getDatesForDayInMonth(s.DayOfWeek, month, year);
-          return dates.map(date => ({
-            ...s,
-            Date: date,
-            StartTimeLocal: this.parseTimeToDate(s.StartTime, date),
-            EndTimeLocal: this.parseTimeToDate(s.EndTime, date),
-          }));
-        });
-        this.studentSchedules.set(parsed);
-      },
-      error: () => console.error('Failed to load student schedules')
+    if (!this.auth.isLoggedIn()) return;
+
+    this.courseScheduleService.getStudentSchedules().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        if (err.status === 401) {
+          this.auth.logout();
+          this.router.navigate(['/login']);
+        }
+        console.error('Failed to load student schedules', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      const month = this.currentMonth().getMonth();
+      const year = this.currentMonth().getFullYear();
+      const parsed = data.flatMap((s: any) => {
+        const dates = this.getDatesForDayInMonth(s.DayOfWeek, month, year);
+        return dates.map(date => ({
+          ...s,
+          Date: date,
+          StartTimeLocal: this.parseTimeToDate(s.StartTime, date),
+          EndTimeLocal: this.parseTimeToDate(s.EndTime, date),
+        }));
+      });
+      this.studentSchedules.set(parsed);
     });
   }
 
   loadUpcomingSchedules() {
-    this.courseScheduleService.getUpcomingStudentSchedules().subscribe({
-      next: data => {
-        const now = new Date();
-        const parsed = data.map((s: any) => {
-          const nextDate = this.getNextOccurrence(s.DayOfWeek, s.StartTime);
-          return {
-            courseTitle: s.CourseTitle,
-            title: 'Curs',
-            date: nextDate.toLocaleDateString('ro-RO'),
-            time: nextDate.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
-            emoji: '📘',
-            timestamp: nextDate.getTime()
-          };
-        }).filter(e => e.timestamp > now.getTime()).sort((a, b) => a.timestamp - b.timestamp);
-        this.upcomingSchedules.set(parsed);
-      },
-      error: () => console.error('Failed to load upcoming schedules')
+    if (!this.auth.isLoggedIn()) return;
+
+    this.courseScheduleService.getUpcomingStudentSchedules().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        if (err.status === 401) {
+          this.auth.logout();
+          this.router.navigate(['/login']);
+        }
+        console.error('Failed to load upcoming schedules', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      const now = new Date();
+      const parsed = data.map((s: any) => {
+        const nextDate = this.getNextOccurrence(s.DayOfWeek, s.StartTime);
+        return {
+          courseTitle: s.CourseTitle,
+          title: 'Curs',
+          date: nextDate.toLocaleDateString('ro-RO'),
+          time: nextDate.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+          emoji: '📘',
+          timestamp: nextDate.getTime()
+        };
+      }).filter(e => e.timestamp > now.getTime()).sort((a, b) => a.timestamp - b.timestamp);
+      this.upcomingSchedules.set(parsed);
     });
   }
 
@@ -260,6 +301,11 @@ export class StudentDashboard {
     const d = new Date(day);
     d.setHours(t.getUTCHours(), t.getUTCMinutes(), t.getUTCSeconds(), 0);
     return d;
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private getDatesForDayInMonth(dayOfWeek: number, month: number, year: number): Date[] {
