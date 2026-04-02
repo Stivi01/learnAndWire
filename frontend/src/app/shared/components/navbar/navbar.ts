@@ -38,7 +38,11 @@ export class Navbar {
     this.router.navigate(['/login']);
   }
   navigateToDashboard() {
-    this.router.navigate(['/student-dashboard']);
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher-dashboard']);
+    } else if (this.role === 'Student') {
+      this.router.navigate(['/student-dashboard']);
+    }
   }
   navigateToProfile() {
     if (this.role === 'Student') {

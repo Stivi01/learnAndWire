@@ -27,6 +27,12 @@
       Acasa
     </li>
 
+    <li *ngIf="role === 'Profesor'" (click)="navigateToDashboard()">
+      <i class="fas fa-th-large"></i>
+      Acasa
+    </li>
+
+
     <!-- PROFESOR -->
     <li *ngIf="role === 'Profesor' || role === 'Student'" (click)="navigateToMyClasses()">
       <i class="fas fa-home"></i>
