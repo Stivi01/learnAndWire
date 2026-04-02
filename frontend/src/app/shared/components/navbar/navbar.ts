@@ -41,7 +41,11 @@ export class Navbar {
     this.router.navigate(['/student-dashboard']);
   }
   navigateToProfile() {
-    this.router.navigate(['/student-profile']);
+    if (this.role === 'Student') {
+      this.router.navigate(['/student-profile']);
+    } else if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher-profile']);
+    }
   }
   // navigateToCourseForm() {
   //   this.router.navigate(['/teacher/course-form']);

@@ -30,6 +30,13 @@ export const routes: Routes = [
   },
 
   {
+    path: 'teacher-profile',               // aici ruta pentru settings
+    canActivate: [AuthGuard, roleGuard],   // aceleași guard-uri
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/teacher-profile/teacher-profile').then(m => m.TeacherProfile)
+  },
+
+  {
     path: 'teacher/course-form',
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Profesor' },
