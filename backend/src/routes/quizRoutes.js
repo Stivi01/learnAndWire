@@ -796,6 +796,65 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
       res.status(500).json({ message: 'Eroare la preluarea quiz-urilor cursului.' });
     }
   });
+
+  app.get('/api/quizzes/teacher/results/all', protect, restrictTo('Profesor'), async (req, res) => {
+    try {
+      const sqlPool = getSqlPool();
+      const result = await sqlPool.query`
+        SELECT 
+          q.Title AS QuizTitle,
+          c.Title AS CourseTitle,
+          u.FirstName,
+          u.LastName,
+          u.Email,
+          qr.Score,
+          qr.SubmittedAt,
+          (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) AS MaxScore
+        FROM CourseQuizzes q
+        INNER JOIN Courses c ON q.CourseId = c.Id
+        INNER JOIN QuizResults qr ON qr.QuizId = q.Id
+        INNER JOIN Users u ON qr.StudentId = u.Id
+        WHERE q.CreatedBy = ${req.user.id}
+        ORDER BY qr.SubmittedAt DESC
+      `;
+      res.json(result.recordset);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Eroare la SQL' });
+    }
+  });
+
+  // GET ALL RESULTS FOR TEACHER'S QUIZZES
+  app.get('/api/teacher/quiz-results', protect, restrictTo('Profesor'), async (req, res) => {
+    try {
+      const sqlPool = getSqlPool();
+      const teacherId = req.user.id;
+
+      const result = await sqlPool.query`
+        SELECT 
+          q.Title AS QuizTitle,
+          c.Title AS CourseTitle,
+          u.FirstName,
+          u.LastName,
+          u.Email,
+          qr.Score,
+          qr.SubmittedAt,
+          (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) AS MaxScore
+        FROM CourseQuizzes q
+        INNER JOIN Courses c ON q.CourseId = c.Id
+        INNER JOIN QuizResults qr ON qr.QuizId = q.Id
+        INNER JOIN Users u ON qr.StudentId = u.Id
+        WHERE q.CreatedBy = ${teacherId}
+        ORDER BY qr.SubmittedAt DESC
+      `;
+
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('❌ Eroare la preluarea rezultatelor pentru profesor:', err);
+      res.status(500).json({ message: 'Eroare la încărcarea rezultatelor.' });
+    }
+  });
+
 }
 
 module.exports = { registerQuizRoutes };

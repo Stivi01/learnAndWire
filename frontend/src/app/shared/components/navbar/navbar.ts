@@ -77,6 +77,12 @@ export class Navbar {
     }
   }
 
+  navigateToQuizzesResults() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/results']);
+    }
+  }
+
   navigateToQuizForm() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher/quiz-form']);

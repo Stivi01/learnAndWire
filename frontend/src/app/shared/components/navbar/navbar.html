@@ -74,10 +74,10 @@
       Quiz-uri
     </li>
 
-    <!-- <li *ngIf="role === 'Profesor'" (click)="navigateToQuizForm()">
-      <i class="fas fa-plus-circle"></i>
-      Creează Quiz
-    </li> -->
+    <li *ngIf="role === 'Profesor'" (click)="navigateToQuizzesResults()">
+      <i class="fas fa-question-circle"></i>
+      Rezultate Quiz-uri
+    </li>
 
     <li *ngIf="role === 'Student'" (click)="navigateToQuizzes()">
       <i class="fas fa-question-circle"></i>

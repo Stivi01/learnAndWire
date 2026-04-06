@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth';
-import { map, Observable } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { QuizData, QuizOption, QuizQuestion, QuizResult } from '../models/quiz.model';
 
 export interface QuizPublishReadinessResponse {
@@ -271,5 +271,19 @@ addOption(questionId: number, data: Partial<QuizOption>) {
     })))
   );
 }
+
+  getTeacherAllResults(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/teacher/results/all`, this.headers()).pipe(
+      map(res => res.map(r => ({
+        quizTitle: r.QuizTitle,
+        courseTitle: r.CourseTitle,
+        studentName: `${r.FirstName} ${r.LastName}`,
+        studentEmail: r.Email,
+        score: r.Score,
+        maxScore: r.MaxScore || 0,
+        submittedAt: r.SubmittedAt
+      })))
+    );
+  }
 
 }

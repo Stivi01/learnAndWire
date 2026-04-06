@@ -1,1 +1,51 @@
-<p>quiz-results works!</p>
+<div class="results-container">
+  <div class="header">
+    <h1>Statistici Quiz-uri</h1>
+    <p>Selectați un quiz pentru a vedea rezultatele detaliate ale studenților.</p>
+  </div>
+
+  <div *ngIf="loading()" class="loader">Se încarcă datele...</div>
+
+  <div class="quiz-list" *ngIf="!loading()">
+    <div *ngFor="let group of groupedResults()" class="quiz-card" [class.active]="group.isOpen">
+      
+      <div class="quiz-header" (click)="toggleQuiz(group)">
+        <div class="info">
+          <span class="course-badge">{{ group.courseTitle }}</span>
+          <h3>{{ group.quizTitle }}</h3>
+          <span class="count-badge">
+            {{ group.students.length === 1 ? '1 student a participat' : group.students.length + ' studenți au participat' }}
+          </span>
+        </div>
+        <i class="fas" [class.fa-chevron-down]="!group.isOpen" [class.fa-chevron-up]="group.isOpen"></i>
+      </div>
+
+      <div class="quiz-content" *ngIf="group.isOpen">
+        <table class="students-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Data Susținerii</th>
+              <th>Scor</th>
+              <th>Procentaj</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of group.students">
+              <td>
+                <div class="st-name">{{ student.studentName }}</div>
+                <div class="st-email">{{ student.studentEmail }}</div>
+              </td>
+              <td>{{ student.submittedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</td>
+              <td><strong>{{ student.score }}</strong> / {{ group.maxScore }}</td>
+              <td [ngClass]="(student.score / group.maxScore) >= 0.5 ? 'pass' : 'fail'">
+                {{ (student.score / group.maxScore) | percent }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
