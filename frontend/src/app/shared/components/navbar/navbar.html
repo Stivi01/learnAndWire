@@ -100,6 +100,12 @@
       Setari
     </li>
 
+    <li *ngIf="role === 'Profesor'" (click)="navigateToBreadbord()">
+      <i class="fas fa-project-diagram"></i>
+      Breadbord
+    </li>
+
+
   </ul>
 
   <!-- LOGOUT -->

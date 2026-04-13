@@ -102,11 +102,14 @@ export class Navbar {
   }
 
   navigateToTeacherCalendar() {
-  if (this.role === 'Profesor') {
-      this.router.navigate(['/teacher/calendar']);
-    }
-}
+    if (this.role === 'Profesor') {
+        this.router.navigate(['/teacher/calendar']);
+      }
+  }
 
+  navigateToBreadbord() {
+    this.router.navigate(['/breadbord']);
+  }
 
 
 

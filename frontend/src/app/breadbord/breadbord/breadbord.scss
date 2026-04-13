@@ -1,0 +1,101 @@
+.app-layout {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: #f1f2f6;
+  min-height: 100vh;
+  font-family: sans-serif;
+}
+
+.sidebar {
+  width: 260px;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  flex-shrink: 0;
+
+  h3, h4 { margin-top: 0; color: #2f3542; }
+
+  .component-box {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #f8f9fa;
+    border: 1px solid #dfe4ea;
+    border-radius: 8px;
+    cursor: grab;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+
+    &:active { cursor: grabbing; }
+    &:hover { background: #eccc68; border-color: #ffa502; }
+
+    .color-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      margin-right: 10px; display: inline-block;
+    }
+  }
+
+  .properties-panel {
+    background: #f1f2f6;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #555; }
+    input[type="number"], input[type="range"], input[type="color"] {
+      width: 100%; margin-bottom: 10px;
+    }
+  }
+
+  hr { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
+
+  .clear-btn {
+    width: 100%; padding: 10px; margin-bottom: 8px;
+    background: #747d8c; color: white; border: none; border-radius: 6px;
+    cursor: pointer; font-weight: bold;
+    &:hover { filter: brightness(1.1); }
+  }
+}
+
+.simulator-container {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow: hidden; // Previne scurgerea afara
+  display: flex;
+  flex-direction: column;
+
+  .toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px;
+    h3 { margin: 0; color: #333; display: flex; align-items: center; gap: 10px;}
+    .badge { background: #ff4757; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+  }
+
+  .svg-scroll-container {
+    overflow-x: auto; // Permite scroll stanga-dreapta daca ecranul e prea mic
+    padding-bottom: 10px;
+  }
+
+  svg {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: white; border-radius: 15px;
+  }
+
+  .hole {
+    transition: all 0.1s; cursor: crosshair;
+    &:hover { fill: #3498db; r: 5; }
+    &.power-plus { fill: #ffcccc; stroke: #ff4757; stroke-width: 0.5; }
+    &.power-minus { fill: #ccccff; stroke: #2f3542; stroke-width: 0.5; }
+  }
+
+  .component {
+    pointer-events: all; cursor: pointer;
+    transition: transform 0.1s;
+    &.selected { filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.2)); }
+  }
+}

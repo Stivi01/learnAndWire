@@ -143,6 +143,13 @@ export const routes: Routes = [
     loadComponent: () => import('./teacher/quiz-results/quiz-results').then(m => m.QuizResults)
   },
 
+  //path for breadbord
+  {
+    path: 'breadbord',
+    loadComponent: () => import('./breadbord/breadbord/breadbord').then(m => m.Breadbord)
+  },
+
+
   // STUDENT
   {
     path: 'student/quizzes',
