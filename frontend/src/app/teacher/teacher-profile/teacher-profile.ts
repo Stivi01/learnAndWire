@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal, OnDestroy } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { StudentProfileData, User } from '../../core/services/user';
 import { AuthService } from '../../core/services/auth';
 import { ToastService } from '../../core/services/toast';
@@ -25,7 +25,9 @@ export class TeacherProfile implements OnDestroy {
     lastName: '',
     email: '',
     academicYear: 0,
-    avatar: ''
+    avatar: '',
+    phone: '',   // Adăugat pentru siguranță
+    address: ''  // Adăugat pentru siguranță
   });
 
   isLoading = signal(true);
@@ -77,7 +79,13 @@ export class TeacherProfile implements OnDestroy {
       });
   }
 
-  saveProfile() {
+  // Opțional, poți primi form-ul aici ca parametru pentru o extra-verificare
+  saveProfile(form?: NgForm) {
+    if (form && form.invalid) {
+      this.toastService.show('Te rugăm să corectezi erorile din formular.', 'error');
+      return;
+    }
+
     this.userService.updateProfile(this.profile())
       .pipe(takeUntil(this.destroy$))
       .subscribe({

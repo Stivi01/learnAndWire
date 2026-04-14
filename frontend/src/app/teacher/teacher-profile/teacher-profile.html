@@ -15,38 +15,77 @@
       <input type="file" (change)="uploadAvatar($event)">
     </div>
 
-    <div class="form-group">
-      <label>Prenume</label>
-      <input [(ngModel)]="profile().firstName" type="text" />
-    </div>
+    <form #profileForm="ngForm" (ngSubmit)="saveProfile(profileForm)">
+      
+      <div class="form-group">
+        <label>Prenume *</label>
+        <input 
+          [(ngModel)]="profile().firstName" 
+          name="firstName" 
+          #firstName="ngModel" 
+          type="text" 
+          required 
+          minlength="2"
+          pattern="^[a-zA-ZăâîșțĂÂÎȘȚ\s\-]+$" />
+        <div *ngIf="firstName.invalid && (firstName.dirty || firstName.touched)" class="error-message">
+          <small *ngIf="firstName.errors?.['required']">Prenumele este obligatoriu.</small>
+          <small *ngIf="firstName.errors?.['minlength']">Prenumele trebuie să aibă minim 2 caractere.</small>
+          <small *ngIf="firstName.errors?.['pattern']">Prenumele poate conține doar litere și cratimă.</small>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Nume</label>
-      <input [(ngModel)]="profile().lastName" type="text" />
-    </div>
+      <div class="form-group">
+        <label>Nume *</label>
+        <input 
+          [(ngModel)]="profile().lastName" 
+          name="lastName" 
+          #lastName="ngModel" 
+          type="text" 
+          required 
+          minlength="2"
+          pattern="^[a-zA-ZăâîșțĂÂÎȘȚ\s\-]+$" />
+        <div *ngIf="lastName.invalid && (lastName.dirty || lastName.touched)" class="error-message">
+          <small *ngIf="lastName.errors?.['required']">Numele este obligatoriu.</small>
+          <small *ngIf="lastName.errors?.['minlength']">Numele trebuie să aibă minim 2 caractere.</small>
+          <small *ngIf="lastName.errors?.['pattern']">Numele poate conține doar litere și cratimă.</small>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Email</label>
-      <input [(ngModel)]="profile().email" type="email" readonly />
-    </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input [(ngModel)]="profile().email" name="email" type="email" readonly />
+      </div>
 
-    <div class="form-group">
-      <label>An universitar</label>
-      <input [(ngModel)]="profile().academicYear" type="text" readonly />
-    </div>
+      <div class="form-group">
+        <label>An universitar</label>
+        <input [(ngModel)]="profile().academicYear" name="academicYear" type="text" readonly />
+      </div>
 
-    <div class="form-group">
-      <label>Telefon</label>
-      <input [(ngModel)]="profile().phone" type="text" />
-    </div>
+      <div class="form-group">
+        <label>Telefon</label>
+        <input 
+          [(ngModel)]="profile().phone" 
+          name="phone" 
+          #phone="ngModel" 
+          type="text" 
+          pattern="^[0-9\+\-\s]{10,15}$" />
+        <div *ngIf="phone.invalid && (phone.dirty || phone.touched)" class="error-message">
+          <small *ngIf="phone.errors?.['pattern']">Introduceți un număr de telefon valid.</small>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label>Adresă</label>
-      <input [(ngModel)]="profile().address" type="text" />
-    </div>
+      <div class="form-group">
+        <label>Adresă</label>
+        <input 
+          [(ngModel)]="profile().address" 
+          name="address" 
+          #address="ngModel" 
+          type="text" />
+      </div>
 
-    <button (click)="saveProfile()">Salvează modificările</button>
+      <button type="submit" [disabled]="profileForm.invalid">Salvează modificările</button>
 
+    </form>
     <div *ngIf="profile().updatedAt" class="updated-at">
       Ultima actualizare: {{ profile().updatedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}
     </div>

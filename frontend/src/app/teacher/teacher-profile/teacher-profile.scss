@@ -37,3 +37,13 @@
   object-fit: cover;
   border: 2px solid #ccc;
 }
+
+.error-message {
+  small {
+    color: #dc3545 !important; /* Forțăm roșul pentru textul de eroare */
+    font-size: 0.85rem;
+    margin-top: 4px;
+    display: block;
+    font-weight: 500;
+  }
+}
