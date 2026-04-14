@@ -1,7 +1,6 @@
 <div class="main-container">
   <div class="auth-card-wrapper">
     <div class="auth-card">
-      <!-- Ilustrație -->
       <div class="illustration-panel">
         <div class="character-placeholder">
           <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -15,29 +14,95 @@
         </div>
       </div>
 
-      <!-- Formular -->
       <div class="form-panel">
         <div class="logo-area">Learn&Wire</div>
         <h1 class="text-3xl font-bold mb-6">Creează Cont</h1>
 
-        <!-- Toast -->
-        <div *ngIf="showToast" [ngClass]="toastType === 'success' ? 'toast-success' : 'toast-error'">
-          {{ toastMessage }}
-        </div>
-
-        <form (ngSubmit)="register()" class="space-y-4">
+        <form #registerForm="ngForm" (ngSubmit)="register(registerForm)" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
-            <input type="text" [(ngModel)]="firstName" name="firstName" placeholder="Prenume" [disabled]="loading" class="input-field"/>
-            <input type="text" [(ngModel)]="lastName" name="lastName" placeholder="Nume" [disabled]="loading" class="input-field"/>
+            
+            <div>
+              <input 
+                type="text" 
+                [(ngModel)]="firstName" 
+                name="firstName" 
+                #firstNameInput="ngModel"
+                placeholder="Prenume" 
+                [disabled]="loading" 
+                class="input-field"
+                required 
+                minlength="2"
+                pattern="^[a-zA-ZăâîșțĂÂÎȘȚ\s\-]+$"/>
+              <div *ngIf="firstNameInput.invalid && (firstNameInput.dirty || firstNameInput.touched)" class="error-message">
+                <small *ngIf="firstNameInput.errors?.['required']">Prenumele este obligatoriu.</small>
+                <small *ngIf="firstNameInput.errors?.['minlength']">Minim 2 caractere.</small>
+                <small *ngIf="firstNameInput.errors?.['pattern']">Doar litere și cratimă.</small>
+              </div>
+            </div>
+
+            <div>
+              <input 
+                type="text" 
+                [(ngModel)]="lastName" 
+                name="lastName" 
+                #lastNameInput="ngModel"
+                placeholder="Nume" 
+                [disabled]="loading" 
+                class="input-field"
+                required 
+                minlength="2"
+                pattern="^[a-zA-ZăâîșțĂÂÎȘȚ\s\-]+$"/>
+              <div *ngIf="lastNameInput.invalid && (lastNameInput.dirty || lastNameInput.touched)" class="error-message">
+                <small *ngIf="lastNameInput.errors?.['required']">Numele este obligatoriu.</small>
+                <small *ngIf="lastNameInput.errors?.['minlength']">Minim 2 caractere.</small>
+                <small *ngIf="lastNameInput.errors?.['pattern']">Doar litere și cratimă.</small>
+              </div>
+            </div>
           </div>
-          <input type="email" [(ngModel)]="email" name="email" placeholder="Email" [disabled]="loading" class="input-field" (ngModelChange)="checkRole()"/>
-          <input type="password" [(ngModel)]="password" name="password" placeholder="Parolă" [disabled]="loading" class="input-field"/>
+
+          <div>
+            <input 
+              type="email" 
+              [(ngModel)]="email" 
+              name="email" 
+              #emailInput="ngModel"
+              placeholder="Email instituțional" 
+              [disabled]="loading" 
+              class="input-field" 
+              (ngModelChange)="checkRole()"
+              required 
+              email/>
+            <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="error-message">
+              <small *ngIf="emailInput.errors?.['required']">Emailul este obligatoriu.</small>
+              <small *ngIf="emailInput.errors?.['email']">Formatul adresei de email este invalid.</small>
+            </div>
+            <div *ngIf="emailInput.valid && email && !roleDisplay" class="error-message">
+              <small>Adresa trebuie să se termine cu @stud.etti.upb.ro sau @etti.upb.ro</small>
+            </div>
+          </div>
+
+          <div>
+            <input 
+              type="password" 
+              [(ngModel)]="password" 
+              name="password" 
+              #passwordInput="ngModel"
+              placeholder="Parolă" 
+              [disabled]="loading" 
+              class="input-field"
+              required 
+              pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"/>
+            <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="error-message">
+              <small *ngIf="passwordInput.errors?.['required']">Parola este obligatorie.</small>
+              <small *ngIf="passwordInput.errors?.['pattern']">Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.</small>
+            </div>
+          </div>
 
           <div *ngIf="roleDisplay" class="role-indicator">
             Rol detectat: {{ roleDisplay === 'profesor' ? 'Profesor' : 'Student' }}
           </div>
 
-          <button type="submit" [disabled]="loading" class="submit-button">
+          <button type="submit" [disabled]="loading || registerForm.invalid || !roleDisplay" class="submit-button" [class.disabled-btn]="registerForm.invalid || !roleDisplay">
             {{ loading ? 'Se creează contul...' : 'Creează Cont' }}
           </button>
         </form>

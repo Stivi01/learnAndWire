@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
 import { Router, RouterModule } from '@angular/router';
+import { ToastService } from '../../core/services/toast';
 
 interface RegisterData {
     email: string;
@@ -30,13 +31,10 @@ export class Register {
   email = '';
   password = '';
   roleDisplay: 'student' | 'profesor' | null = null;
-
   loading = false;
 
-  // Toast
-  toastMessage = '';
-  toastType: 'success' | 'error' = 'success';
-  showToast = false;
+  // Iniectăm serviciul de Toast global
+  private toastService = inject(ToastService);
 
   constructor(private auth: AuthService, private router: Router) {}
 
@@ -51,21 +49,14 @@ export class Register {
     }
   }
 
-  showFeedback(message: string, type: 'success' | 'error') {
-    this.toastMessage = message;
-    this.toastType = type;
-    this.showToast = true;
-    setTimeout(() => (this.showToast = false), 3000);
-  }
-
-  register() {
-    if (!this.firstName || !this.lastName || !this.email || !this.password) {
-      this.showFeedback('Toate câmpurile sunt obligatorii!', 'error');
+  register(form?: NgForm) {
+    if (form && form.invalid) {
+      this.toastService.show('Vă rugăm să corectați erorile din formular!', 'error');
       return;
     }
 
     if (!this.roleDisplay) {
-      this.showFeedback(
+      this.toastService.show(
         'Email invalid — trebuie să se termine cu @stud.etti.upb.ro sau @etti.upb.ro',
         'error'
       );
@@ -75,9 +66,9 @@ export class Register {
     this.loading = true;
 
     const data: RegisterData = {
-      firstName: this.firstName,
-      lastName: this.lastName,
-      email: this.email,
+      firstName: this.firstName.trim(),
+      lastName: this.lastName.trim(),
+      email: this.email.trim().toLowerCase(),
       password: this.password,
       role: this.roleDisplay,
     };
@@ -85,13 +76,10 @@ export class Register {
     this.auth.register(data).subscribe({
       next: (res) => {
         this.auth.saveToken(res.token);
-        this.showFeedback(res.message, 'success');
+        this.toastService.show(res.message, 'success');
 
         // Reset form
-        this.firstName = '';
-        this.lastName = '';
-        this.email = '';
-        this.password = '';
+        if (form) form.resetForm();
         this.roleDisplay = null;
         this.loading = false;
 
@@ -107,7 +95,7 @@ export class Register {
       error: (err) => {
         console.error(err);
         const msg = err.error?.message || 'Eroare necunoscută. Verifică consola.';
-        this.showFeedback(msg, 'error');
+        this.toastService.show(msg, 'error');
         this.loading = false;
       },
     });
