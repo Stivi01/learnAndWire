@@ -46,17 +46,18 @@
       </div>
       <div class="header-text">
         <h4>Programul zilei</h4>
-        <p>{{ quizzesForSelectedDate().length }} activități</p>
+        <p>{{ schedulesForSelectedDate().length + quizzesForSelectedDate().length }} activități</p>
       </div>
     </div>
 
     <div class="details-content">
-      <!-- Cursuri -->
+    
+    @if (schedulesForSelectedDate().length > 0 || quizzesForSelectedDate().length > 0) {
+      
       @for (schedule of schedulesForSelectedDate(); track schedule.Id) {
         <div class="schedule-card">
           <div class="card-accent"></div>
           <div class="card-info">
-            <!-- În teacher-calendar.html -->
             <span class="time">
               {{ schedule.StartTimeLocal | date:'HH:mm' }} - {{ schedule.EndTimeLocal | date:'HH:mm' }}
             </span>
@@ -74,13 +75,14 @@
             <span class="status">{{ quiz.isPublished ? 'Publicat' : 'Draft' }}</span>
           </div>
         </div>
-      } 
-      @empty {
-        <div class="empty-state">
-          <span class="icon">📅</span>
-          <p>Nicio activitate programată</p>
-        </div>
       }
-    </div>
+      
+    } @else {
+      <div class="empty-state">
+        <span class="icon">📅</span>
+        <p>Nicio activitate programată</p>
+      </div>
+    }
+
   </div>
 </div>
