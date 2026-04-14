@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { ToastService } from '../../core/services/toast';
 
 
 interface LoginData {
@@ -33,23 +34,19 @@ export class Login {
   password = '';
   loading = false;
 
-  // Toast
-  toastMessage = '';
-  toastType: 'success' | 'error' = 'success';
-  showToast = false;
+  private toastService = inject(ToastService);
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
 
-  showFeedback(message: string, type: 'success' | 'error') {
-    this.toastMessage = message;
-    this.toastType = type;
-    this.showToast = true;
-    setTimeout(() => (this.showToast = false), 3000);
-  }
-
-  login() {
+  login(form?: NgForm) {
+    // VALIDARE MANUALĂ
     if (!this.email || !this.password) {
-      this.showFeedback('Emailul și parola sunt obligatorii!', 'error');
+      this.toastService.show('Completează email și parolă!', 'error');
+      return;
+    }
+
+    if (form && form.invalid) {
+      this.toastService.show('Vă rugăm să completați corect câmpurile!', 'error');
       return;
     }
 
@@ -59,24 +56,26 @@ export class Login {
 
     this.auth.login(data).subscribe({
       next: (res: LoginResponse) => {
-        // Serviciul AuthService deja salvează tokenul și userul
-        this.showFeedback('Autentificare reușită! Se încarcă tabloul de bord...', 'success');
+        this.loading = false;
 
-        // Reset form
+        this.toastService.show('Autentificare reușită!', 'success');
+
+        if (form) form.resetForm();
         this.email = '';
         this.password = '';
 
-        // Navigare imediată (fără întârziere artificială)
-        const destination = res.user.role.toLowerCase() === 'profesor' ? '/teacher-dashboard' : '/student-dashboard';
-        this.router.navigate([destination]).then(() => {
-          this.loading = false;
-        });
+        const destination =
+          res.user.role.toLowerCase() === 'profesor'
+            ? '/teacher-dashboard'
+            : '/student-dashboard';
+
+        this.router.navigate([destination]);
       },
       error: (err) => {
-        console.error('Login error:', err);
-        const msg = err.error?.message || 'Eroare necunoscută la autentificare.';
-        this.showFeedback(msg, 'error');
         this.loading = false;
+        this.cdr.detectChanges();
+        const msg = err.error?.message || 'Email sau parolă incorectă.';
+        this.toastService.show(msg, 'error');
       },
     });
   }

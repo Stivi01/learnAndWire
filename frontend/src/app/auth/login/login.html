@@ -1,7 +1,6 @@
 <div class="main-container">
   <div class="auth-card-wrapper">
     <div class="auth-card">
-      <!-- Coloana 1: Ilustrație -->
       <div class="illustration-panel">
         <div class="clock-icon">📚</div>
         <div class="plant-icon">💻</div>
@@ -15,21 +14,47 @@
         </div>
       </div>
 
-      <!-- Coloana 2: Formular -->
       <div class="form-panel">
         <div class="logo-area">Learn&Wire</div>
         <h1 class="text-3xl font-extrabold text-gray-900 mb-6">Autentificare</h1>
 
-        <!-- Toast -->
-        <div *ngIf="showToast" [ngClass]="toastType === 'success' ? 'toast-success' : 'toast-error'">
-          {{ toastMessage }}
-        </div>
+        <form #loginForm="ngForm" (ngSubmit)="login(loginForm)" class="space-y-4">
+          
+          <div>
+            <input 
+              type="email" 
+              [(ngModel)]="email" 
+              name="email" 
+              #emailInput="ngModel"
+              placeholder="Adresa de Email" 
+              class="input-field" 
+              required 
+              email/>
+            <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="error-message">
+              <small *ngIf="emailInput.errors?.['required']">Emailul este obligatoriu.</small>
+              <small *ngIf="emailInput.errors?.['email']">Formatul adresei de email este invalid.</small>
+            </div>
+          </div>
 
-        <form (ngSubmit)="login()" class="space-y-4">
-          <input type="email" [(ngModel)]="email" name="email" placeholder="Adresa de Email" class="input-field" [disabled]="loading" required/>
-          <input type="password" [(ngModel)]="password" name="password" placeholder="Parolă" class="input-field" [disabled]="loading" required/>
+          <div>
+            <input 
+              type="password" 
+              [(ngModel)]="password" 
+              name="password" 
+              #passwordInput="ngModel"
+              placeholder="Parolă" 
+              class="input-field" 
+              required 
+              minlength="6"/>
+            <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="error-message">
+              <small *ngIf="passwordInput.errors?.['required']">Parola este obligatorie.</small>
+            </div>
+          </div>
 
-          <button type="submit" [disabled]="loading" class="submit-button">
+          <button 
+            type="submit" 
+            [disabled]="loading"
+            class="submit-button">
             {{ loading ? 'Se autentifică...' : 'Loghează-te' }}
           </button>
         </form>
