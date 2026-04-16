@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { StudentProfileData, User } from '../../core/services/user';
 import { AuthService } from '../../core/services/auth';
 import { ToastService } from '../../core/services/toast';
+import { RecoveryCodesSettings } from '../../shared/components/recovery-codes-settings/recovery-codes-settings';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-student-profile',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RecoveryCodesSettings],
   standalone: true,
   templateUrl: './student-profile.html',
   styleUrl: './student-profile.scss',

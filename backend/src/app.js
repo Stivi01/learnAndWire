@@ -12,6 +12,7 @@ const { registerCourseRoutes } = require('./routes/courseRoutes');
 const { registerUserRoutes } = require('./routes/userRoutes');
 const { registerQuizRoutes } = require('./routes/quizRoutes');
 const { registerScheduleRoutes } = require('./routes/scheduleRoutes');
+const { registerRecoveryRoutes } = require('./routes/recoveryRoutes');
 
 const app = express();
 const JWT_SECRET = '2121212121212121212';
@@ -23,6 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const { protect, restrictTo } = createAuthMiddleware({ getSqlPool, JWT_SECRET });
 
 registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET });
+registerRecoveryRoutes(app, { getSqlPool, sql, protect, bcrypt });
 registerProfileRoutes(app, { getSqlPool, protect });
 registerCourseRoutes(app, { getSqlPool, protect, restrictTo });
 registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql });

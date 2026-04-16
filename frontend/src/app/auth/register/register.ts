@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
 import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
+import { RecoveryCodesModal } from './recovery-codes-modal';
 
 interface RegisterData {
     email: string;
@@ -16,11 +17,12 @@ interface RegisterData {
 interface AuthResponse {
     token: string;
     message: string;
+    recoveryCodes?: string[];
 }
 
 @Component({
   selector: 'app-register',
-  imports: [CommonModule,FormsModule,RouterModule],
+  imports: [CommonModule,FormsModule,RouterModule, RecoveryCodesModal],
   standalone: true,
   templateUrl: './register.html',
   styleUrl: './register.scss',
@@ -32,6 +34,8 @@ export class Register {
   password = '';
   roleDisplay: 'student' | 'profesor' | null = null;
   loading = false;
+  recoveryCodes = signal<string[]>([]);
+  showRecoveryModal = signal(false);
 
   // Iniectăm serviciul de Toast global
   private toastService = inject(ToastService);
@@ -74,23 +78,20 @@ export class Register {
     };
 
     this.auth.register(data).subscribe({
-      next: (res) => {
+      next: (res: AuthResponse) => {
         this.auth.saveToken(res.token);
         this.toastService.show(res.message, 'success');
+
+        // Show recovery codes modal
+        if (res.recoveryCodes && res.recoveryCodes.length > 0) {
+          this.recoveryCodes.set(res.recoveryCodes);
+          this.showRecoveryModal.set(true);
+        }
 
         // Reset form
         if (form) form.resetForm();
         this.roleDisplay = null;
         this.loading = false;
-
-        // Redirecționare
-        setTimeout(() => {
-          if (data.role === 'profesor') {
-            this.router.navigate(['/teacher-dashboard']);
-          } else {
-            this.router.navigate(['/student-dashboard']);
-          }
-        }, 1000);
       },
       error: (err) => {
         console.error(err);
@@ -99,5 +100,19 @@ export class Register {
         this.loading = false;
       },
     });
+  }
+
+  onContinueFromRecoveryModal() {
+    const role = this.roleDisplay;
+    this.showRecoveryModal.set(false);
+    
+    // Redirecționare
+    setTimeout(() => {
+      if (role === 'profesor') {
+        this.router.navigate(['/teacher-dashboard']);
+      } else {
+        this.router.navigate(['/student-dashboard']);
+      }
+    }, 500);
   }
 }

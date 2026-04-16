@@ -60,7 +60,7 @@
         </form>
 
         <p class="text-xs text-center text-gray-500 mt-4">
-          Ai uitat parola? <a href="#" class="text-green-600 font-medium hover:underline">Resetează</a>
+          Ai uitat parola? <a href="#" (click)="$event.preventDefault(); showForgotPasswordModal = true" class="text-green-600 font-medium hover:underline">Resetează</a>
         </p>
 
         <p class="switch mt-6">
@@ -70,3 +70,9 @@
     </div>
   </div>
 </div>
+
+<!-- Forgot Password Modal -->
+<app-forgot-password-modal 
+  [isOpen]="showForgotPasswordModal"
+  (onClose)="showForgotPasswordModal = false"
+></app-forgot-password-modal>

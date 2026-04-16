@@ -114,3 +114,10 @@
     </div>
   </div>
 </div>
+
+<!-- Recovery Codes Modal -->
+<app-recovery-codes-modal 
+  [isOpen]="showRecoveryModal()"
+  [codes]="recoveryCodes()"
+  (onContinue)="onContinueFromRecoveryModal()"
+></app-recovery-codes-modal>

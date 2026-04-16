@@ -1,3 +1,22 @@
+// Generate 10 random recovery codes
+function generateRecoveryCodes() {
+  const codes = [];
+  const usedCodes = new Set();
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  while (codes.length < 10) {
+    let code = '';
+    for (let i = 0; i < 10; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    if (!usedCodes.has(code)) {
+      codes.push(code);
+      usedCodes.add(code);
+    }
+  }
+  return codes;
+}
+
 function getRoleFromEmail(email) {
   const lower = email.toLowerCase();
 
@@ -28,6 +47,19 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
       `;
 
       const newUser = result.recordset[0];
+
+      // ✅ Generate recovery codes for new user
+      const codes = generateRecoveryCodes();
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 10);
+
+      for (const code of codes) {
+        await sqlPool.query`
+          INSERT INTO RecoveryCodes (UserId, Code, ExpiresAt)
+          VALUES (${newUser.id}, ${code}, ${expiresAt})
+        `;
+      }
+
       const token = jwt.sign(
         { id: newUser.id, email: newUser.email, role: newUser.role },
         JWT_SECRET,
@@ -37,7 +69,8 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
       res.status(201).json({
         message: 'Cont creat cu succes!',
         token,
-        user: newUser
+        user: newUser,
+        recoveryCodes: codes, // ✅ Return recovery codes to display during registration
       });
     } catch (err) {
       console.error(err);
@@ -109,6 +142,64 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Eroare server la autentificare.' });
+    }
+  });
+
+  // ✅ Change password (authenticated route)
+  app.post('/api/auth/change-password', async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: 'Parola veche și parolă nouă sunt obligatorii.' });
+    }
+
+    // Validate new password format (8+ chars, uppercase, lowercase, digit, special char)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message: 'Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.'
+      });
+    }
+
+    try {
+      const sqlPool = getSqlPool();
+      const userId = req.user.id;
+
+      // Get current password hash
+      const userResult = await sqlPool.query`
+        SELECT id, passwordHash
+        FROM Users
+        WHERE id = ${userId}
+      `;
+
+      if (userResult.recordset.length === 0) {
+        return res.status(401).json({ message: 'Utilizator nu găsit.' });
+      }
+
+      const user = userResult.recordset[0];
+
+      // Verify old password
+      const isValid = await bcrypt.compare(oldPassword, user.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ message: 'Parola veche este incorectă.' });
+      }
+
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await sqlPool.query`
+        UPDATE Users
+        SET passwordHash = ${newPasswordHash}, updatedAt = GETDATE()
+        WHERE id = ${userId}
+      `;
+
+      res.json({
+        message: 'Parolă schimbată cu succes!'
+      });
+    } catch (err) {
+      console.error('❌ Error changing password:', err);
+      res.status(500).json({ message: 'Eroare server la schimbarea parolei.' });
     }
   });
 }

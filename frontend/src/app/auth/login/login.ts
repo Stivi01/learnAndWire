@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ToastService } from '../../core/services/toast';
+import { ForgotPasswordModal } from './forgot-password-modal';
 
 
 interface LoginData {
@@ -26,13 +27,14 @@ interface LoginResponse {
   selector: 'app-login',
   templateUrl: './login.html',
   standalone: true,
-  imports: [CommonModule,FormsModule,RouterModule],
+  imports: [CommonModule,FormsModule,RouterModule, ForgotPasswordModal],
   styleUrls: ['./login.scss'],
 })
 export class Login {
   email = '';
   password = '';
   loading = false;
+  showForgotPasswordModal = false;
 
   private toastService = inject(ToastService);
 
