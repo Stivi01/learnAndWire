@@ -8,7 +8,7 @@ export interface CourseLesson {
   moduleId?: number;
   Title: string;
   Content: string;
-  VideoUrl?: string;
+  DocumentUrl?: string;
   OrderIndex: number;
 }
 
@@ -41,21 +41,20 @@ export class Lesson {
   );
 }
 
-  createLesson(lesson: CourseLesson): Observable<CourseLesson> {
-    return this.http.post<CourseLesson>(
-      this.apiUrl,
-      lesson,
-      this.headers
-    );
+  createLesson(formData: FormData): Observable<CourseLesson> {
+    // Nu trimite headere de Content-Type manual, browserul va pune singur Multipart Boundary
+    const token = localStorage.getItem('token');
+    return this.http.post<CourseLesson>(this.apiUrl, formData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
   }
 
-  updateLesson(lesson: any): Observable<CourseLesson> {
-  return this.http.put<CourseLesson>(
-    `${this.apiUrl}/${lesson.id}`,  // aici lesson.Id trebuie să fie doar URL
-    lesson,
-    this.headers
-  );
-}
+  updateLesson(id: number, formData: FormData): Observable<CourseLesson> {
+    const token = localStorage.getItem('token');
+    return this.http.put<CourseLesson>(`${this.apiUrl}/${id}`, formData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
 
   deleteLesson(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, this.headers);

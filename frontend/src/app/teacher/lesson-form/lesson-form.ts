@@ -23,6 +23,8 @@ export class LessonForm implements OnInit {
   loading = false;
   error = '';
 
+  selectedFile: File | null = null;
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -49,7 +51,7 @@ private initForm() {
   this.lessonForm = this.fb.group({
     title: ['', Validators.required],
     content: ['', Validators.required],
-    videoUrl: [''],
+    documentUrl: [''],
     orderIndex: [1, [Validators.required, Validators.min(1)]],
   });
 }
@@ -91,25 +93,34 @@ private initForm() {
   addLesson() {
     if (this.lessonForm.invalid) return;
 
-    const newLesson = {
-      ...this.lessonForm.value,
-      moduleId: this.moduleId,
-    };
+  const formValue = this.lessonForm.value;
+  const formData = new FormData();
+  
+  // Împachetăm datele
+  formData.append('title', formValue.title);
+  formData.append('content', formValue.content);
+  formData.append('moduleId', this.moduleId.toString());
+  formData.append('orderIndex', formValue.orderIndex.toString());
+
+  // Atașăm fișierul dacă există
+  if (this.selectedFile) {
+    formData.append('document', this.selectedFile);
+  }
 
     // --- Validări locale înainte de trimitere ---
     this.lessonService.getLessonsByModule(this.moduleId).subscribe({
       next: lessons => {
         // 1️⃣ Verificare titlu duplicat
-        const titleDuplicate = lessons.some(l => l.Title.trim().toLowerCase() === newLesson.title.trim().toLowerCase());
+        const titleDuplicate = lessons.some(l => l.Title.trim().toLowerCase() === formData.get('title')?.toString().trim().toLowerCase());
         if (titleDuplicate) {
           this.toastService.show('Există deja un subcapitol cu acest titlu!', 'error');
           return;
         }
 
         // 2️⃣ Verificare orderIndex duplicat
-        const orderDuplicate = lessons.some(l => l.OrderIndex === newLesson.orderIndex);
+        const orderDuplicate = lessons.some(l => l.OrderIndex === parseInt(formData.get('orderIndex')?.toString() || '0'));
         if (orderDuplicate) {
-          this.toastService.show(`Există deja un subcapitol pe poziția ${newLesson.orderIndex}!`, 'error');
+          this.toastService.show(`Există deja un subcapitol pe poziția ${formData.get('orderIndex')}!`, 'error');
           return;
         }
 
@@ -119,14 +130,14 @@ private initForm() {
         }
 
         // Totul valid -> creăm subcapitolul
-        this.lessonService.createLesson(newLesson).subscribe({
-          next: lesson => {
-            this.toastService.show('Subcapitolul a fost adăugat cu succes!', 'success');
+        this.lessonService.createLesson(formData).subscribe({
+          next: () => {
+            this.toastService.show('Subcapitolul a fost adăugat!', 'success');
             this.router.navigate(['/teacher/my-classes']);
           },
-          error: err => {
+          error: (err) => {
             console.error(err);
-            this.toastService.show('Eroare la adăugarea subcapitolului.', 'error');
+            this.toastService.show('Eroare la adăugare.', 'error');
           }
         });
       },
@@ -135,6 +146,10 @@ private initForm() {
         this.toastService.show('Nu s-au putut prelua lecțiile modulului.', 'error');
       }
     });
+  }
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
   }
 }
 

@@ -43,7 +43,23 @@
         
         <div class="lesson-body">
           <p>{{ selectedLesson().Content }}</p>
-          </div>
+        </div>
+
+        <div class="lesson-resources" *ngIf="selectedLesson().DocumentUrl">
+          <hr class="divider">
+          <p class="resources-title">Materiale educaționale:</p>
+          <a [href]="'http://localhost:3000' + selectedLesson().DocumentUrl" 
+            [download]="selectedLesson().Title"
+            target="_blank" 
+            class="download-card">
+            <div class="file-icon">📄</div>
+            <div class="file-info">
+              <span class="file-name">Descarcă suport curs</span>
+              <span class="file-ext">Apasă pentru a descărca fișierul</span>
+            </div>
+            <div class="download-icon">📥</div>
+          </a>
+        </div>
 
         <button class="btn-close-lesson" (click)="closeLesson()">Închide lecția</button>
       </div>

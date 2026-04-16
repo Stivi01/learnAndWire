@@ -103,10 +103,10 @@
             </div>
           </div>
 
-          <div *ngIf="mod.showAddLessonForm" class="add-lesson-inline">
-            <input [(ngModel)]="mod.newLessonTitle" placeholder="Titlu subcapitol nou...">
-            <button class="btn-success" (click)="addLesson(mod)">Confirmă</button>
-            <button class="btn-link" (click)="mod.showAddLessonForm = false">Anulează</button>
+          <div *ngIf="mod.showAddLessonForm" class="quick-add-lesson">
+            <input [(ngModel)]="mod.newLessonTitle" placeholder="Titlu subcapitol..." />
+            <input type="file" (change)="onFileSelectedQuick($event, mod)" /> 
+            <button (click)="addLesson(mod)">Salvează</button>
           </div>
 
           <div class="empty-lessons" *ngIf="mod.lessons.length === 0 && !mod.showAddLessonForm">

@@ -22,7 +22,7 @@ interface LessonItem {
   title: string;
   content?: string;
   orderIndex?: number;
-  videoUrl?: string;
+  DocumentUrl?: string;
 }
 
 @Component({
@@ -43,6 +43,8 @@ export class ModuleForm implements OnInit{
   expandedModuleIds = new Set<number>();
   selectedLesson = signal<any | null>(null);
   isModalOpening = signal(false);
+
+  selectedFilesQuick: { [moduleId: number]: File } = {};
 
   constructor(
     private fb: FormBuilder,
@@ -102,7 +104,7 @@ export class ModuleForm implements OnInit{
               title: l.Title, 
               orderIndex: l.OrderIndex,
               content: l.Content,
-              videoUrl: l.VideoUrl  
+              DocumentUrl: l.DocumentUrl  
             }))
             .sort((a, b) => a.orderIndex - b.orderIndex)
           }))
@@ -247,49 +249,47 @@ export class ModuleForm implements OnInit{
     mod.showAddLessonForm = true;
   }
 
-  addLesson(mod: any) {
-  if (!this.canModifyCourseContent()) return;
-  if (!mod.newLessonTitle) return;
-
-  // Asigură-te că lecțiile sunt sortate după orderIndex
-  mod.lessons.sort((a: LessonItem, b: LessonItem) => a.orderIndex! - b.orderIndex!);
-
-  // Calculează orderIndex corect
-  const maxOrderIndex = mod.lessons.length > 0 
-    ? Math.max(...mod.lessons.map((l: LessonItem) => l.orderIndex!)) 
-    : 0;
-
-  const newLesson: CourseLesson = {
-    moduleId: mod.id,
-    Title: mod.newLessonTitle,
-    Content: '',
-    OrderIndex: maxOrderIndex + 1   // 🔑 orderIndex corect
-  };
-
-  this.lessonService.createLesson(newLesson).subscribe({
-    next: lesson => {
-      mod.lessons.push({
-        id: lesson.Id,
-        title: lesson.Title,
-        content: lesson.Content,
-        orderIndex: lesson.OrderIndex,
-        videoUrl: lesson.VideoUrl
-      });
-      mod.newLessonTitle = '';
-      mod.showAddLessonForm = false;
-      this.toastService.show('Subcapitolul a fost adăugat!', 'success');
-
-      // Sortează după orderIndex
-      mod.lessons.sort((a: LessonItem, b: LessonItem) => a.orderIndex! - b.orderIndex!);
-      this.cd.detectChanges();
-    },
-    error: err => {
-      console.error(err);
-      this.toastService.show('Eroare la adăugarea subcapitolului.', 'error');
+  onFileSelectedQuick(event: any, mod: any) {
+    if (event.target.files.length > 0) {
+      this.selectedFilesQuick[mod.id] = event.target.files[0];
     }
-  });
-}
+  }
 
+  addLesson(mod: any) {
+    if (!this.canModifyCourseContent()) return;
+    if (!mod.newLessonTitle) return;
+
+    const maxOrderIndex = mod.lessons.length > 0 
+      ? Math.max(...mod.lessons.map((l: LessonItem) => l.orderIndex!)) 
+      : 0;
+
+    const formData = new FormData();
+    formData.append('moduleId', mod.id.toString());
+    formData.append('title', mod.newLessonTitle);
+    formData.append('content', ''); // Conținut gol pentru quick add
+    formData.append('orderIndex', (maxOrderIndex + 1).toString());
+
+    if (this.selectedFilesQuick[mod.id]) {
+      formData.append('document', this.selectedFilesQuick[mod.id]);
+    }
+
+    this.lessonService.createLesson(formData).subscribe({
+      next: (lesson) => {
+        mod.lessons.push({
+          id: lesson.Id,
+          title: lesson.Title,
+          content: lesson.Content,
+          orderIndex: lesson.OrderIndex,
+          DocumentUrl: lesson.DocumentUrl
+        });
+        mod.newLessonTitle = '';
+        mod.showAddLessonForm = false;
+        delete this.selectedFilesQuick[mod.id]; // Curățăm fișierul după upload
+        this.toastService.show('Subcapitol adăugat!', 'success');
+        this.cd.detectChanges();
+      }
+    });
+  }
   editLesson(lesson: any) {
     if (!this.canModifyCourseContent()) return;
     this.router.navigate(['/teacher/lesson-edit', lesson.id]);
@@ -346,53 +346,60 @@ export class ModuleForm implements OnInit{
       }
     });
   }
+  private updateLessonOrder(lesson: any) {
+    const formData = new FormData();
+    
+    // Adăugăm câmpurile obligatorii
+    formData.append('title', lesson.title);
+    formData.append('content', lesson.content || '');
+    formData.append('orderIndex', lesson.orderIndex.toString());
+    
+    // 🔥 SOLUȚIA: Trimitem calea actuală a documentului 
+    // Dacă lecția are deja un document, îl trimitem înapoi pentru a nu fi șters în DB
+    if (lesson.DocumentUrl) {
+      formData.append('documentUrl', lesson.DocumentUrl);
+    }
+    
+    return this.lessonService.updateLesson(lesson.id, formData);
+  }
 
   moveLessonUp(lesson: LessonItem, mod: any) {
     if (!this.canModifyCourseContent()) return;
-    // Sortează lecțiile după orderIndex înainte de orice mutare
-    mod.lessons.sort((a: LessonItem, b: LessonItem) => (a.orderIndex! - b.orderIndex!));
-
-    const index = mod.lessons.findIndex((l: LessonItem) => l.id === lesson.id);
-    if (index <= 0) return; // prima poziție nu se poate urca
+    mod.lessons.sort((a: any, b: any) => a.orderIndex - b.orderIndex);
+    const index = mod.lessons.findIndex((l: any) => l.id === lesson.id);
+    if (index <= 0) return;
 
     const prevLesson = mod.lessons[index - 1];
-
-    // Swap orderIndex
     [lesson.orderIndex, prevLesson.orderIndex] = [prevLesson.orderIndex, lesson.orderIndex];
 
-    // Update backend
     forkJoin([
-      this.lessonService.updateLesson({ id: lesson.id, orderIndex: lesson.orderIndex, title: lesson.title, content: lesson.content }),
-      this.lessonService.updateLesson({ id: prevLesson.id, orderIndex: prevLesson.orderIndex, title: prevLesson.title, content: prevLesson.content })
+      this.updateLessonOrder(lesson),
+      this.updateLessonOrder(prevLesson)
     ]).subscribe({
       next: () => {
-        mod.lessons.sort((a: LessonItem, b: LessonItem) => (a.orderIndex! - b.orderIndex!));
+        mod.lessons.sort((a: any, b: any) => a.orderIndex - b.orderIndex);
         this.cd.detectChanges();
-      },
-      error: err => this.toastService.show('Eroare la mutarea subcapitolului.', 'error')
+      }
     });
   }
 
   moveLessonDown(lesson: LessonItem, mod: any) {
     if (!this.canModifyCourseContent()) return;
-    mod.lessons.sort((a: LessonItem, b: LessonItem) => (a.orderIndex! - b.orderIndex!));
-
-    const index = mod.lessons.findIndex((l: LessonItem) => l.id === lesson.id);
-    if (index >= mod.lessons.length - 1) return; // ultima poziție nu se poate coborî
+    mod.lessons.sort((a: any, b: any) => a.orderIndex - b.orderIndex);
+    const index = mod.lessons.findIndex((l: any) => l.id === lesson.id);
+    if (index >= mod.lessons.length - 1) return;
 
     const nextLesson = mod.lessons[index + 1];
-
     [lesson.orderIndex, nextLesson.orderIndex] = [nextLesson.orderIndex, lesson.orderIndex];
 
     forkJoin([
-      this.lessonService.updateLesson({ id: lesson.id, orderIndex: lesson.orderIndex, title: lesson.title, content: lesson.content }),
-      this.lessonService.updateLesson({ id: nextLesson.id, orderIndex: nextLesson.orderIndex, title: nextLesson.title, content: nextLesson.content })
+      this.updateLessonOrder(lesson),
+      this.updateLessonOrder(nextLesson)
     ]).subscribe({
       next: () => {
-        mod.lessons.sort((a: LessonItem, b: LessonItem) => (a.orderIndex! - b.orderIndex!));
+        mod.lessons.sort((a: any, b: any) => a.orderIndex - b.orderIndex);
         this.cd.detectChanges();
-      },
-      error: err => this.toastService.show('Eroare la mutarea subcapitolului.', 'error')
+      }
     });
   }
 }

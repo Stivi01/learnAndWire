@@ -284,3 +284,9 @@ CREATE INDEX IX_CourseModules_CourseId ON CourseModules(CourseId);
 CREATE INDEX IX_CourseLessons_ModuleId ON CourseLessons(ModuleId);
 CREATE INDEX IX_QuizQuestions_QuizId ON QuizQuestions(QuizId);
 CREATE INDEX IX_QuizOptions_QuestionId ON QuizOptions(QuestionId);
+
+
+
+ALTER TABLE [LAW].[dbo].[CourseLessons] DROP COLUMN VideoUrl;
+ALTER TABLE [LAW].[dbo].[CourseLessons] ADD DocumentUrl NVARCHAR(MAX) NULL;
+GO

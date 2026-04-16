@@ -9,6 +9,26 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
   } = createOwnershipHelpers({ getSqlPool });
 
   const { getCoursePublishReadiness } = createPublishReadinessHelpers({ getSqlPool });
+  
+  const multer = require('multer');
+  const path = require('path');
+  const fs = require('fs');
+
+  // Configurare stocare
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const dir = 'uploads/documents/';
+      // Ne asigurăm că directorul există
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+
+  const upload = multer({ storage: storage });
 
   app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
     const { title, description, thumbnailUrl } = req.body;
@@ -443,10 +463,14 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
     }
   });
 
-  app.post('/api/lessons', protect, restrictTo('Profesor'), async (req, res) => {
-    const { moduleId, title, content, videoUrl, orderIndex } = req.body;
+  app.post('/api/lessons', protect, restrictTo('Profesor'), upload.single('document'), async (req, res) => {
+    // Când folosești Multer, datele din formular vin în req.body
+    const { moduleId, title, content, orderIndex } = req.body;
     const cleanTitle = typeof title === 'string' ? title.trim() : '';
     const cleanContent = typeof content === 'string' ? content.trim() : '';
+
+    // Calea fișierului salvat (dacă există)
+    const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : null;
 
     if (!moduleId || !cleanTitle || !cleanContent) {
       return res.status(400).json({ message: 'ModuleId, Title și Content sunt obligatorii.' });
@@ -454,16 +478,16 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
     try {
       const sqlPool = getSqlPool();
-      const module = await getTeacherOwnedModule(moduleId, req.user.id);
+      const module = await getTeacherOwnedModule(Number(moduleId), req.user.id);
 
       if (!module) {
         return res.status(404).json({ message: 'Modulul nu există sau nu îți aparține.' });
       }
 
       const result = await sqlPool.query`
-        INSERT INTO CourseLessons (ModuleId, Title, Content, VideoUrl, OrderIndex)
+        INSERT INTO CourseLessons (ModuleId, Title, Content, DocumentUrl, OrderIndex)
         OUTPUT INSERTED.*
-        VALUES (${moduleId}, ${cleanTitle}, ${cleanContent}, ${videoUrl}, ${orderIndex || 0})
+        VALUES (${moduleId}, ${cleanTitle}, ${cleanContent}, ${documentUrl}, ${orderIndex || 0})
       `;
 
       res.status(201).json(result.recordset[0]);
@@ -504,19 +528,11 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
     }
   });
 
-  app.put('/api/lessons/:id', protect, restrictTo('Profesor'), async (req, res) => {
+  app.put('/api/lessons/:id', protect, restrictTo('Profesor'), upload.single('document'), async (req, res) => {
     const lessonId = parseInt(req.params.id, 10);
-    const { title, content, videoUrl, orderIndex } = req.body;
+    const { title, content, orderIndex, documentUrl: bodyDocUrl } = req.body;
     const cleanTitle = typeof title === 'string' ? title.trim() : '';
     const cleanContent = typeof content === 'string' ? content.trim() : '';
-
-    if (Number.isNaN(lessonId)) {
-      return res.status(400).json({ message: 'ID lecție invalid.' });
-    }
-
-    if (!cleanTitle || !cleanContent) {
-      return res.status(400).json({ message: 'Titlul și conținutul sunt obligatorii.' });
-    }
 
     try {
       const sqlPool = getSqlPool();
@@ -526,19 +542,20 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         return res.status(404).json({ message: 'Lecția nu există sau nu îți aparține.' });
       }
 
-      const result = await sqlPool.query`
+      // Dacă s-a încărcat un fișier nou, îl folosim, altfel păstrăm URL-ul vechi din DB
+      const documentUrl = req.file 
+      ? `/uploads/documents/${req.file.filename}` 
+      : (bodyDocUrl || lesson.DocumentUrl || lesson.documentUrl || '');
+      
+      await sqlPool.query`
         UPDATE CourseLessons
         SET
           Title = ${cleanTitle},
           Content = ${cleanContent},
-          VideoUrl = ${videoUrl || ''},
+          DocumentUrl = ${documentUrl || ''},
           OrderIndex = ${orderIndex || 0}
         WHERE Id = ${lessonId}
       `;
-
-      if (result.rowsAffected[0] === 0) {
-        return res.status(404).json({ message: 'Lecția nu există.' });
-      }
 
       res.json({ message: 'Lecția a fost actualizată cu succes.' });
     } catch (err) {

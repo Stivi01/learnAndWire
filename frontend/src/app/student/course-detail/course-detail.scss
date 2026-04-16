@@ -136,3 +136,72 @@
     }
   }
 }
+
+.lesson-resources {
+  margin-top: 40px;
+  
+  .divider {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin-bottom: 20px;
+  }
+
+  .resources-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+  }
+
+  .download-card {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    max-width: 400px;
+
+    &:hover {
+      background: #ffffff;
+      border-color: #007bff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+      
+      .download-icon { color: #007bff; }
+    }
+
+    .file-icon {
+      font-size: 2rem;
+      margin-right: 15px;
+    }
+
+    .file-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .file-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 1rem;
+      }
+
+      .file-ext {
+        font-size: 0.8rem;
+        color: #6c757d;
+      }
+    }
+
+    .download-icon {
+      font-size: 1.2rem;
+      color: #adb5bd;
+      transition: color 0.2s;
+    }
+  }
+}

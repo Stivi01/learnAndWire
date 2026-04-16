@@ -289,15 +289,59 @@
   margin: 0.5rem 0 1rem;
 }
 
-.video-btn {
+/* Etichetă mică deasupra butonului */
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 1.5rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Stil buton document */
+.document-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  background: #4f46e5;
-  color: #fff;
-  padding: 0.5rem 0.9rem;
-  border-radius: 0.5rem;
+  gap: 0.6rem;
+  background: #f8fafc; /* Fundal deschis */
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.6rem;
   text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  width: 100%; /* Opțional, să ocupe tot rândul în modal */
+  justify-content: center;
+}
+
+.document-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.file-icon {
+  font-size: 1.2rem;
+}
+
+/* Stil pentru zona de scroll din modal */
+.content-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizat pentru modal */
+.content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.content-scroll::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  border-radius: 10px;
 }
 
 .modal-footer {

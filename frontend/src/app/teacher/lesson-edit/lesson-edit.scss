@@ -115,6 +115,43 @@
   font-size: 14px;
 }
 
+.current-file-info {
+  background-color: #f0f7ff;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  border: 1px solid #d0e3ff;
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #0056b3;
+  }
+  
+  a {
+    font-weight: 600;
+    text-decoration: underline;
+    color: #0056b3;
+  }
+}
+
+.file-hint {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.file-upload-wrapper {
+  input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    background-color: #fafafa;
+    cursor: pointer;
+  }
+}
+
 /* Simple animation */
 @keyframes fadeIn {
   from {

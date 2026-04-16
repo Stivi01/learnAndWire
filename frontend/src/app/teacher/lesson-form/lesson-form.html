@@ -22,9 +22,10 @@
       <textarea formControlName="content" placeholder="Adaugă descrierea sau materialul lecției..."></textarea>
     </div>
 
-    <div>
-      <label>Link Video (opțional)</label>
-      <input type="text" formControlName="videoUrl" placeholder="https://youtube.com/..." />
+    <div class="form-group">
+      <label>Document (PDF, DOCX, PPTX)</label>
+      <input type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.doc,.pptx,.ppt" />
+      <p class="file-hint">Selectează un fișier din laptopul tău.</p>
     </div>
 
     <div>

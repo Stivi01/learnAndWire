@@ -68,12 +68,16 @@
         <div class="content-scroll">
           <p class="lesson-description">{{ selectedLesson().Content }}</p>
           
-          <div class="video-preview" *ngIf="selectedLesson().VideoUrl">
-            <a [href]="selectedLesson().VideoUrl" target="_blank" class="video-btn">
-              <span class="play-icon">▶</span> Vizualizează conținutul video
+          <div class="document-preview" *ngIf="selectedLesson().DocumentUrl">
+            <p class="section-label">Material curs:</p>
+            <a [href]="'http://localhost:3000' + selectedLesson().DocumentUrl" 
+              download 
+              target="_blank" 
+              class="document-btn download-mode">
+              <span class="file-icon">📥</span> 
+              Descarcă Material (PDF/DOCX)
             </a>
           </div>
-        </div>
       </div>
       
       <div class="modal-footer">
