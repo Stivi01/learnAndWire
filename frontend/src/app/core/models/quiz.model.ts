@@ -6,7 +6,8 @@ export interface QuizData {
   createdAt: string;
   createdBy: number;
   isPublished: boolean;
-  scheduledAt?: string | null;   // ← ADAUGĂ
+  scheduledAt?: string | null;
+  closedAt?: string | null;
 }
 
 export interface QuizQuestion {

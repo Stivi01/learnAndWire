@@ -80,7 +80,7 @@ function createPublishReadinessHelpers({ getSqlPool }) {
   async function getQuizPublishReadiness(quizId, teacherId, draftData = {}) {
     const sqlPool = getSqlPool();
     const quizResult = await sqlPool.query`
-      SELECT q.Id, q.Title, q.Description, q.ScheduledAt, q.CourseId,
+      SELECT q.Id, q.Title, q.Description, q.ScheduledAt, q.ClosedAt, q.CourseId,
              c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
       FROM CourseQuizzes q
       INNER JOIN Courses c ON c.Id = q.CourseId
@@ -124,11 +124,35 @@ function createPublishReadinessHelpers({ getSqlPool }) {
     const scheduleSource = Object.prototype.hasOwnProperty.call(draftData, 'scheduledAt')
       ? draftData.scheduledAt
       : quiz.ScheduledAt;
+    const closedSource = Object.prototype.hasOwnProperty.call(draftData, 'closedAt')
+      ? draftData.closedAt
+      : quiz.ClosedAt;
 
     let hasFutureSchedule = false;
     if (scheduleSource) {
       const parsed = new Date(scheduleSource);
       hasFutureSchedule = !Number.isNaN(parsed.getTime()) && parsed > new Date();
+    }
+
+    let hasValidClosedAt = true;
+    if (closedSource) {
+      const closedParsed = new Date(closedSource);
+      hasValidClosedAt = !Number.isNaN(closedParsed.getTime());
+      
+      if (hasValidClosedAt) {
+        // Dacă există scheduledAt, closedAt trebuie să fie după scheduledAt
+        if (scheduleSource) {
+          const scheduledParsed = new Date(scheduleSource);
+          if (closedParsed <= scheduledParsed) {
+            hasValidClosedAt = false;
+          }
+        } else {
+          // Dacă nu există scheduledAt, closedAt trebuie să fie în viitor
+          if (closedParsed <= new Date()) {
+            hasValidClosedAt = false;
+          }
+        }
+      }
     }
 
     const questionsResult = await sqlPool.query`
@@ -175,6 +199,7 @@ function createPublishReadinessHelpers({ getSqlPool }) {
       coursePublished: !!course?.IsPublished,
       hasScheduledAt: !!scheduleSource,
       hasFutureSchedule,
+      hasValidClosedAt: !closedSource || hasValidClosedAt, // Dacă nu există closedAt, e valid; altfel verificăm
       hasQuestion: questions.length > 0,
       everyQuestionHasEnoughOptions: optionIssues.length === 0,
       everyQuestionHasValidAnswers: answerIssues.length === 0
@@ -188,6 +213,13 @@ function createPublishReadinessHelpers({ getSqlPool }) {
     else if (!checks.coursePublished) missingItems.push(`Publică mai întâi cursul asociat: "${course.Title}".`);
     if (!checks.hasScheduledAt) missingItems.push('Setează data și ora susținerii.');
     else if (!checks.hasFutureSchedule) missingItems.push('Data quiz-ului trebuie să fie în viitor la momentul publicării.');
+    if (closedSource && !checks.hasValidClosedAt) {
+      if (scheduleSource) {
+        missingItems.push('Data limită trebuie să fie după data de începere a quiz-ului.');
+      } else {
+        missingItems.push('Data limită trebuie să fie în viitor.');
+      }
+    }
     if (!checks.hasQuestion) missingItems.push('Adaugă cel puțin o întrebare.');
 
     missingItems.push(...optionIssues, ...answerIssues);

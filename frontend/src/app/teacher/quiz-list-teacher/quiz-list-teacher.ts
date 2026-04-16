@@ -67,7 +67,18 @@ export class QuizListTeacher {
     scheduledAt = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   }
 
-  this.editingQuiz.set({ ...quiz, scheduledAt });
+  let closedAt: string | null = null;
+  if (quiz.closedAt) {
+    const d = new Date(quiz.closedAt);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    closedAt = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  }
+
+  this.editingQuiz.set({ ...quiz, scheduledAt, closedAt });
   this.showModal.set(true);
 }
 
@@ -83,7 +94,8 @@ export class QuizListTeacher {
     description: quiz.description?.trim() || '',
     isPublished: quiz.isPublished,
     courseId: quiz.courseId,
-    scheduledAt: quiz.scheduledAt || null
+    scheduledAt: quiz.scheduledAt || null,
+    closedAt: quiz.closedAt || null
   };
 
   if (quiz.id) {
@@ -127,5 +139,38 @@ export class QuizListTeacher {
 
   goToQuizManager(quizId: number) {
     this.router.navigate([`/teacher/quiz/${quizId}/manage`]);
+  }
+
+  calculateDuration(quiz: QuizData): string {
+    if (!quiz.scheduledAt || !quiz.closedAt) {
+      return '';
+    }
+
+    const start = new Date(quiz.scheduledAt);
+    const end = new Date(quiz.closedAt);
+    const diffMs = end.getTime() - start.getTime();
+
+    if (diffMs <= 0) {
+      return '';
+    }
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    let duration = '';
+    if (diffDays > 0) {
+      duration += `${diffDays} zi${diffDays > 1 ? 'le' : ''}`;
+    }
+    if (diffHours > 0) {
+      if (duration) duration += ', ';
+      duration += `${diffHours} or${diffHours > 1 ? 'e' : 'ă'}`;
+    }
+    if (diffMinutes > 0 && diffDays === 0) {
+      if (duration) duration += ', ';
+      duration += `${diffMinutes} minut${diffMinutes > 1 ? 'e' : ''}`;
+    }
+
+    return duration ? `Durată: ${duration}` : '';
   }
 }

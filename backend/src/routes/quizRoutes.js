@@ -13,7 +13,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
   const { getQuizPublishReadiness } = createPublishReadinessHelpers({ getSqlPool });
 
   app.post('/api/quizzes', protect, restrictTo('Profesor'), async (req, res) => {
-    const { courseId, title, description, scheduledAt } = req.body;
+    const { courseId, title, description, scheduledAt, closedAt } = req.body;
     const cleanTitle = typeof title === 'string' ? title.trim() : '';
     const cleanDescription = typeof description === 'string' ? description.trim() : '';
 
@@ -43,19 +43,40 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         }
       }
 
+      let closedDate = null;
+      if (closedAt) {
+        closedDate = new Date(closedAt);
+        const now = new Date();
+
+        if (Number.isNaN(closedDate.getTime())) {
+          return res.status(400).json({ message: 'Data limită pentru quiz este invalidă.' });
+        }
+
+        // Dacă există scheduledAt, closedAt trebuie să fie după scheduledAt
+        if (scheduledDate && closedDate <= scheduledDate) {
+          return res.status(400).json({ message: 'Data limită trebuie să fie după data de începere a quiz-ului.' });
+        }
+
+        // Dacă nu există scheduledAt, closedAt trebuie să fie în viitor
+        if (!scheduledDate && closedDate <= now) {
+          return res.status(400).json({ message: 'Data limită trebuie să fie în viitor.' });
+        }
+      }
+
       const request = sqlPool.request()
         .input('CourseId', sql.Int, courseId)
         .input('Title', sql.NVarChar(255), cleanTitle)
         .input('Description', sql.NVarChar(sql.MAX), cleanDescription || '')
         .input('CreatedBy', sql.Int, req.user.id)
         .input('IsPublished', sql.Bit, 0)
-        .input('ScheduledAt', sql.DateTime2, scheduledDate);
+        .input('ScheduledAt', sql.DateTime2, scheduledDate)
+        .input('ClosedAt', sql.DateTime2, closedDate);
 
       const result = await request.query(`
         INSERT INTO CourseQuizzes 
-        (CourseId, Title, Description, CreatedBy, CreatedAt, IsPublished, ScheduledAt)
+        (CourseId, Title, Description, CreatedBy, CreatedAt, IsPublished, ScheduledAt, ClosedAt)
         OUTPUT INSERTED.*
-        VALUES (@CourseId, @Title, @Description, @CreatedBy, GETDATE(), @IsPublished, @ScheduledAt)
+        VALUES (@CourseId, @Title, @Description, @CreatedBy, GETDATE(), @IsPublished, @ScheduledAt, @ClosedAt)
       `);
 
       res.status(201).json({
@@ -120,7 +141,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
   app.put('/api/quizzes/:id', protect, restrictTo('Profesor'), async (req, res) => {
     const quizId = parseInt(req.params.id, 10);
-    const { title, description, courseId, isPublished, scheduledAt } = req.body;
+    const { title, description, courseId, isPublished, scheduledAt, closedAt } = req.body;
     const cleanTitle = typeof title === 'string' ? title.trim() : '';
     const cleanDescription = typeof description === 'string' ? description.trim() : '';
     const nextPublishedState = isPublished === true || isPublished === 1;
@@ -165,11 +186,31 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         }
       }
 
+      let closedDate = null;
+      if (closedAt) {
+        closedDate = new Date(closedAt);
+
+        if (Number.isNaN(closedDate.getTime())) {
+          return res.status(400).json({ message: 'Data limită este invalidă.' });
+        }
+
+        // Dacă există scheduledAt, closedAt trebuie să fie după scheduledAt
+        if (scheduledDate && closedDate <= scheduledDate) {
+          return res.status(400).json({ message: 'Data limită trebuie să fie după data de începere a quiz-ului.' });
+        }
+
+        // Dacă nu există scheduledAt, closedAt trebuie să fie în viitor
+        if (!scheduledDate && closedDate <= new Date()) {
+          return res.status(400).json({ message: 'Data limită trebuie să fie în viitor.' });
+        }
+      }
+
       const metadataChanged =
         cleanTitle !== (currentQuiz.Title || '').trim() ||
         cleanDescription !== (currentQuiz.Description || '').trim() ||
         Number(courseId) !== Number(currentQuiz.CourseId) ||
-        (scheduledDate ? scheduledDate.toISOString() : null) !== (currentQuiz.ScheduledAt ? new Date(currentQuiz.ScheduledAt).toISOString() : null);
+        (scheduledDate ? scheduledDate.toISOString() : null) !== (currentQuiz.ScheduledAt ? new Date(currentQuiz.ScheduledAt).toISOString() : null) ||
+        (closedDate ? closedDate.toISOString() : null) !== (currentQuiz.ClosedAt ? new Date(currentQuiz.ClosedAt).toISOString() : null);
 
       if (currentQuiz.IsPublished && (nextPublishedState || metadataChanged)) {
         return res.status(400).json({
@@ -182,7 +223,8 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           title: cleanTitle,
           description: cleanDescription,
           courseId,
-          scheduledAt
+          scheduledAt,
+          closedAt
         });
 
         if (!readiness.canPublish) {
@@ -200,6 +242,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         .input('Description', sql.NVarChar(sql.MAX), cleanDescription || '')
         .input('IsPublished', sql.Bit, nextPublishedState ? 1 : 0)
         .input('ScheduledAt', sql.DateTime2, scheduledDate)
+        .input('ClosedAt', sql.DateTime2, closedDate)
         .query(`
           UPDATE CourseQuizzes
           SET 
@@ -207,7 +250,8 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
             Title = @Title,
             Description = @Description,
             IsPublished = @IsPublished,
-            ScheduledAt = @ScheduledAt
+            ScheduledAt = @ScheduledAt,
+            ClosedAt = @ClosedAt
           WHERE Id = ${quizId} AND CreatedBy = ${req.user.id}
         `);
 
@@ -275,6 +319,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           q.Title,
           q.Description,
           q.ScheduledAt,
+          q.ClosedAt,
           q.CourseId,
           c.Title AS CourseTitle,
           (SELECT COUNT(*) FROM QuizResults qr WHERE qr.QuizId = q.Id AND qr.StudentId = ${studentId}) AS HasTaken,
@@ -351,9 +396,14 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
       const quiz = accessResult.recordset[0];
       const now = new Date();
       const scheduledDate = new Date(quiz.ScheduledAt);
+      const closedDate = new Date(quiz.ClosedAt);
 
       if (quiz.ScheduledAt && now < scheduledDate) {
         return res.status(403).json({ message: 'Acest test nu a început încă.' });
+      }
+
+      if (quiz.ClosedAt && now > closedDate) {
+        return res.status(403).json({ message: 'Termenul limită pentru susținerea acestui test a expirat.' });
       }
 
       const questionsResult = await sqlPool.query`

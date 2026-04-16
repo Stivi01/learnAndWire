@@ -44,6 +44,7 @@ export class QuizManager {
       { label: 'Cursul asociat este publicat', done: !!checks?.coursePublished },
       { label: 'Data de susținere este setată', done: !!checks?.hasScheduledAt },
       { label: 'Data de susținere este în viitor', done: !!checks?.hasFutureSchedule },
+      { label: 'Data limită este validă (dacă este setată)', done: !!checks?.hasValidClosedAt },
       { label: 'Există cel puțin o întrebare', done: !!checks?.hasQuestion },
       { label: 'Fiecare întrebare are minimum 2 opțiuni', done: !!checks?.everyQuestionHasEnoughOptions },
       { label: 'Fiecare întrebare are răspunsuri corecte valide', done: !!checks?.everyQuestionHasValidAnswers },

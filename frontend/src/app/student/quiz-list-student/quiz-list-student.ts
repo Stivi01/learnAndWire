@@ -43,8 +43,9 @@ export class QuizListStudent {
 
   // --- METODA NOUĂ PENTRU VALIDARE START QUIZ ---
   startQuiz(quiz: any) {
+    const now = new Date();
+
     if (quiz.scheduledAt) {
-      const now = new Date();
       const scheduledDate = new Date(quiz.scheduledAt);
 
       // Dacă data curentă este mai mică (mai devreme) decât data programată
@@ -55,6 +56,17 @@ export class QuizListStudent {
         // Presupun că ai o metodă show() sau showError()
         this.toastService.show(`Testul nu a început încă! Este programat pentru ${formattedDate}.`, 'error');
         return; // Oprim execuția, nu îl lăsăm să intre
+      }
+    }
+
+    if (quiz.closedAt) {
+      const closedDate = new Date(quiz.closedAt);
+
+      // Dacă data curentă este mai mare decât data limită
+      if (now > closedDate) {
+        const formattedDate = closedDate.toLocaleString('ro-RO');
+        this.toastService.show(`Termenul limită pentru susținerea acestui test a expirat! Era până la ${formattedDate}.`, 'error');
+        return;
       }
     }
 

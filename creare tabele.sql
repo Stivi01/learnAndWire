@@ -111,6 +111,13 @@ CREATE TABLE CourseQuizzes (
     FOREIGN KEY (CreatedBy) REFERENCES Users(Id)
 );
 
+-- Adaugă coloanele pentru programare și deadline
+ALTER TABLE CourseQuizzes
+ADD ScheduledAt DATETIME2 NULL;
+
+ALTER TABLE CourseQuizzes
+ADD ClosedAt DATETIME2 NULL;
+
 CREATE TABLE QuizQuestions (
     Id INT IDENTITY PRIMARY KEY,
     QuizId INT NOT NULL,

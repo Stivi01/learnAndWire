@@ -13,6 +13,7 @@ export interface QuizPublishReadinessResponse {
     coursePublished: boolean;
     hasScheduledAt: boolean;
     hasFutureSchedule: boolean;
+    hasValidClosedAt: boolean;
     hasQuestion: boolean;
     everyQuestionHasEnoughOptions: boolean;
     everyQuestionHasValidAnswers: boolean;
@@ -47,6 +48,7 @@ export class Quiz {
   description?: string; 
   isPublished?: boolean;
   scheduledAt?: string | null;
+  closedAt?: string | null;
 }): Observable<QuizData> {
 
   return this.http.post<any>(`${this.api}`, data, this.headers()).pipe(
@@ -58,7 +60,8 @@ export class Quiz {
       createdAt: q.CreatedAt,
       createdBy: q.CreatedBy,
       isPublished: q.IsPublished,
-      scheduledAt: q.ScheduledAt   // ← ADAUGĂ
+      scheduledAt: q.ScheduledAt,
+      closedAt: q.ClosedAt
     }))
   );
 }
@@ -73,7 +76,8 @@ export class Quiz {
         createdAt: q.CreatedAt,
         createdBy: q.CreatedBy,
         isPublished: q.IsPublished,
-        scheduledAt: q.ScheduledAt
+        scheduledAt: q.ScheduledAt,
+        closedAt: q.ClosedAt
       })))
     );
   }
@@ -88,7 +92,8 @@ export class Quiz {
         createdAt: q.CreatedAt,
         createdBy: q.CreatedBy,
         isPublished: q.IsPublished,
-        scheduledAt: q.ScheduledAt
+        scheduledAt: q.ScheduledAt,
+        closedAt: q.ClosedAt
       })))
     );
   }
@@ -107,7 +112,8 @@ export class Quiz {
         createdAt: q.CreatedAt,
         createdBy: q.CreatedBy,
         isPublished: q.IsPublished,
-        scheduledAt: q.ScheduledAt   // ← ADAUGĂ
+        scheduledAt: q.ScheduledAt,
+        closedAt: q.ClosedAt
       }))
     );
   }
@@ -246,6 +252,7 @@ addOption(questionId: number, data: Partial<QuizOption>) {
         title: q.Title,
         description: q.Description,
         scheduledAt: q.ScheduledAt,
+        closedAt: q.ClosedAt,
         courseTitle: q.CourseTitle,
         hasTaken: q.HasTaken,      // <-- Asigură-te că mapăm și aceste câmpuri noi
         userScore: q.UserScore     // <-- pentru a le folosi în HTML

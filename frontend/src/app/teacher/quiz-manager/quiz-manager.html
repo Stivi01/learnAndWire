@@ -11,6 +11,9 @@
       <p *ngIf="quiz().ScheduledAt">
         Programat pentru: {{ quiz().ScheduledAt | date:'dd.MM.yyyy HH:mm' }}
       </p>
+      <p *ngIf="quiz().ClosedAt">
+        Limită: {{ quiz().ClosedAt | date:'dd.MM.yyyy HH:mm' }}
+      </p>
       <p>{{ quiz().Description }}</p>
       <p>Total puncte: {{ totalPoints }}</p>
       <div class="status">

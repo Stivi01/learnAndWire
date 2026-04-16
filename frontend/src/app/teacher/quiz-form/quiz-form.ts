@@ -20,7 +20,8 @@ export class QuizForm {
     title: '',
     description: '',
     isPublished: false,
-    scheduledAt: null   // ← ADAUGĂ
+    scheduledAt: null,
+    closedAt: null
   });
 
   courses = signal<CourseItem[]>([]);
@@ -80,10 +81,14 @@ export class QuizForm {
     next: data => {
 
       let scheduled = data.quiz.ScheduledAt;
+      let closed = data.quiz.ClosedAt;
 
       // 🔥 Conversie pentru datetime-local
       if (scheduled) {
         scheduled = scheduled.substring(0, 16);
+      }
+      if (closed) {
+        closed = closed.substring(0, 16);
       }
 
       this.quiz.set({
@@ -91,7 +96,8 @@ export class QuizForm {
         description: data.quiz.Description,
         isPublished: data.quiz.IsPublished,
         courseId: data.quiz.CourseId,
-        scheduledAt: scheduled
+        scheduledAt: scheduled,
+        closedAt: closed
       });
 
       const match = this.courses().find(c => c.Id === data.quiz.CourseId);
@@ -127,7 +133,8 @@ export class QuizForm {
     description: quizData.description?.trim() || '',
     courseId: quizData.courseId,
     isPublished: this.quizId ? !!quizData.isPublished : false,
-    scheduledAt: quizData.scheduledAt || null
+    scheduledAt: quizData.scheduledAt || null,
+    closedAt: quizData.closedAt || null
   };
 
   if (this.quizId) {
@@ -176,6 +183,10 @@ export class QuizForm {
 
   updateScheduledAt(value: string) {
     this.quiz.update(q => ({ ...q, scheduledAt: value }));
+  }
+
+  updateClosedAt(value: string) {
+    this.quiz.update(q => ({ ...q, closedAt: value }));
   }
 
 }

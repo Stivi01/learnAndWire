@@ -21,6 +21,9 @@
         <small *ngIf="quiz.scheduledAt">
           📅 Programat: {{ quiz.scheduledAt | date:'short' }}
         </small>
+        <small *ngIf="quiz.closedAt">
+          ⏰ Limită: {{ quiz.closedAt | date:'short' }}
+        </small>
       </div>
 
      <div class="quiz-actions">

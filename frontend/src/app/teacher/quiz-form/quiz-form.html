@@ -36,6 +36,14 @@
       (ngModelChange)="updateScheduledAt($event)">
   </div>
 
+  <div class="form-group">
+    <label>Data și ora limită:</label>
+    <input 
+      type="datetime-local"
+      [(ngModel)]="quiz().closedAt"
+      (ngModelChange)="updateClosedAt($event)">
+  </div>
+
   <button (click)="saveQuiz()">{{ quizId ? 'Actualizează quiz' : 'Creează quiz' }}</button>
 
 </div>
