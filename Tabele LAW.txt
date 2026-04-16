@@ -293,3 +293,15 @@ GO
 
 ALTER TABLE Courses DROP COLUMN ThumbnailUrl;
 GO
+
+
+CREATE TABLE RecoveryCodes (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Code NVARCHAR(10) NOT NULL UNIQUE,
+    IsUsed BIT DEFAULT 0,
+    UsedAt DATETIME2 NULL,
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+    ExpiresAt DATETIME2,
+    FOREIGN KEY (UserId) REFERENCES Users(id)
+);
