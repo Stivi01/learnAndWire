@@ -23,7 +23,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const { protect, restrictTo } = createAuthMiddleware({ getSqlPool, JWT_SECRET });
 
-registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET });
+registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET, protect });
 registerRecoveryRoutes(app, { getSqlPool, sql, protect, bcrypt });
 registerProfileRoutes(app, { getSqlPool, protect });
 registerCourseRoutes(app, { getSqlPool, protect, restrictTo });

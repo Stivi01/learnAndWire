@@ -5,11 +5,12 @@ import { StudentProfileData, User } from '../../core/services/user';
 import { AuthService } from '../../core/services/auth';
 import { ToastService } from '../../core/services/toast';
 import { RecoveryCodesSettings } from '../../shared/components/recovery-codes-settings/recovery-codes-settings';
+import { ChangePasswordSettings } from '../../shared/components/change-password-settings/change-password-settings';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-teacher-profile',
-  imports: [CommonModule, FormsModule, RecoveryCodesSettings],
+  imports: [CommonModule, FormsModule, RecoveryCodesSettings, ChangePasswordSettings],
   standalone: true,
   templateUrl: './teacher-profile.html',
   styleUrl: './teacher-profile.scss',
@@ -51,8 +52,11 @@ export class TeacherProfile implements OnDestroy {
           this.profile.set(data);
           this.isLoading.set(false);
         },
-        error: () => {
-          this.toastService.show('Eroare la încărcarea profilului.', 'error');
+        error: (err) => {
+          // Don't show error toast for 401 (token expired/invalidated) - interceptor handles logout
+          if (err.status !== 401) {
+            this.toastService.show('Eroare la încărcarea profilului.', 'error');
+          }
           this.isLoading.set(false);
         }
       });

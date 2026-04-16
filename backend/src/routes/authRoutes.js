@@ -26,7 +26,7 @@ function getRoleFromEmail(email) {
   return 'Student';
 }
 
-function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
+function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET, protect }) {
   app.post('/api/auth/register', async (req, res) => {
     const { email, password, firstName, lastName } = req.body;
 
@@ -146,7 +146,7 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET }) {
   });
 
   // ✅ Change password (authenticated route)
-  app.post('/api/auth/change-password', async (req, res) => {
+  app.post('/api/auth/change-password', protect, async (req, res) => {
     const { oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
