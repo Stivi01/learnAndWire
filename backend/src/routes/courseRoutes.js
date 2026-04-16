@@ -31,7 +31,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
   const upload = multer({ storage: storage });
 
   app.post('/api/courses', protect, restrictTo('Profesor'), async (req, res) => {
-    const { title, description, thumbnailUrl } = req.body;
+    const { title, description } = req.body;
     const cleanTitle = typeof title === 'string' ? title.trim() : '';
     const cleanDescription = typeof description === 'string' ? description.trim() : '';
 
@@ -42,9 +42,9 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
     try {
       const sqlPool = getSqlPool();
       const result = await sqlPool.query`
-        INSERT INTO Courses (title, description, createdBy, createdAt, thumbnailUrl, isPublished)
+        INSERT INTO Courses (title, description, createdBy, createdAt, isPublished)
         OUTPUT INSERTED.*
-        VALUES (${cleanTitle}, ${cleanDescription || null}, ${req.user.id}, GETDATE(), ${thumbnailUrl}, ${false})
+        VALUES (${cleanTitle}, ${cleanDescription || null}, ${req.user.id}, GETDATE(), ${false})
       `;
 
       const course = result.recordset[0];
@@ -60,7 +60,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
   app.put('/api/courses/:id', protect, restrictTo('Profesor'), async (req, res) => {
     const courseId = parseInt(req.params.id, 10);
-    const { title, description, thumbnailUrl, isPublished } = req.body;
+    const { title, description, isPublished } = req.body;
     const cleanTitle = typeof title === 'string' ? title.trim() : '';
     const cleanDescription = typeof description === 'string' ? description.trim() : '';
     const nextPublishedState = isPublished === true || isPublished === 1;
@@ -72,7 +72,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
     try {
       const sqlPool = getSqlPool();
       const currentCourseResult = await sqlPool.query`
-        SELECT Id, Title, Description, ThumbnailUrl, IsPublished
+        SELECT Id, Title, Description, IsPublished
         FROM Courses
         WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
       `;
@@ -84,8 +84,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
       const currentCourse = currentCourseResult.recordset[0];
       const metadataChanged =
         cleanTitle !== (currentCourse.Title || '').trim() ||
-        cleanDescription !== (currentCourse.Description || '').trim() ||
-        (thumbnailUrl || '') !== (currentCourse.ThumbnailUrl || '');
+        cleanDescription !== (currentCourse.Description || '').trim();
 
       // Permitem editarea unui curs chiar dacă este publicat;
       // doar verificăm condițiile de publicare dacă se cere trecerea în publicat.
@@ -113,7 +112,6 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
         UPDATE Courses
         SET Title = ${cleanTitle},
             Description = ${cleanDescription || null},
-            ThumbnailUrl = ${thumbnailUrl},
             IsPublished = ${nextPublishedState}
         WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
       `;
@@ -546,7 +544,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
       const documentUrl = req.file 
       ? `/uploads/documents/${req.file.filename}` 
       : (bodyDocUrl || lesson.DocumentUrl || lesson.documentUrl || '');
-      
+
       await sqlPool.query`
         UPDATE CourseLessons
         SET

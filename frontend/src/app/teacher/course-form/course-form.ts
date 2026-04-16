@@ -27,7 +27,6 @@ export class CourseForm implements OnInit{
     this.courseForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      thumbnailUrl: [''],
       isPublished: [false]
     });
   }

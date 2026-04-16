@@ -4,6 +4,5 @@ export interface Course {
   description: string;
   createdBy: number;
   createdAt: string;
-  thumbnailUrl?: string;
   isPublished: boolean;
 }

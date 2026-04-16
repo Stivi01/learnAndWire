@@ -15,7 +15,6 @@ export interface EditableCourse {
   Id: number;
   Title: string;
   Description: string;
-  ThumbnailUrl?: string;
   IsPublished: boolean;
   CreatedAt?: string;
 }

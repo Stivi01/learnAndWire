@@ -290,3 +290,6 @@ CREATE INDEX IX_QuizOptions_QuestionId ON QuizOptions(QuestionId);
 ALTER TABLE [LAW].[dbo].[CourseLessons] DROP COLUMN VideoUrl;
 ALTER TABLE [LAW].[dbo].[CourseLessons] ADD DocumentUrl NVARCHAR(MAX) NULL;
 GO
+
+ALTER TABLE Courses DROP COLUMN ThumbnailUrl;
+GO

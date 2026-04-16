@@ -33,7 +33,6 @@ export class CourseEdit {
     this.courseForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      thumbnailUrl: [''],
       isPublished: [{ value: false, disabled: true }],
     });
 
@@ -124,7 +123,6 @@ export class CourseEdit {
         this.courseForm.patchValue({
           title: course.Title,
           description: course.Description || '',
-          thumbnailUrl: course.ThumbnailUrl || '',
           isPublished: course.IsPublished,
         });
 
@@ -168,7 +166,6 @@ export class CourseEdit {
     const payload = {
       title: (formValue.title || '').trim(),
       description: (formValue.description || '').trim(),
-      thumbnailUrl: formValue.thumbnailUrl,
       isPublished: formValue.isPublished,
     };
 
