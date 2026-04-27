@@ -4,6 +4,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth';
 import { ToastService } from '../../../core/services/toast';
+import { isPasswordValid } from '../../../core/validators/password.validator';
 
 interface ChangePasswordRequest {
   oldPassword: string;
@@ -58,7 +59,6 @@ interface ChangePasswordRequest {
             class="input-field"
             required
             minlength="8"
-            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"
           />
           <small class="help-text">
             Min. 8 caractere: o literă MARE, una mică, o cifră și un caracter special
@@ -66,7 +66,6 @@ interface ChangePasswordRequest {
           <div *ngIf="newPwInput.invalid && (newPwInput.dirty || newPwInput.touched)" class="error-message">
             <small *ngIf="newPwInput.errors?.['required']">Parola nouă este obligatorie.</small>
             <small *ngIf="newPwInput.errors?.['minlength']">Parola trebuie să aibă minimum 8 caractere.</small>
-            <small *ngIf="newPwInput.errors?.['pattern']">Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.</small>
           </div>
         </div>
 
@@ -296,6 +295,15 @@ export class ChangePasswordSettings {
   submitChangePassword(form: NgForm) {
     if (form.invalid || this.formData.newPassword !== this.formData.confirmPassword) {
       this.toastService.show('Completeaza corect toate campurile!', 'error');
+      return;
+    }
+
+    // Validare parolă nouă
+    if (!isPasswordValid(this.formData.newPassword)) {
+      this.toastService.show(
+        'Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.',
+        'error'
+      );
       return;
     }
 

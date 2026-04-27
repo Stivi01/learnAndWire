@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RecoveryService } from '../../core/services/recovery';
 import { ToastService } from '../../core/services/toast';
+import { isPasswordValid } from '../../core/validators/password.validator';
 
 interface ForgotPasswordForm {
   email: string;
@@ -86,12 +87,10 @@ interface ForgotPasswordForm {
                 class="input-field"
                 required
                 minlength="8"
-                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"
               />
               <div *ngIf="pwInput.invalid && (pwInput.dirty || pwInput.touched)" class="error-message">
                 <small *ngIf="pwInput.errors?.['required']">Parola este obligatorie.</small>
                 <small *ngIf="pwInput.errors?.['minlength']">Parola trebuie să aibă minimum 8 caractere.</small>
-                <small *ngIf="pwInput.errors?.['pattern']">Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.</small>
               </div>
             </div>
 
@@ -316,6 +315,15 @@ export class ForgotPasswordModal {
   submitReset(form: NgForm) {
     if (form.invalid || this.formData.newPassword !== this.formData.confirmPassword) {
       this.toastService.show('Completeaza corect toate campurile!', 'error');
+      return;
+    }
+
+    // Validare parolă
+    if (!isPasswordValid(this.formData.newPassword)) {
+      this.toastService.show(
+        'Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.',
+        'error'
+      );
       return;
     }
 

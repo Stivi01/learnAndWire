@@ -90,11 +90,11 @@
               placeholder="Parolă" 
               [disabled]="loading" 
               class="input-field"
-              required 
-              pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"/>
+              required
+              minlength="8"/>
             <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="error-message">
               <small *ngIf="passwordInput.errors?.['required']">Parola este obligatorie.</small>
-              <small *ngIf="passwordInput.errors?.['pattern']">Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.</small>
+              <small *ngIf="passwordInput.errors?.['minlength']">Parola trebuie să aibă minimum 8 caractere.</small>
             </div>
           </div>
 

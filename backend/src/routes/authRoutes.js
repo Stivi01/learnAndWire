@@ -34,6 +34,14 @@ function registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET, protect 
       return res.status(400).json({ message: 'Toate câmpurile sunt obligatorii' });
     }
 
+    // Validate password format (8+ chars, uppercase, lowercase, digit, special char)
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message: 'Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.'
+      });
+    }
+
     try {
       const sqlPool = getSqlPool();
       const passwordHash = await bcrypt.hash(password, 10);

@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth';
 import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
 import { RecoveryCodesModal } from './recovery-codes-modal';
+import { isPasswordValid } from '../../core/validators/password.validator';
 
 interface RegisterData {
     email: string;
@@ -62,6 +63,15 @@ export class Register {
     if (!this.roleDisplay) {
       this.toastService.show(
         'Email invalid — trebuie să se termine cu @stud.etti.upb.ro sau @etti.upb.ro',
+        'error'
+      );
+      return;
+    }
+
+    // Validare parolă
+    if (!isPasswordValid(this.password)) {
+      this.toastService.show(
+        'Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.',
         'error'
       );
       return;

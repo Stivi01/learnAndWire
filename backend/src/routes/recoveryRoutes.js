@@ -103,6 +103,14 @@ function registerRecoveryRoutes(app, { getSqlPool, sql, protect, bcrypt }) {
 
       const codeRecord = codeResult.recordset[0];
 
+      // Validate new password format (8+ chars, uppercase, lowercase, digit, special char)
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+      if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json({
+          message: 'Parola trebuie să aibă min. 8 caractere, o literă mare, o literă mică, o cifră și un caracter special.'
+        });
+      }
+
       // Hash parolă nouă
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
