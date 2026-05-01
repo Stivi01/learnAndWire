@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { QuizOption } from '../../core/models/quiz.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Quiz } from '../../core/services/quiz';
-import { firstValueFrom, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { ToastService } from '../../core/services/toast';
 
 @Component({
@@ -17,6 +17,7 @@ import { ToastService } from '../../core/services/toast';
 export class OptionForm {
   @Input() questionType: 'single' | 'multiple' | 'open' = 'single';
   public questionId: number | null = null;
+  public quizId: number | null = null;
 
   public options: WritableSignal<Partial<QuizOption>[]> = signal([]);
 
@@ -34,6 +35,7 @@ export class OptionForm {
   this.quizService.getQuestionById(this.questionId).subscribe({
     next: q => {
       this.questionType = q.questionType;
+      this.quizId = q.quizId;
       console.log('✅ Question type:', this.questionType);
     },
     error: err => {
@@ -109,7 +111,12 @@ export class OptionForm {
     }));
 
     this.toast.show('Opțiunile au fost salvate!', 'success');
-    this.loadOptions();
+
+    if (this.quizId) {
+      this.router.navigate([`/teacher/quiz/${this.quizId}/manage`]);
+    } else {
+      this.loadOptions();
+    }
   } catch (err) {
     console.error(err);
     this.toast.show('Eroare la salvarea opțiunilor!', 'error');

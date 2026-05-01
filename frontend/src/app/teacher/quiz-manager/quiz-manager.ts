@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
+import { forkJoin, map } from 'rxjs';
 import { QuizOption, QuizQuestion } from '../../core/models/quiz.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Quiz, QuizPublishReadinessResponse } from '../../core/services/quiz';
@@ -87,13 +88,23 @@ export class QuizManager {
           return;
         }
 
-        qs.forEach(q => {
-          this.quizService.getOptions(q.id).subscribe(opts => {
-            this.questions.update(prev => [...prev, { ...q, options: opts }]);
-          });
-        });
+        const questionOptionStreams = qs.map(q =>
+          this.quizService.getOptions(q.id).pipe(
+            map(opts => ({ ...q, options: opts }))
+          )
+        );
 
-        this.refreshPublishReadiness();
+        forkJoin(questionOptionStreams).subscribe({
+          next: fullQuestions => {
+            this.questions.set(fullQuestions);
+            this.refreshPublishReadiness();
+          },
+          error: err => {
+            console.error(err);
+            this.questions.set(qs.map(q => ({ ...q, options: [] })));
+            this.refreshPublishReadiness();
+          }
+        });
       },
       error: err => console.error(err)
     });

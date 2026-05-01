@@ -120,14 +120,14 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
       const quiz = quizResult.recordset[0];
       const questionsResult = await sqlPool.query`
-        SELECT * FROM QuizQuestions WHERE QuizId = ${quizId}
+        SELECT * FROM QuizQuestions WHERE QuizId = ${quizId} ORDER BY Id
       `;
 
       const questions = questionsResult.recordset;
 
       for (const question of questions) {
         const optionsResult = await sqlPool.query`
-          SELECT * FROM QuizOptions WHERE QuestionId = ${question.Id}
+          SELECT * FROM QuizOptions WHERE QuestionId = ${question.Id} ORDER BY Id
         `;
         question.options = optionsResult.recordset;
       }
@@ -424,6 +424,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         SELECT Id, QuestionText, QuestionType, Points
         FROM QuizQuestions
         WHERE QuizId = ${quizId}
+        ORDER BY Id
       `;
 
       const questions = questionsResult.recordset;
@@ -433,6 +434,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           SELECT Id, OptionText
           FROM QuizOptions
           WHERE QuestionId = ${question.Id}
+          ORDER BY NEWID()
         `;
         question.options = optionsResult.recordset;
       }
