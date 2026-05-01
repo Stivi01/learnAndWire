@@ -172,3 +172,38 @@ ADD ExcludedBy INT NULL;
 ALTER TABLE CourseEnrollments
 ADD CONSTRAINT FK_CourseEnrollments_ExcludedBy
 FOREIGN KEY (ExcludedBy) REFERENCES Users(Id);
+
+-- 7️⃣ Tabel: Homeworks
+CREATE TABLE Homeworks (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    CreatedBy INT NOT NULL,
+    Title NVARCHAR(255) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    HomeworkType VARCHAR(20) NOT NULL,
+    InstructionsUrl NVARCHAR(500) NULL,
+    DueAt DATETIME2 NOT NULL,
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+    FOREIGN KEY (CourseId) REFERENCES Courses(Id),
+    FOREIGN KEY (CreatedBy) REFERENCES Users(Id)
+);
+
+CREATE TABLE HomeworkSubmissions (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    HomeworkId INT NOT NULL,
+    StudentId INT NOT NULL,
+    SubmissionType VARCHAR(20) NOT NULL,
+    SubmittedAt DATETIME2 DEFAULT GETDATE(),
+    FileUrls NVARCHAR(MAX) NULL,
+    Grade INT NULL,
+    GradedAt DATETIME2 NULL,
+    GradedBy INT NULL,
+    Comments NVARCHAR(MAX) NULL,
+    FOREIGN KEY (HomeworkId) REFERENCES Homeworks(Id),
+    FOREIGN KEY (StudentId) REFERENCES Users(Id),
+    FOREIGN KEY (GradedBy) REFERENCES Users(Id)
+);
+
+ALTER TABLE HomeworkSubmissions
+ADD CONSTRAINT UQ_HomeworkSubmissions_Homework_Student
+UNIQUE (HomeworkId, StudentId);

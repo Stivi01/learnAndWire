@@ -61,6 +61,13 @@ export class Navbar {
       this.router.navigate(['/student/my-classes']); // dacă vrei să faci și pentru student
     }
   }
+  navigateToHomeworks() {
+    if (this.role === 'Profesor') {
+      this.router.navigate(['/teacher/homeworks']);
+    } else if (this.role === 'Student') {
+      this.router.navigate(['/student/homeworks']);
+    }
+  }
   navigateToInvitations() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher/invite-students']);
@@ -105,10 +112,6 @@ export class Navbar {
     if (this.role === 'Profesor') {
         this.router.navigate(['/teacher/calendar']);
       }
-  }
-
-  navigateToBreadbord() {
-    this.router.navigate(['/breadbord']);
   }
 
 

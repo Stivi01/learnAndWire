@@ -39,6 +39,11 @@
       Clasa mea
     </li>
 
+    <li *ngIf="role === 'Profesor' || role === 'Student'" (click)="navigateToHomeworks()">
+      <i class="fas fa-book"></i>
+      Teme
+    </li>
+
     <!-- <li *ngIf="role === 'Profesor'" (click)="navigateToCourseForm()">
       <i class="fas fa-plus"></i>
       Adaugă curs
@@ -100,10 +105,7 @@
       Setari
     </li>
 
-    <li *ngIf="role === 'Profesor'" (click)="navigateToBreadbord()">
-      <i class="fas fa-project-diagram"></i>
-      Breadbord
-    </li>
+
 
 
   </ul>

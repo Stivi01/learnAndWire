@@ -343,22 +343,42 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
       const sqlPool = getSqlPool();
       const studentId = req.user.id;
 
-      const result = await sqlPool.query`
+      const quizResult = await sqlPool.query`
         SELECT 
             qr.Id AS ResultId,
             q.Title AS QuizTitle,
             c.Title AS CourseTitle,
             qr.Score,
             qr.SubmittedAt,
-            (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) AS MaxScore
+            (SELECT SUM(Points) FROM QuizQuestions WHERE QuizId = q.Id) AS MaxScore,
+            'quiz' AS Type
         FROM QuizResults qr
         INNER JOIN CourseQuizzes q ON qr.QuizId = q.Id
         INNER JOIN Courses c ON q.CourseId = c.Id
         WHERE qr.StudentId = ${studentId}
-        ORDER BY qr.SubmittedAt DESC;
       `;
 
-      res.json(result.recordset);
+      const homeworkResult = await sqlPool.query`
+        SELECT
+            hs.Id AS ResultId,
+            h.Title AS QuizTitle,
+            c.Title AS CourseTitle,
+            hs.Grade AS Score,
+            hs.GradedAt AS SubmittedAt,
+            100 AS MaxScore,
+            'homework' AS Type
+        FROM HomeworkSubmissions hs
+        INNER JOIN Homeworks h ON hs.HomeworkId = h.Id
+        INNER JOIN Courses c ON h.CourseId = c.Id
+        WHERE hs.StudentId = ${studentId} AND hs.Grade IS NOT NULL
+      `;
+
+      const combined = [
+        ...quizResult.recordset,
+        ...homeworkResult.recordset
+      ].sort((a, b) => new Date(b.SubmittedAt) - new Date(a.SubmittedAt));
+
+      res.json(combined);
     } catch (err) {
       console.error('❌ Eroare la preluarea notelor:', err);
       res.status(500).json({ message: 'Eroare la încărcarea notelor.' });

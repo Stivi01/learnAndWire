@@ -1,1 +1,101 @@
-<p>homework works!</p>
+<div class="homework-page">
+  <div class="form-panel">
+    <h2>Crează temă nouă</h2>
+
+    <div class="form-row">
+      <label>Materie</label>
+      <select [(ngModel)]="selectedCourseId">
+        <option [ngValue]="null">Selectează materia</option>
+        <option *ngFor="let course of courses()" [ngValue]="course.Id">{{ course.Title }}</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Titlu temă</label>
+      <input type="text" [(ngModel)]="title" placeholder="Titlul temei" />
+    </div>
+
+    <div class="form-row radio-row">
+      <label>Tip temă</label>
+      <label><input type="radio" name="type" value="classic" [(ngModel)]="homeworkType" /> Clasică</label>
+      <label><input type="radio" name="type" value="breadbord" [(ngModel)]="homeworkType" /> Breadbord</label>
+    </div>
+
+    <div class="form-row">
+      <label>Termen limită</label>
+      <input type="datetime-local" [(ngModel)]="dueAt" />
+    </div>
+
+    <div class="form-row">
+      <label>Descriere (opțional)</label>
+      <textarea [(ngModel)]="description" placeholder="Poți adăuga detalii despre sarcină..."></textarea>
+    </div>
+
+    <div class="form-row">
+      <label>Document cerință (opțional)</label>
+      <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
+    </div>
+
+    <button type="button" class="btn-save" (click)="createHomework()">Salvează tema</button>
+  </div>
+
+  <div class="list-panel">
+    <h2>Teme create</h2>
+
+    <div *ngIf="homeworks().length === 0" class="empty-state">
+      Nu ai creat încă nicio temă.
+    </div>
+
+    <div *ngFor="let hw of homeworks()" class="homework-card" [class.selected]="selectedHomework?.id === hw.id" (click)="selectHomework(hw)">
+      <div>
+        <h3>{{ hw.title }}</h3>
+        <p>{{ hw.courseTitle }}</p>
+      </div>
+      <div>
+        <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</span>
+        <span class="due">Până la: {{ formatDate(hw.dueAt) }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="selectedHomework" class="selected-panel">
+      <h3>Submisiile pentru: {{ selectedHomework.title }}</h3>
+      <div *ngIf="submissions().length === 0" class="empty-state">
+        Nu există încă submisii.
+      </div>
+
+      <table *ngIf="submissions().length > 0" class="submissions-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Tip</th>
+            <th>Trimis la</th>
+            <th>Fișiere</th>
+            <th>Notă</th>
+            <th>Acțiuni</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let submission of submissions()">
+            <td>{{ submission.FirstName }} {{ submission.LastName }}</td>
+            <td>{{ submission.submissionType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</td>
+            <td>{{ formatDate(submission.SubmittedAt) }}</td>
+            <td>
+              <ng-container *ngIf="submission.fileUrls?.length; else noFiles">
+                <div *ngFor="let url of submission.fileUrls">
+                  <a [href]="url" target="_blank">Descarcă</a>
+                </div>
+              </ng-container>
+              <ng-template #noFiles>–</ng-template>
+            </td>
+            <td>
+              <input type="number" min="0" max="100" [(ngModel)]="submission._grade" placeholder="Nota" />
+            </td>
+            <td>
+              <button type="button" class="btn-save" (click)="gradeSubmission(submission.Id, submission._grade, submission.comments || '')">Notează</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

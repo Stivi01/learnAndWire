@@ -1,1 +1,61 @@
-<p>student-homework works!</p>
+<div class="student-homework-page">
+  <h2>Teme atribuite</h2>
+
+  <div *ngIf="loading()" class="loading">Se încarcă temele...</div>
+
+  <div *ngIf="!loading() && homeworks().length === 0" class="empty-state">
+    Nu ai teme atribuite în acest moment.
+  </div>
+
+  <div *ngIf="!loading() && homeworks().length > 0" class="homework-grid">
+    <div *ngFor="let hw of homeworks()" class="homework-card">
+      <div class="header-row">
+        <div>
+          <h3>{{ hw.title }}</h3>
+          <p>{{ hw.courseTitle }}</p>
+        </div>
+        <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</span>
+      </div>
+
+      <div class="meta-row">
+        <span>Deadline: {{ formatDate(hw.dueAt) }}</span>
+        <span>Status: {{ hw.grade != null ? 'Notată' : hw.submittedAt ? 'Trimisă' : 'Neîncepută' }}</span>
+      </div>
+
+      <div class="body-row">
+        <p>{{ hw.description || 'Fără descriere suplimentară.' }}</p>
+      </div>
+
+      <div *ngIf="hw.instructionsUrl" class="body-row">
+        <a [href]="hw.instructionsUrl" target="_blank">Descarcă documentul cerință</a>
+      </div>
+
+      <div class="actions-row">
+        <button *ngIf="hw.homeworkType === 'breadbord'" type="button" class="btn" (click)="openBreadbord()">Deschide Breadbord</button>
+        <div *ngIf="hw.homeworkType === 'breadbord'" class="upload-section">
+          <input type="file" accept=".svg" (change)="onFileChange(hw.id, $event)" />
+          <button type="button" class="btn-save" (click)="submitBreadbord(hw)" [disabled]="submitting()">Încarcă SVG și trimite</button>
+          <div *ngIf="selectedFiles[hw.id]?.length" class="selected-files">
+            Fișier selectat: {{ getSelectedFileNames(hw.id) }}
+          </div>
+        </div>
+
+        <div *ngIf="hw.homeworkType === 'classic'" class="upload-section">
+          <input type="file" multiple accept=".pdf,.doc,.docx" (change)="onFileChange(hw.id, $event)" />
+          <button type="button" class="btn-save" (click)="submitClassic(hw)" [disabled]="submitting()">Trimite fișiere</button>
+        </div>
+      </div>
+
+      <div *ngIf="hw.fileUrls?.length" class="body-row">
+        <strong>Fișiere trimise:</strong>
+        <ul>
+          <li *ngFor="let url of hw.fileUrls"><a [href]="url" target="_blank">{{ url }}</a></li>
+        </ul>
+      </div>
+
+      <div *ngIf="hw.grade != null" class="grade-row">
+        <strong>Notă:</strong> {{ hw.grade }} / 100
+      </div>
+    </div>
+  </div>
+</div>

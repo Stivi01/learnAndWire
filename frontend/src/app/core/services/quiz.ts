@@ -274,7 +274,8 @@ addOption(questionId: number, data: Partial<QuizOption>) {
       courseTitle: g.CourseTitle,
       score: g.Score,
       maxScore: g.MaxScore,
-      date: g.SubmittedAt
+      date: g.SubmittedAt,
+      type: g.Type || 'quiz'
     })))
   );
 }

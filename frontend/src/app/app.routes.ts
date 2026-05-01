@@ -135,6 +135,12 @@ export const routes: Routes = [
     data: { role: 'Profesor' },
     loadComponent: () => import('./teacher/quiz-form/quiz-form').then(m => m.QuizForm)
   },
+  {
+    path: 'teacher/homeworks',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Profesor' },
+    loadComponent: () => import('./teacher/homework/homework').then(m => m.Homework)
+  },
 
   {
     path: 'teacher/results',
@@ -177,6 +183,12 @@ export const routes: Routes = [
     canActivate: [AuthGuard, roleGuard],
     data: { role: 'Student' },
     loadComponent: () => import('./student/my-grades/my-grades').then(m => m.MyGrades)
+  },
+  {
+    path: 'student/homeworks',
+    canActivate: [AuthGuard, roleGuard],
+    data: { role: 'Student' },
+    loadComponent: () => import('./student/student-homework/student-homework').then(m => m.StudentHomework)
   },
 
   {

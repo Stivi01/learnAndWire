@@ -303,6 +303,10 @@ export class StudentDashboard implements OnDestroy {
     return d;
   }
 
+  goToHomeworks() {
+    this.router.navigate(['/student/homeworks']);
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
