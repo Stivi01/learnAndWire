@@ -1,431 +1,455 @@
-
-body {
-  margin: 0;
-  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background: #f2e8f5; /* fundal general */
-  color: #5a3968;       /* text principal */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* page wrapper */
+/* Containerul Principal */
 .page-wrap {
-  padding: 32px;
-  max-width: 1300px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #334155;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
-/* ===== TOPBAR ===== */
+/* --- HEADER --- */
 .topbar {
-  display: flex;
-  flex-direction: row;      /* pe linie */
-  align-items: center;
-  justify-content: space-between; /* salut în stânga, search în dreapta */
-  margin-bottom: 28px;
-  gap: 16px;
+  margin-bottom: 2rem;
 }
 
 .greeting {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 2rem;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   margin: 0;
-  white-space: nowrap; /* să nu facă wrap pe mobil */
 }
 
-.search-wrapper {
-  flex: 1;               /* ocupă spațiul rămas */
-  max-width: 420px;
-  position: relative;
-}
-
-
-.search-input {
-  width: 100%;
-  padding: 12px 16px 12px 44px;
-  border-radius: 14px;
-  border: 1px solid rgba(107,74,124,0.08);
-  background: #fff;
-  font-size: 14px;
-  outline: none;
-  transition: box-shadow .15s ease, border-color .15s ease;
-}
-.search-input:focus {
-  box-shadow: 0 6px 18px rgba(107,74,124,0.18);
-  border-color: #6b4a7c;
-}
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #9479a5;
-  pointer-events: none;
-  opacity: .9;
-}
-
-/* ===== MAIN GRID ===== */
+/* --- LAYOUT GRID --- */
 .main-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
+  grid-template-columns: 2.5fr 1fr;
+  gap: 2rem;
 }
 
-@media (min-width: 1024px) {
-  .main-grid {
-    grid-template-columns: 3fr 1fr;
-    gap: 28px;
-  }
-}
-
-/* left grid (cards) */
 .left-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .left-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-  .card-teachers { grid-column: span 1; }
-  .card-events { grid-column: span 2; }
-  .card-schedule { grid-column: span 3; }
-  .card-projects { grid-column: span 3; }
-}
-
-/* ===== CARD BASE ===== */
-.card {
-  background: #efe4f3;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 22px rgba(107,74,124,0.06);
-  color: #5a3968;
-}
-
-.lavender {
-  background: #e6d5ea;
-}
-
-/* small heading inside cards */
-.card h2 {
-  margin: 0 0 12px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #5a3968;
-}
-
-/* ===== TEACHERS ===== */
-.teacher-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  flex-direction: column;
+  gap: 1.5rem;
 }
-.teacher-left { display: flex; gap: 12px; align-items: center; }
-.teacher-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 3px 8px rgba(107,74,124,0.06);
-}
-.t-name { font-weight: 600; font-size: 14px; color: #5a3968; }
-.t-role { font-size: 12px; color: #9479a5; margin-top: 2px; }
 
-.message-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #6b4a7c;
-  color: white;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
-.message-btn .icon-small { width: 14px; height: 14px; color: white; }
+
+/* --- CARDURI GENERICE --- */
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin-bottom: 1.25rem;
+  font-weight: 700;
+}
 
 .see-more {
-  display: block;
-  margin-top: 12px;
-  text-align: right;
-  color: #6b4a7c;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
+  display: inline-block;
+  margin-top: 1rem;
+  transition: color 0.2s;
 }
-.see-more.white { color: #fff; }
 
-/* ===== EVENTS ===== */
-.event-item {
+.see-more:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+/* --- LISTE: PROFESORI ȘI EVENIMENTE --- */
+.teacher-item, .event-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-radius: 12px;
-}
-.event-item:hover { background: rgba(230,213,234,0.6); }
-.event-image { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; box-shadow: 0 3px 8px rgba(107,74,124,0.06); }
-.e-title { font-weight: 600; font-size: 14px; color: #5a3968; }
-.e-sub { font-size: 12px; color: #9479a5; margin-top: 6px; }
-
-/* ===== SCHEDULE & CALENDAR ===== */
-.schedule-inner {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-@media (min-width: 1024px) {
-  .schedule-inner { grid-template-columns: 320px 1fr; align-items: start; }
+.teacher-item:last-of-type, .event-item:last-of-type {
+  border-bottom: none;
 }
 
-.calendar-box {
-  background: #efe4f3;
-  padding: 14px;
-  border-radius: 12px;
-}
-
-.calendar-day.empty {
-  background: transparent;
-  cursor: default;
-}
-
-.calendar-day.selected {
-  background: #6b4a7c;
-  color: #fff;
-  font-weight: 700;
-  border-radius: 50%;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-
-.calendar-header { display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; font-weight: 600; color: #9479a5; }
-.cal-nav { background: transparent; border: none; font-size: 18px; cursor: pointer; color: #9479a5; }
-.calendar-grid-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; color: #9479a5; font-weight: 700; font-size: 12px; margin-bottom: 8px; text-align:center; }
-.calendar-grid-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; font-size: 13px; text-align:center; color: #5a3968; }
-.calendar-day { padding: 6px; border-radius: 8px; }
-.calendar-day.highlight { background: #e6d5ea; }
-.calendar-day.selected { background: #6b4a7c; color: #fff; font-weight: 700; width: 34px; height: 34px; display: inline-flex; justify-content:center; align-items:center; margin: 0 auto; border-radius: 50%; }
-
-.schedule-list { padding-top: 6px; }
-.schedule-item { display:flex; gap: 12px; align-items:center; margin-bottom: 10px; }
-.schedule-day { font-weight: 800; font-size: 22px; color: #6b4a7c; width: 46px; text-align: center; }
-.schedule-card { background: #fff; padding: 10px 12px; border-radius: 12px; box-shadow: 0 3px 8px rgba(107,74,124,0.05); display:flex; justify-content: space-between; align-items:center; flex:1; }
-.lesson-title { font-weight: 600; color: #5a3968; }
-.lesson-time { color: #9479a5; font-size: 13px; }
-
-/* ===== RIGHT COLUMN GAUGES ===== */
-.right-column { display:flex; flex-direction: column; gap: 18px; }
-
-.card-purple {
-  background: #6b4a7c;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.gauge-wrap { padding: 8px 0 6px; }
-
-.gauge-container {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  position: relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin: 6px auto 12px;
-  box-shadow: inset 0 -6px 20px rgba(107,74,124,0.08);
-}
-.gauge-inner-circle {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: rgba(107,74,124,0.9);
-  position: absolute;
-  z-index: 1;
-}
-.gauge-container > span {
-  position: relative;
-  z-index: 2;
-  font-weight: 800;
-  font-size: 26px;
-}
-
-/* small responsive tweaks */
-@media (max-width: 767px) {
-  .topbar { gap: 10px; }
-  .page-wrap { padding: 20px; }
-  .greeting { font-size: 22px; }
-  .schedule-inner { grid-template-columns: 1fr; }
-  .projects-row { gap: 12px; }
-  .project-card img { width: 200px; height: 120px; }
-  .gauge-container { width: 120px; height: 120px; }
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-  width: 250px;
-  background: #f2e8f5;
-  padding: 1.5rem;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  border-right: 3px solid #e6d5ea;
-}
-
-.logo-box { margin-bottom: 2rem; text-align: left; }
-.logo-text { font-size: 1.8rem; font-weight: 700; color: #6b4a7c; }
-
-/* USER BOX */
-.user-box {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 1rem;
-  background: #efe4f3;
-  border-radius: 20px;
-  margin-bottom: 2rem;
-}
-.avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; }
-.user-info .name { font-size: 1rem; font-weight: 600; color: #5a3968; }
-.user-info .role { font-size: 0.75rem; color: #9479a5; }
-
-/* MENU */
-.menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-.menu li {
+/* Profesori */
+.teacher-left {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.5rem;
-  border-radius: 14px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  color: #5a3968;
-  transition: 0.25s ease;
 }
-.menu li:hover { background: #e6d5ea; color: #6b4a7c; }
-.icon { font-size: 1.2rem; color: #6b4a7c; }
-.active { background: #e6d5ea !important; color: #6b4a7c !important; font-weight: 600; }
 
-/* LOGOUT */
-.logout-box {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
-  cursor: pointer;
-  color: #6b4a7c;
-  transition: 0.25s;
+.teacher-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
 }
-.logout-box:hover { background: #e6d5ea; color: #6b4a7c; }
+
+.t-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.t-role {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+/* Evenimente */
+.event-item {
+  justify-content: flex-start;
+  gap: 1.25rem;
+}
 
 .event-emoji {
-  font-size: 28px;
-  width: 52px;
-  height: 52px;
+  font-size: 1.75rem;
+  background: #f8fafc;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e6d5ea;
-  border-radius: 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.event-meta {
+  display: flex;
+  flex-direction: column;
 }
 
 .e-course {
-  display: inline-block;
-  background: #eef2ff;
-  color: #4f46e5;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  margin-top: 2px;
+  font-size: 0.8rem;
+  color: #6366f1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* MODAL BACKDROP */
+.e-title {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1.05rem;
+  margin: 0.2rem 0;
+}
+
+.e-sub {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.e-sub strong {
+  color: #334155;
+}
+
+/* --- CALENDAR & PROGRAM (Lavender) --- */
+.card-schedule.lavender {
+  background-color: #f8fafc; /* Fundal neutru-deschis */
+  border: 1px solid #e2e8f0;
+}
+
+.schedule-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.calendar-box {
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cal-nav {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #475569;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.cal-nav:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.calendar-grid-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-grid-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #334155;
+  font-weight: 500;
+}
+
+.calendar-day:hover:not(.empty) {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.calendar-day.selected {
+  background: #6366f1;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+.calendar-day.empty {
+  cursor: default;
+}
+
+.schedule-list h3 {
+  font-size: 1.05rem;
+  color: #1e293b;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.schedule-item {
+  margin-bottom: 0.75rem;
+}
+
+.schedule-card {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 10px;
+  border-left: 4px solid #6366f1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-top: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.lesson-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1e293b;
+  margin-bottom: 0.35rem;
+}
+
+.lesson-time {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* --- WIDGET-URI DREAPTA (Gauge Cards) --- */
+.card-purple {
+  background-color: #1e293b; /* Nuanță închisă elegantă în loc de mov simplu */
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-purple h2 {
+  color: #f8fafc;
+  font-size: 1.1rem;
+}
+
+/* Gauges (Inele de progres) */
+.gauge-wrap {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin: 1rem auto;
+}
+
+.gauge-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  /* background-ul se setează din HTML via [ngStyle] */
+}
+
+/* Cercul interior creează efectul de "Donut" */
+.gauge-inner-circle {
+  position: absolute;
+  width: 100px; /* Determină grosimea inelului */
+  height: 100px;
+  background-color: #1e293b; /* EXACT culoarea cardului .card-purple */
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.gauge-container span {
+  position: relative;
+  z-index: 2;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.see-more.white {
+  color: #94a3b8;
+  margin-top: 0.5rem;
+}
+
+.see-more.white:hover {
+  color: #ffffff;
+}
+
+/* --- MODALE --- */
 .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal {
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.close-btn {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+  color: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  transition: all 0.2s;
 }
 
-/* MODAL CARD */
-.modal {
-  background: #fff;
-  padding: 24px;
-  border-radius: 16px;
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  position: relative;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  overflow-y: auto;
-}
-
-.modal h3 {
-  margin: 12px 0;
-  font-size: 22px;
-  color: #5a3968;
-}
-
-.modal p {
-  font-size: 14px;
-  margin: 6px 0;
-  color: #5a3968;
-}
-
-.modal .close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: #6b4a7c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  font-weight: bold;
-  cursor: pointer;
+.close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .modal-avatar {
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  display: block;
   object-fit: cover;
-  margin-bottom: 12px;
+  border: 3px solid #e0e7ff;
 }
 
-/* Stilizare pentru "View Profile" ca See more */
-.view-profile-link {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.3s, transform 0.2s;
+.modal h3 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #0f172a;
 }
 
-.view-profile-link:hover {
-  color: #434190; /* închis la hover */
-  transform: translateX(3px);
+.modal p {
+  margin: 0.75rem 0;
+  color: #475569;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.modal p strong {
+  color: #1e293b;
+}
+
+/* Responsivitate */
+@media (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  .right-column {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .card-purple {
+    flex: 1;
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .schedule-inner {
+    grid-template-columns: 1fr;
+  }
+  .right-column {
+    flex-direction: column;
+  }
 }

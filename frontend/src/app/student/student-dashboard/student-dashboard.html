@@ -121,6 +121,16 @@
         </div>
         <a class="see-more white" href="#">See more &gt;</a>
       </div>
+      <div class="card card-purple">
+        <h2>Homework</h2>
+        <div class="gauge-wrap">
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homework(), '#68E0C6') }">
+            <span>{{ homework() }}%</span>
+            <div class="gauge-inner-circle"></div>
+          </div>
+        </div>
+        <a class="see-more white" (click)="goToHomeworks()">Vezi teme &gt;</a>
+      </div>
     </aside>
 
   </main>
