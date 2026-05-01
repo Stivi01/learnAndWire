@@ -1,109 +1,156 @@
+/* Containerul Sidebar-ului */
 .sidebar {
   display: flex;
   flex-direction: column;
-  height: 100%;           /* ia tot height-ul de la app-navbar */
-  background: #f2e8f5;
+  width: 280px;
+  height: 100vh; /* Ocupă toată înălțimea ecranului */
+  background-color: #1e293b; /* Slate foarte închis pentru contrast premium */
+  color: #f8fafc;
   padding: 1.5rem;
-  border-right: 3px solid #e6d5ea;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  border-right: 1px solid #1e293b;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-
-
+/* --- LOGO --- */
 .logo-box {
-  margin-bottom: 2rem;
-  text-align: left;
-
-  .logo-text {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #6b4a7c;
-  }
+  margin-bottom: 2.5rem;
+  text-align: center;
 }
 
-/* USER BOX */
+.logo-text {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  /* Un gradient subtil pentru textul logo-ului */
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* --- USER BOX --- */
 .user-box {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   padding: 1rem;
-  background: #efe4f3;
-  border-radius: 20px;
+  background-color: #1e293b; /* Fundal ușor diferențiat de restul meniului */
+  border-radius: 12px;
   margin-bottom: 2rem;
+  border: 1px solid #334155;
 }
 
 .avatar {
-  width: 55px;
-  height: 55px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid #6366f1; /* Accent indigo la fel ca în restul platformei */
+  background-color: #334155; /* Fallback color */
 }
 
 .user-info {
-  .name {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #5a3968;
-  }
-
-  .role {
-    font-size: 0.75rem;
-    color: #9479a5;
-  }
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Previne ieșirea textului lung din container */
 }
 
-/* MENU */
+.user-info .name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.user-info .role {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- MENIU --- */
 .menu {
   list-style: none;
   padding: 0;
   margin: 0;
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1; /* Permite meniului să ocupe tot spațiul disponibil */
+  overflow-y: auto; /* Scroll intern dacă sunt prea multe elemente */
+}
+
+/* Ascundem scrollbar-ul pentru un aspect mai curat, dar păstrăm funcționalitatea */
+.menu::-webkit-scrollbar {
+  width: 4px;
+}
+.menu::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 4px;
 }
 
 .menu li {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.5rem;
-  border-radius: 14px;
-  font-size: 0.95rem;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  color: #624a6e;
-  transition: 0.25s ease;
-
-  &:hover {
-    background: #e9d5ef;
-    color: #4d2f5b;
-  }
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
 }
 
-/* ICON STYLING */
-.icon {
-  font-size: 1.2rem;
-  color: #6b4a7c;
+.menu li i {
+  font-size: 1.1rem;
+  width: 20px; /* Lățime fixă pentru iconițe ca textul să fie perfect aliniat */
+  text-align: center;
+  color: #64748b;
+  transition: color 0.2s;
 }
 
-/* ACTIVE STATE */
-.active {
-  background: #dcc2e6 !important;
-  color: #3f2450 !important;
-  font-weight: 600;
+/* Efecte la trecerea mouse-ului */
+.menu li:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+  transform: translateX(4px); /* O mică mișcare spre dreapta pentru dinamism */
 }
 
-/* LOGOUT */
+.menu li:hover i {
+  color: #818cf8; /* Iconița se colorează în indigo la hover */
+}
+
+/* --- LOGOUT --- */
 .logout-box {
-  margin-top: auto;
+  margin-top: auto; /* Împinge butonul jos de tot */
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  color: #6b4a7c;
-  transition: 0.25s;
+  color: #fca5a5; /* Un roșu stins */
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
+}
 
-  &:hover {
-    background: #e6d5ea;
-    color: #4d2f5b;
-  }
+.logout-box i {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.logout-box:hover {
+  background-color: rgba(248, 113, 113, 0.1); /* Fundal roșu transparent */
+  color: #f87171;
 }
