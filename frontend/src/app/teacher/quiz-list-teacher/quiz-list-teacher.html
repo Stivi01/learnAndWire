@@ -1,14 +1,15 @@
 <div class="quiz-container">
+  <header class="page-header">
+    <div>
+      <h2>Quiz-uri create</h2>
+      <p class="subtitle"> Gestionează quiz-urile tale</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="goToCreateQuiz()">
+      <span class="icon">+</span> Crează Quiz
+    </button>
+  </header>
 
-  <h2>Quiz-uri create</h2>
-
-  <button
-    type="button"
-    class="btn btn-primary"
-    (click)="goToCreateQuiz()"
-  >
-    Crează Quiz
-  </button>
+  
 
   <div class="quiz-card" *ngFor="let q of quizzes()">
     <h3>{{ q.title }}</h3>
