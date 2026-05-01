@@ -90,6 +90,7 @@
 
 /* Ascundem scrollbar-ul pentru un aspect mai curat, dar păstrăm funcționalitatea */
 .menu::-webkit-scrollbar {
+  display: none;
   width: 4px;
 }
 .menu::-webkit-scrollbar-thumb {
