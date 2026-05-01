@@ -48,6 +48,7 @@
             <th>Nume</th>
             <th>Email</th>
             <th>An</th>
+            <th>Acțiuni</th>
           </tr>
         </thead>
         <tbody>
@@ -55,9 +56,65 @@
             <td>{{ student.FirstName }} {{ student.LastName }}</td>
             <td>{{ student.Email }}</td>
             <td>{{ student.AcademicYear }}</td>
+            <td>
+              <button 
+                class="btn-exclude" 
+                (click)="excludeStudent(course.Id, student.Id, student.FirstName + ' ' + student.LastName)"
+                title="Exclude student from course">
+                Exclude
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
+
+      <!-- ⭐ EXCLUDED STUDENTS SECTION -->
+      <div class="excluded-students-section">
+        <button 
+          class="btn-excluded-toggle"
+          (click)="toggleExcludedTab(course.Id)">
+          {{ isExcludedTabExpanded(course.Id) ? '▼' : '▶' }} 
+          Studenți excluși
+        </button>
+
+        <div *ngIf="isExcludedTabExpanded(course.Id)" class="excluded-students-table">
+          <div *ngIf="!course.excludedStudents" class="loading-excluded">
+            Se încarcă studenții excluși...
+          </div>
+
+          <div *ngIf="course.excludedStudents && course.excludedStudents.length === 0" class="no-excluded">
+            <em>Niciun student exclus din acest curs.</em>
+          </div>
+
+          <table *ngIf="course.excludedStudents && course.excludedStudents.length > 0">
+            <thead>
+              <tr>
+                <th>Nume</th>
+                <th>Email</th>
+                <th>Exclus la</th>
+                <th>Quiz-uri susținute</th>
+                <th>Acțiuni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let student of course.excludedStudents">
+                <td>{{ student.FirstName }} {{ student.LastName }}</td>
+                <td>{{ student.Email }}</td>
+                <td>{{ student.ExcludedAt | date:'short' }}</td>
+                <td class="quiz-count">{{ student.QuizAttempts }}</td>
+                <td>
+                  <button 
+                    class="btn-readmit" 
+                    (click)="reIncludeStudent(course.Id, student.Id, student.FirstName + ' ' + student.LastName)"
+                    title="Re-admit student to course">
+                    Readmit
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
     </div>
 

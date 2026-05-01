@@ -9,6 +9,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
   } = createOwnershipHelpers({ getSqlPool });
 
   const { getCoursePublishReadiness } = createPublishReadinessHelpers({ getSqlPool });
+  const { sql } = require('../config/db');
   
   const multer = require('multer');
   const path = require('path');
@@ -150,12 +151,17 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
     try {
       const sqlPool = getSqlPool();
       const enrollmentCheck = await sqlPool.query`
-        SELECT 1 FROM CourseEnrollments
+        SELECT IsExcluded FROM CourseEnrollments
         WHERE CourseId = ${courseId} AND StudentId = ${req.user.id}
       `;
 
       if (enrollmentCheck.recordset.length === 0) {
         return res.status(403).json({ message: 'Acces interzis. Nu ești înscris la acest curs.' });
+      }
+
+      // ⭐ Check if student was excluded
+      if (enrollmentCheck.recordset[0].IsExcluded === 1) {
+        return res.status(403).json({ message: 'Acces interzis. Ai fost exclus din acest curs.' });
       }
 
       const courseResult = await sqlPool.query`
@@ -252,7 +258,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
       const result = await sqlPool.query`
         SELECT c.* FROM Courses c
         INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-        WHERE ce.StudentId = ${req.user.id} AND c.IsPublished = 1
+        WHERE ce.StudentId = ${req.user.id} AND c.IsPublished = 1 AND ce.IsExcluded = ${0}
         ORDER BY c.CreatedAt DESC
       `;
 
@@ -275,10 +281,10 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
       }
 
       const result = await sqlPool.query`
-        SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear
+        SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear, ce.IsExcluded, ce.ExcludedAt
         FROM Users u
         INNER JOIN CourseEnrollments ce ON ce.StudentId = u.Id
-        WHERE ce.CourseId = ${courseId}
+        WHERE ce.CourseId = ${courseId} AND ce.IsExcluded = ${0}
       `;
 
       res.json(result.recordset);
@@ -301,10 +307,10 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
 
       for (const course of courses) {
         const studentsResult = await sqlPool.query`
-          SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear
+          SELECT u.Id, u.FirstName, u.LastName, u.Email, u.AcademicYear, ce.IsExcluded, ce.ExcludedAt
           FROM Users u
           INNER JOIN CourseEnrollments ce ON ce.StudentId = u.Id
-          WHERE ce.CourseId = ${course.Id}
+          WHERE ce.CourseId = ${course.Id} AND ce.IsExcluded = ${0}
         `;
 
         course.students = studentsResult.recordset;
@@ -826,6 +832,295 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Eroare la procesarea invitației.' });
+    }
+  });
+
+  // ⭐ DELETE COURSE ENDPOINT
+  app.delete('/api/courses/:id', protect, restrictTo('Profesor'), async (req, res) => {
+    const courseId = parseInt(req.params.id, 10);
+
+    if (Number.isNaN(courseId)) {
+      return res.status(400).json({ message: 'ID curs invalid.' });
+    }
+
+    try {
+      const sqlPool = getSqlPool();
+
+      // Verifică dacă cursul aparține profesorului
+      const course = await getTeacherOwnedCourse(courseId, req.user.id);
+
+      if (!course) {
+        return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+      }
+
+      const transaction = new sql.Transaction(sqlPool);
+      try {
+        await transaction.begin();
+        const request = transaction.request();
+
+        // Sterge explicit toate datele asociate cursului, pentru a evita erori de referință
+        await request.query`
+          IF OBJECT_ID('dbo.LessonResources','U') IS NOT NULL
+          BEGIN
+            DELETE FROM LessonResources
+            WHERE LessonId IN (
+              SELECT Id FROM CourseLessons
+              WHERE ModuleId IN (
+                SELECT Id FROM CourseModules WHERE CourseId = ${courseId}
+              )
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.LessonProgress','U') IS NOT NULL
+          BEGIN
+            DELETE FROM LessonProgress
+            WHERE LessonId IN (
+              SELECT Id FROM CourseLessons
+              WHERE ModuleId IN (
+                SELECT Id FROM CourseModules WHERE CourseId = ${courseId}
+              )
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.CourseLessons','U') IS NOT NULL
+          BEGIN
+            DELETE FROM CourseLessons
+            WHERE ModuleId IN (
+              SELECT Id FROM CourseModules WHERE CourseId = ${courseId}
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.CourseModules','U') IS NOT NULL
+          BEGIN
+            DELETE FROM CourseModules
+            WHERE CourseId = ${courseId}
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.StudentAnswers','U') IS NOT NULL
+          BEGIN
+            DELETE FROM StudentAnswers
+            WHERE ResultId IN (
+              SELECT Id FROM QuizResults
+              WHERE QuizId IN (
+                SELECT Id FROM CourseQuizzes WHERE CourseId = ${courseId}
+              )
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.QuizOptions','U') IS NOT NULL
+          BEGIN
+            DELETE FROM QuizOptions
+            WHERE QuestionId IN (
+              SELECT Id FROM QuizQuestions
+              WHERE QuizId IN (
+                SELECT Id FROM CourseQuizzes WHERE CourseId = ${courseId}
+              )
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.QuizQuestions','U') IS NOT NULL
+          BEGIN
+            DELETE FROM QuizQuestions
+            WHERE QuizId IN (
+              SELECT Id FROM CourseQuizzes WHERE CourseId = ${courseId}
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.QuizResults','U') IS NOT NULL
+          BEGIN
+            DELETE FROM QuizResults
+            WHERE QuizId IN (
+              SELECT Id FROM CourseQuizzes WHERE CourseId = ${courseId}
+            )
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.CourseQuizzes','U') IS NOT NULL
+          BEGIN
+            DELETE FROM CourseQuizzes
+            WHERE CourseId = ${courseId}
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.CourseSchedule','U') IS NOT NULL
+          BEGIN
+            DELETE FROM CourseSchedule
+            WHERE CourseId = ${courseId}
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.CourseEnrollments','U') IS NOT NULL
+          BEGIN
+            DELETE FROM CourseEnrollments
+            WHERE CourseId = ${courseId}
+          END
+        `;
+
+        await request.query`
+          IF OBJECT_ID('dbo.CourseInvitations','U') IS NOT NULL
+          BEGIN
+            DELETE FROM CourseInvitations
+            WHERE CourseId = ${courseId}
+          END
+        `;
+
+        await request.query`
+          DELETE FROM Courses WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
+        `;
+
+        await transaction.commit();
+        res.json({ message: 'Cursul și toate datele asociate au fost șterse cu succes.' });
+      } catch (transactionError) {
+        try {
+          await transaction.rollback();
+        } catch (rollbackError) {
+          console.error('❌ Transaction rollback failed:', rollbackError);
+        }
+        console.error('❌ Error deleting course in transaction:', transactionError);
+        return res.status(500).json({ message: 'Eroare la ștergerea cursului.' });
+      }
+    } catch (err) {
+      console.error('❌ Error deleting course:', err);
+      res.status(500).json({ message: 'Eroare la ștergerea cursului.' });
+    }
+  });
+
+  // ⭐ EXCLUDE STUDENT FROM COURSE ENDPOINT
+  app.post('/api/courses/:courseId/exclude-student/:studentId', protect, restrictTo('Profesor'), async (req, res) => {
+    const courseId = parseInt(req.params.courseId, 10);
+    const studentId = parseInt(req.params.studentId, 10);
+
+    if (Number.isNaN(courseId) || Number.isNaN(studentId)) {
+      return res.status(400).json({ message: 'ID-uri invalide.' });
+    }
+
+    try {
+      const sqlPool = getSqlPool();
+
+      // Verifică dacă cursul aparține profesorului
+      const course = await getTeacherOwnedCourse(courseId, req.user.id);
+
+      if (!course) {
+        return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+      }
+
+      // Verifică dacă studentul este înrolat în curs
+      const enrollmentResult = await sqlPool.query`
+        SELECT Id FROM CourseEnrollments
+        WHERE CourseId = ${courseId} AND StudentId = ${studentId}
+      `;
+
+      if (enrollmentResult.recordset.length === 0) {
+        return res.status(404).json({ message: 'Studentul nu este înrolat în acest curs.' });
+      }
+
+      // Marcheaza studentul ca exclus (dar nu-l sterge pentru a pastra istoricul quiz-urilor)
+      await sqlPool.query`
+        UPDATE CourseEnrollments
+        SET IsExcluded = ${1}, ExcludedAt = GETDATE(), ExcludedBy = ${req.user.id}
+        WHERE CourseId = ${courseId} AND StudentId = ${studentId}
+      `;
+
+      res.json({ message: 'Studentul a fost exclus din curs. Istoricul quiz-urilor se păstrează.' });
+    } catch (err) {
+      console.error('❌ Error excluding student:', err);
+      res.status(500).json({ message: 'Eroare la excluderea studentului.' });
+    }
+  });
+
+  // ⭐ GET EXCLUDED STUDENTS FROM COURSE
+  app.get('/api/courses/:courseId/excluded-students', protect, restrictTo('Profesor'), async (req, res) => {
+    const courseId = parseInt(req.params.courseId, 10);
+
+    if (Number.isNaN(courseId)) {
+      return res.status(400).json({ message: 'ID curs invalid.' });
+    }
+
+    try {
+      const sqlPool = getSqlPool();
+
+      // Verifică dacă cursul aparține profesorului
+      const course = await getTeacherOwnedCourse(courseId, req.user.id);
+
+      if (!course) {
+        return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+      }
+
+      const result = await sqlPool.query`
+        SELECT u.Id, u.FirstName, u.LastName, u.Email, ce.ExcludedAt, ce.ExcludedBy,
+               (SELECT COUNT(*) FROM QuizResults qr 
+                INNER JOIN CourseQuizzes cq ON qr.QuizId = cq.Id
+                WHERE cq.CourseId = ${courseId} AND qr.StudentId = u.Id) AS QuizAttempts
+        FROM CourseEnrollments ce
+        INNER JOIN Users u ON ce.StudentId = u.Id
+        WHERE ce.CourseId = ${courseId} AND ce.IsExcluded = ${1}
+        ORDER BY ce.ExcludedAt DESC
+      `;
+
+      res.json(result.recordset);
+    } catch (err) {
+      console.error('❌ Error fetching excluded students:', err);
+      res.status(500).json({ message: 'Eroare la preluarea studenților excluși.' });
+    }
+  });
+
+  // ⭐ RE-INCLUDE STUDENT TO COURSE
+  app.post('/api/courses/:courseId/re-include-student/:studentId', protect, restrictTo('Profesor'), async (req, res) => {
+    const courseId = parseInt(req.params.courseId, 10);
+    const studentId = parseInt(req.params.studentId, 10);
+
+    if (Number.isNaN(courseId) || Number.isNaN(studentId)) {
+      return res.status(400).json({ message: 'ID-uri invalide.' });
+    }
+
+    try {
+      const sqlPool = getSqlPool();
+
+      // Verifică dacă cursul aparține profesorului
+      const course = await getTeacherOwnedCourse(courseId, req.user.id);
+
+      if (!course) {
+        return res.status(404).json({ message: 'Cursul nu există sau nu îți aparține.' });
+      }
+
+      // Verifică dacă studentul este exclus
+      const enrollmentResult = await sqlPool.query`
+        SELECT Id FROM CourseEnrollments
+        WHERE CourseId = ${courseId} AND StudentId = ${studentId} AND IsExcluded = ${1}
+      `;
+
+      if (enrollmentResult.recordset.length === 0) {
+        return res.status(404).json({ message: 'Studentul nu este exclus din acest curs.' });
+      }
+
+      // Readmite studentul
+      await sqlPool.query`
+        UPDATE CourseEnrollments
+        SET IsExcluded = ${0}, ExcludedAt = NULL, ExcludedBy = NULL
+        WHERE CourseId = ${courseId} AND StudentId = ${studentId}
+      `;
+
+      res.json({ message: 'Studentul a fost readmis în curs.' });
+    } catch (err) {
+      console.error('❌ Error re-including student:', err);
+      res.status(500).json({ message: 'Eroare la readmiterea studentului.' });
     }
   });
 }

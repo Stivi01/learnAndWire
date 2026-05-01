@@ -41,7 +41,7 @@ function registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           FROM Users u
           INNER JOIN Courses c ON c.CreatedBy = u.Id
           INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-          WHERE ce.StudentId = @studentId
+          WHERE ce.StudentId = @studentId AND ce.IsExcluded = 0
         `);
 
       const teachers = result.recordset.map((teacher) => ({

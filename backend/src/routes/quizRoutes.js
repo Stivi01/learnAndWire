@@ -327,7 +327,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         FROM CourseQuizzes q
         INNER JOIN Courses c ON c.Id = q.CourseId
         INNER JOIN CourseEnrollments ce ON ce.CourseId = q.CourseId AND ce.StudentId = ${studentId}
-        WHERE q.IsPublished = 1 AND c.IsPublished = 1
+        WHERE q.IsPublished = 1 AND c.IsPublished = 1 AND ce.IsExcluded = ${0}
         ORDER BY q.ScheduledAt ASC, q.CreatedAt DESC
       `;
 
@@ -381,12 +381,26 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         });
       }
 
+      // ⭐ Check if student is excluded from the course
+      const exclusionCheck = await sqlPool.query`
+        SELECT ce.IsExcluded
+        FROM CourseEnrollments ce
+        INNER JOIN CourseQuizzes cq ON cq.CourseId = ce.CourseId
+        WHERE cq.Id = ${quizId} AND ce.StudentId = ${studentId}
+      `;
+
+      if (exclusionCheck.recordset.length > 0 && exclusionCheck.recordset[0].IsExcluded === 1) {
+        return res.status(403).json({ 
+          message: 'Nu ai acces la acest test deoarece ai fost exclus din curs.' 
+        });
+      }
+
       const accessResult = await sqlPool.query`
         SELECT q.*
         FROM CourseQuizzes q
         INNER JOIN Courses c ON c.Id = q.CourseId
         INNER JOIN CourseEnrollments ce ON ce.CourseId = q.CourseId AND ce.StudentId = ${studentId}
-        WHERE q.Id = ${quizId} AND q.IsPublished = 1 AND c.IsPublished = 1
+        WHERE q.Id = ${quizId} AND q.IsPublished = 1 AND c.IsPublished = 1 AND ce.IsExcluded = ${0}
       `;
 
       if (accessResult.recordset.length === 0) {
@@ -436,12 +450,27 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
     try {
       const sqlPool = getSqlPool();
+
+      // ⭐ Check if student is excluded from the course
+      const exclusionCheck = await sqlPool.query`
+        SELECT ce.IsExcluded
+        FROM CourseEnrollments ce
+        INNER JOIN CourseQuizzes cq ON cq.CourseId = ce.CourseId
+        WHERE cq.Id = ${quizId} AND ce.StudentId = ${req.user.id}
+      `;
+
+      if (exclusionCheck.recordset.length > 0 && exclusionCheck.recordset[0].IsExcluded === 1) {
+        return res.status(403).json({ 
+          message: 'Nu poți trimite răspunsuri pentru acest test deoarece ai fost exclus din curs.' 
+        });
+      }
+
       const accessResult = await sqlPool.query`
         SELECT q.*
         FROM CourseQuizzes q
         INNER JOIN Courses c ON c.Id = q.CourseId
         INNER JOIN CourseEnrollments ce ON ce.CourseId = q.CourseId AND ce.StudentId = ${req.user.id}
-        WHERE q.Id = ${quizId} AND q.IsPublished = 1 AND c.IsPublished = 1
+        WHERE q.Id = ${quizId} AND q.IsPublished = 1 AND c.IsPublished = 1 AND ce.IsExcluded = ${0}
       `;
 
       if (accessResult.recordset.length === 0) {

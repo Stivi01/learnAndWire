@@ -165,5 +165,39 @@ export class Course {
     );
   }
 
+  // ⭐ EXCLUDE STUDENT FROM COURSE
+  excludeStudentFromCourse(courseId: number, studentId: number): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.post(
+      `${this.apiUrl}/courses/${courseId}/exclude-student/${studentId}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+  }
 
+  // ⭐ RE-INCLUDE STUDENT TO COURSE
+  reIncludeStudentToCourse(courseId: number, studentId: number): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.post(
+      `${this.apiUrl}/courses/${courseId}/re-include-student/${studentId}`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+  }
+
+  // ⭐ GET EXCLUDED STUDENTS
+  getExcludedStudents(courseId: number): Observable<any[]> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.get<any[]>(
+      `${this.apiUrl}/courses/${courseId}/excluded-students`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+  }
 }
+

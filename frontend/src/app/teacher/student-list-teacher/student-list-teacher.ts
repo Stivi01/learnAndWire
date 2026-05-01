@@ -3,6 +3,7 @@ import { Course } from '../../core/services/course';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ToastService } from '../../core/services/toast';
 
 @Component({
   selector: 'app-student-list-teacher',
@@ -19,8 +20,13 @@ export class StudentListTeacher implements OnInit{
   sortDirection = signal<'asc' | 'desc'>('asc');
 
   expandedCourses = signal<Set<number>>(new Set());
+  expandedExcludedTab = signal<Set<number>>(new Set()); // ⭐ Track expanded excluded tabs
 
-  constructor(private courseService: Course, private router : Router) {}
+  constructor(
+    private courseService: Course, 
+    private router : Router,
+    private toast: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.courseService.getCoursesWithStudents().subscribe({
@@ -45,6 +51,83 @@ export class StudentListTeacher implements OnInit{
 
   isExpanded(courseId: number) {
     return this.expandedCourses().has(courseId);
+  }
+
+  // ⭐ Toggle excluded students tab
+  toggleExcludedTab(courseId: number) {
+    const set = new Set(this.expandedExcludedTab());
+    set.has(courseId) ? set.delete(courseId) : set.add(courseId);
+    this.expandedExcludedTab.set(set);
+
+    // Load excluded students if not already loaded
+    const course = this.courses().find(c => c.Id === courseId);
+    if (course && !course.excludedStudents) {
+      this.loadExcludedStudents(courseId);
+    }
+  }
+
+  isExcludedTabExpanded(courseId: number) {
+    return this.expandedExcludedTab().has(courseId);
+  }
+
+  // ⭐ Load excluded students for a course
+  loadExcludedStudents(courseId: number) {
+    this.courseService.getExcludedStudents(courseId).subscribe({
+      next: excludedStudents => {
+        const courses = this.courses();
+        const course = courses.find(c => c.Id === courseId);
+        if (course) {
+          course.excludedStudents = excludedStudents;
+          this.courses.set([...courses]);
+        }
+      },
+      error: err => {
+        console.error('Error loading excluded students:', err);
+        this.toast.show('Eroare la preluarea studenților excluși.', 'error');
+      }
+    });
+  }
+
+  // ⭐ Exclude student from course
+  excludeStudent(courseId: number, studentId: number, studentName: string) {
+    if (!confirm(`Sigur dorești să excludi ${studentName} din acest curs?`)) {
+      return;
+    }
+
+    this.courseService.excludeStudentFromCourse(courseId, studentId).subscribe({
+      next: () => {
+        this.toast.show(`${studentName} a fost exclus din curs.`, 'success');
+        // Reload the courses
+        this.ngOnInit();
+      },
+      error: err => {
+        console.error('Error excluding student:', err);
+        const message = err?.error?.message || 'Eroare la excluderea studentului.';
+        this.toast.show(message, 'error');
+      }
+    });
+  }
+
+  // ⭐ Re-include student to course
+  reIncludeStudent(courseId: number, studentId: number, studentName: string) {
+    if (!confirm(`Sigur dorești să readmiti ${studentName} în acest curs?`)) {
+      return;
+    }
+
+    this.courseService.reIncludeStudentToCourse(courseId, studentId).subscribe({
+      next: () => {
+        this.toast.show(`${studentName} a fost readmis în curs.`, 'success');
+        // Reload excluded students
+        this.loadExcludedStudents(courseId);
+        // Reload all courses
+        this.ngOnInit();
+      },
+      error: err => {
+        console.error('Error re-including student:', err);
+        const message = err?.error?.message || 'Eroare la readmiterea studentului.';
+        this.toast.show(message, 'error');
+      }
+    });
   }
 
   getFilteredStudents(students: any[]) {

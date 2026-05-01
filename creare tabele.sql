@@ -158,3 +158,17 @@ CREATE TABLE StudentAnswers (
     FOREIGN KEY (QuestionId) REFERENCES QuizQuestions(Id),
     FOREIGN KEY (OptionId) REFERENCES QuizOptions(Id)
 );
+
+-- ⭐ Migration: Track excluded students with history
+ALTER TABLE CourseEnrollments
+ADD IsExcluded BIT DEFAULT 0;
+
+ALTER TABLE CourseEnrollments
+ADD ExcludedAt DATETIME NULL;
+
+ALTER TABLE CourseEnrollments
+ADD ExcludedBy INT NULL;
+
+ALTER TABLE CourseEnrollments
+ADD CONSTRAINT FK_CourseEnrollments_ExcludedBy
+FOREIGN KEY (ExcludedBy) REFERENCES Users(Id);

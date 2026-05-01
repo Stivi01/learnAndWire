@@ -137,7 +137,7 @@ function registerScheduleRoutes(app, { getSqlPool, protect, restrictTo }) {
         INNER JOIN Courses c ON c.Id = cs.CourseId
         INNER JOIN Users u ON u.Id = c.CreatedBy
         INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-        WHERE ce.StudentId = ${studentId}
+        WHERE ce.StudentId = ${studentId} AND ce.IsExcluded = ${0}
         ORDER BY cs.DayOfWeek, cs.StartTime
       `;
 
@@ -159,7 +159,7 @@ function registerScheduleRoutes(app, { getSqlPool, protect, restrictTo }) {
         INNER JOIN Courses c ON c.Id = cs.CourseId
         INNER JOIN Users u ON u.Id = c.CreatedBy
         INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id
-        WHERE ce.StudentId = ${studentId}
+        WHERE ce.StudentId = ${studentId} AND ce.IsExcluded = ${0}
         ORDER BY cs.DayOfWeek, cs.StartTime
       `;
 

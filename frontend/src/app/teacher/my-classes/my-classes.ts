@@ -34,29 +34,39 @@ export class MyClasses implements OnInit{
   ) {}
 
   ngOnInit(): void {
+    this.subscribeOnNavigation();
+    this.loadCourses();
+  }
+
+  private subscribeOnNavigation() {
     this.router.events
       .pipe(
-        startWith(new NavigationEnd(0, this.router.url, this.router.url)),
         filter(event => event instanceof NavigationEnd),
-        switchMap(() => this.authService.currentUser$),
-        filter(user => !!user),
-        switchMap(user => {
-          this.loading.set(true);
-          return this.courseService.getCoursesByTeacher(user!.id, this.authService.getToken()!);
-        }),
+        startWith(new NavigationEnd(0, this.router.url, this.router.url)),
         takeUntil(this.destroy$)
       )
-      .subscribe({
-        next: courses => {
-          this.courses.set(courses);
-          this.loading.set(false);
-        },
-        error: err => {
-          console.error(err);
-          this.error.set('Nu s-au putut încărca cursurile.');
-          this.loading.set(false);
-        }
-      });
+      .subscribe(() => this.loadCourses());
+  }
+
+  private loadCourses() {
+    const user = this.authService.currentUserValue;
+    if (!user) {
+      this.loading.set(false);
+      return;
+    }
+
+    this.loading.set(true);
+    this.courseService.getCoursesByTeacher(user.id, this.authService.getToken()!).subscribe({
+      next: courses => {
+        this.courses.set(courses);
+        this.loading.set(false);
+      },
+      error: err => {
+        console.error(err);
+        this.error.set('Nu s-au putut încărca cursurile.');
+        this.loading.set(false);
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -110,6 +120,24 @@ export class MyClasses implements OnInit{
   scheduleCourse(course: CourseItem) {
     this.courseScheduleService.setSelectedCourse(course);
     this.router.navigate(['/teacher/course-schedule']);
+  }
+
+  deleteCourse(courseId: number) {
+    if (!confirm('Sigur dorești să ștergi acest curs? Această acțiune este ireversibilă.')) {
+      return;
+    }
+
+    this.courseService.deleteCourse(courseId).subscribe({
+      next: () => {
+        this.toast.show('Cursul a fost șters cu succes.', 'success');
+        this.loadCourses();
+      },
+      error: err => {
+        console.error('Error deleting course:', err);
+        const message = err?.error?.message || 'Eroare la ștergerea cursului.';
+        this.toast.show(message, 'error');
+      }
+    });
   }
 
   goToAddCourse() {
