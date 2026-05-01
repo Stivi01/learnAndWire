@@ -14,7 +14,7 @@
       Sortează după an ({{ sortDirection() === 'asc' ? '↑' : '↓' }})
     </button>
 
-    <button (click)="exportAllCSV()">
+    <button class="btn-exportCSV" (click)="exportAllCSV()">
       Export CSV total
     </button>
 
@@ -34,7 +34,7 @@
 
     <div *ngIf="isExpanded(course.Id)" class="students-section">
 
-      <button (click)="exportCourseCSV(course)">
+      <button class="btn-exportCSV" (click)="exportCourseCSV(course)">
         Export CSV curs
       </button>
 

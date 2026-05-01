@@ -1,178 +1,254 @@
+/* Containerul Principal */
 .container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  font-family: 'Inter', -apple-system, sans-serif;
-  color: #1e293b;
-  padding: 0 1rem;
-
-  h2 {
-    font-size: 1.8rem;
-    font-weight: 800;
-    margin-bottom: 1.5rem;
-    color: #0f172a;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    
-    &::before {
-      content: '';
-      width: 4px;
-      height: 24px;
-      background: #3b82f6;
-      border-radius: 4px;
-    }
-  }
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #334155;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
-// --- Bara de Control (Search & Buttons) ---
+h2 {
+  color: #0f172a;
+  font-size: 1.75rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+/* --- CONTROALE SUPERIOARE --- */
 .top-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
   background: white;
-  padding: 1rem;
+  padding: 1.25rem;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
-  input[type="text"] {
-    flex: 1;
-    min-width: 250px;
-    padding: 10px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: all 0.2s;
-
-    &:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-  }
-
-  button {
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid #e2e8f0;
-    background: white;
-    color: #475569;
-
-    &:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-    }
-
-    // Stil special pentru Invită Studenți
-    &:last-child {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      &:hover { background: #2563eb; }
-    }
-  }
+  align-items: center;
 }
 
-// --- Cardurile de Curs (Accordion) ---
+.top-controls input[type="text"] {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.top-controls input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.top-controls button {
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #475569;
+}
+
+.top-controls button:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* Butonul de Invită (Primary) */
+.top-controls button:last-of-type {
+  background: #6366f1;
+  color: white;
+  border: none;
+}
+
+.top-controls button:last-of-type:hover {
+  background: #4f46e5;
+}
+
+/* --- CARD CURS --- */
 .course-card {
   background: white;
-  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-
-  .course-header {
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    background: #ffffff;
-
-    h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #1e293b;
-    }
-
-    span {
-      background: #eff6ff;
-      color: #3b82f6;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-  }
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-// --- Secțiunea de Studenți (Expanded) ---
+.course-header {
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.course-header:hover {
+  background: #f8fafc;
+}
+
+.course-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1e293b;
+}
+
+.course-header span {
+  background: #e0e7ff;
+  color: #4f46e5;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* --- SECȚIUNE STUDENȚI --- */
 .students-section {
-  padding: 0 1.5rem 1.5rem 1.5rem;
+  padding: 1.5rem;
   border-top: 1px solid #f1f5f9;
-  background: #fafafa;
-
-  button {
-    margin: 1rem 0;
-    background: transparent;
-    border: 1px dashed #cbd5e1;
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    border-radius: 6px;
-    cursor: pointer;
-    &:hover { background: #f1f5f9; }
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 0.5rem;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-
-    th {
-      text-align: left;
-      background: #f8fafc;
-      padding: 12px 16px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #64748b;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    td {
-      padding: 12px 16px;
-      font-size: 0.95rem;
-      border-bottom: 1px solid #f1f5f9;
-      color: #334155;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      background: #fcfcfc;
-    }
-  }
+  background: #fcfdfe;
 }
 
-.state-msg {
-  padding: 2rem;
+/* Tabel general */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+th {
+  background: #f8fafc;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+tr:hover td {
+  background: #f8fafc;
+}
+
+/* Butoane Acțiuni în Tabel */
+.btn-exclude {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-exclude:hover {
+  background: #ffe4e6;
+  border-color: #fb7185;
+}
+
+.btn-exportCSV {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-exportCSV:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
+}
+
+.btn-readmit {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-readmit:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
+}
+
+/* --- STUDENȚI EXCLUȘI --- */
+.excluded-students-section {
+  margin-top: 2rem;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 1rem;
+}
+
+.btn-excluded-toggle {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.btn-excluded-toggle:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.excluded-students-table {
+  margin-top: 1rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.quiz-count {
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.loading-excluded, .no-excluded {
+  padding: 1.5rem;
   text-align: center;
   color: #94a3b8;
   font-style: italic;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsivitate */
+@media (max-width: 1024px) {
+  table {
+    display: block;
+    overflow-x: auto;
+  }
 }
