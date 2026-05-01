@@ -44,7 +44,7 @@
         <div class="module-section" *ngFor="let module of course.modules">
           <div class="module-header">
             <h4>{{ module.Title }}</h4>
-            <button class="btn-small" (click)="addLesson(module.Id, course)">+ Subcapitol</button>
+            <button class="btn-text" (click)="addLesson(module.Id, course)">+ Subcapitol</button>
           </div>
 
           <div class="lessons-list">
