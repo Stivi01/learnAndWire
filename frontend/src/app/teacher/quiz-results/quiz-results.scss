@@ -1,71 +1,202 @@
+/* Containerul Principal */
 .results-container {
-  padding: 2rem;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #334155;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
 
-  .header { margin-bottom: 2rem; h1 { color: #2c3e50; } p { color: #7f8c8d; } }
+/* --- HEADER --- */
 
-  .quiz-list {
-    display: flex;
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.page-header h2 {
+  color: #0f172a;
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
+}
+
+/* Starea de încărcare */
+.loader {
+  padding: 3rem;
+  text-align: center;
+  color: #64748b;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+}
+
+/* --- LISTA DE QUIZ-URI --- */
+.quiz-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.quiz-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.quiz-card.active {
+  border-color: #6366f1;
+  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1);
+}
+
+/* Card Header (Clickable) */
+.quiz-header {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.quiz-header:hover {
+  background: #f8fafc;
+}
+
+.quiz-header .info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quiz-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+}
+
+.count-badge {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.quiz-header i {
+  color: #94a3b8;
+  transition: transform 0.3s;
+}
+
+.active .quiz-header i {
+  color: #6366f1;
+}
+
+/* --- TABEL REZULTATE --- */
+.quiz-content {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  background: #ffffff;
+  animation: slideDown 0.3s ease-out;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+}
+
+.students-table th {
+  background: #f8fafc;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.students-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.students-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Info Student */
+.st-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.st-email {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* Scor și Procentaj */
+.students-table td strong {
+  color: #1e293b;
+}
+
+.pass {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.fail {
+  color: #f43f5e;
+  font-weight: 700;
+}
+
+/* Animație */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsivitate */
+@media (max-width: 768px) {
+  .students-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .quiz-header {
     flex-direction: column;
+    align-items: flex-start;
     gap: 1rem;
   }
-
-  .quiz-card {
-    background: white;
-    border: 1px solid #e1e8ed;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-
-    &.active {
-      border-color: #3498db;
-      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
-    }
-  }
-
-  .quiz-header {
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    background: #fff;
-    &:hover { background: #f8f9fa; }
-
-    .info {
-      h3 { margin: 0.5rem 0; font-size: 1.2rem; color: #2c3e50; }
-      .course-badge {
-        background: #eef2f7;
-        color: #5d6d7e;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-      }
-      .count-badge { font-size: 0.85rem; color: #3498db; font-weight: 500; }
-    }
-  }
-
-  .quiz-content {
-    padding: 0 1.5rem 1.5rem;
-    border-top: 1px solid #f1f1f1;
-    background: #fafbfc;
-
-    .students-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-
-      th { text-align: left; padding: 12px; color: #95a5a6; font-size: 0.85rem; border-bottom: 1px solid #eee; }
-      td { padding: 12px; border-bottom: 1px solid #f1f1f1; font-size: 0.9rem; }
-
-      .st-name { font-weight: 600; color: #2d3436; }
-      .st-email { font-size: 0.8rem; color: #636e72; }
-      .pass { color: #27ae60; font-weight: bold; }
-      .fail { color: #e74c3c; font-weight: bold; }
-    }
+  
+  .quiz-header i {
+    align-self: flex-end;
   }
 }
