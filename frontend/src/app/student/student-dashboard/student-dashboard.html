@@ -36,11 +36,17 @@
           <div class="event-meta">
             <div class="e-course">📘 {{ e.courseTitle }}</div>
             <div class="e-title">{{ e.title }}</div>
-            <div class="e-sub"><span>{{ e.date }}</span> · <strong>{{ e.time }}</strong></div>
-          </div>
+            <div class="e-sub">
+              <span>{{ e.date }}</span> · <strong>{{ e.time }}</strong>
+            </div>
+
+              <div class="e-status" *ngIf="e.status">
+                {{ e.status }}
+              </div>         
+             </div>
         </div>
         <a *ngIf="hasMoreQuizEvents()" class="see-more" (click)="isAllEventsModalOpen.set(true)">See more ></a>
-        <div *ngIf="quizEvents().length === 0">Nu există quiz-uri programate.</div>
+        
       </div>
 
       <!-- CALENDAR & SCHEDULE -->

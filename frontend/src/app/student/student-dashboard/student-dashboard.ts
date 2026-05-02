@@ -8,6 +8,7 @@ import { CourseSchedules } from '../../core/services/course-schedules';
 import { Subject, catchError, of, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
 import { parseLocalDateTime } from '../../shared/utils/date-utils';
+import { Homework } from '../../core/services/homework';
 
 interface Lesson {
   day: number;
@@ -31,6 +32,7 @@ export class StudentDashboard implements OnDestroy {
   private auth = inject(AuthService);
   private userService = inject(User);
   private quizService = inject(Quiz);
+  private homeworkService = inject(Homework);
   private courseScheduleService = inject(CourseSchedules);
   private router = inject(Router);
 
@@ -57,6 +59,7 @@ export class StudentDashboard implements OnDestroy {
   // EVENTS
   upcomingQuizzes = signal<any[]>([]);
   upcomingSchedules = signal<any[]>([]);
+  upcomingHomeworks = signal<any[]>([]);
 
   quizEvents = computed(() =>
     this.upcomingQuizzes().map(q => {
@@ -72,9 +75,34 @@ export class StudentDashboard implements OnDestroy {
     })
   );
 
-  allEvents = computed(() =>
-    [...this.quizEvents(), ...this.upcomingSchedules()].sort((a, b) => a.timestamp - b.timestamp)
+  homeworkEvents = computed(() =>
+    this.upcomingHomeworks().map(hw => {
+      const dateObj = new Date(hw.dueAt);
+
+      let status = '';
+      if (hw.submissionId) status = '✔ Trimis';
+      else if (hw.isLate) status = '❌ Nefinalizată la termen';
+      else status = '⏳ În curs';
+
+      return {
+        courseTitle: hw.courseTitle,
+        title: hw.title,
+        date: dateObj.toLocaleDateString('ro-RO'),
+        time: dateObj.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+        emoji: '📝',
+        timestamp: dateObj.getTime(),
+        status
+      };
+    })
   );
+
+  allEvents = computed(() =>
+  [
+    ...this.quizEvents(),
+    ...this.upcomingSchedules(),
+    ...this.homeworkEvents()
+  ].sort((a, b) => a.timestamp - b.timestamp)
+);
 
   eventDisplayLimit = 4;
   visibleQuizEvents = computed(() => this.allEvents().slice(0, this.eventDisplayLimit));
@@ -96,6 +124,7 @@ export class StudentDashboard implements OnDestroy {
     this.loadUpcomingQuizzes();
     this.loadStudentSchedules();
     this.loadUpcomingSchedules();
+    this.loadStudentHomeworks();
   }
 
   // --- TEACHERS ---
@@ -170,6 +199,24 @@ export class StudentDashboard implements OnDestroy {
           return aDate.getTime() - bDate.getTime();
         });
       this.upcomingQuizzes.set(upcoming);
+    });
+  }
+
+  loadStudentHomeworks() {
+    if (!this.auth.isLoggedIn()) return;
+
+    this.homeworkService.getStudentHomeworks().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        if (err.status === 401) {
+          this.auth.logout();
+          this.router.navigate(['/login']);
+        }
+        console.error('Failed to load homeworks', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.upcomingHomeworks.set(data);
     });
   }
 
