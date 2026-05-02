@@ -63,6 +63,18 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+.quiz-header {
+      margin-bottom: 15px;
+      .course-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+      }
+    }
+
 .quiz-card h3 {
   margin: 0 0 0.5rem 0;
   color: #1e293b;

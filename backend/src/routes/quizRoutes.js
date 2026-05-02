@@ -94,9 +94,13 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
     try {
       const sqlPool = getSqlPool();
       const result = await sqlPool.query`
-        SELECT * FROM CourseQuizzes
-        WHERE CreatedBy = ${req.user.id}
-        ORDER BY CreatedAt DESC
+        SELECT 
+          q.*,
+          c.Title AS CourseTitle
+        FROM CourseQuizzes q
+        INNER JOIN Courses c ON c.Id = q.CourseId
+        WHERE q.CreatedBy = ${req.user.id}
+        ORDER BY q.CreatedAt DESC
       `;
 
       res.json(result.recordset);

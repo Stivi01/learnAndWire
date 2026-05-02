@@ -12,6 +12,9 @@
   
 
   <div class="quiz-card" *ngFor="let q of quizzes()">
+    <div class="quiz-header">
+        <span class="course-badge">{{ q.courseTitle }}</span>
+      </div>
     <h3>{{ q.title }}</h3>
     <p>{{ q.description }}</p>
     <p *ngIf="q.scheduledAt">

@@ -8,6 +8,7 @@ export interface QuizData {
   isPublished: boolean;
   scheduledAt?: string | null;
   closedAt?: string | null;
+  courseTitle?: string;
 }
 
 export interface QuizQuestion {

@@ -49,6 +49,7 @@ export class Quiz {
   isPublished?: boolean;
   scheduledAt?: string | null;
   closedAt?: string | null;
+  courseTitle?: string;
 }): Observable<QuizData> {
 
   return this.http.post<any>(`${this.api}`, data, this.headers()).pipe(
@@ -93,7 +94,8 @@ export class Quiz {
         createdBy: q.CreatedBy,
         isPublished: q.IsPublished,
         scheduledAt: q.ScheduledAt,
-        closedAt: q.ClosedAt
+        closedAt: q.ClosedAt,
+        courseTitle: q.CourseTitle
       })))
     );
   }
