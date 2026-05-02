@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth';
+import { Homework } from '../../core/services/homework';
 
 interface CourseWithStudents {
   Id: number;
@@ -28,12 +29,13 @@ interface Quiz {
 export class TeacherDashboard {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private homeworkService = inject(Homework);
 
   // Statistici
   totalCourses = signal(0);
   totalStudents = signal(0);
   totalQuizzes = signal(0);
-  pendingAssignments = signal(0);
+  totalHomeworks = signal(0);
 
   // Date pentru afișare
   recentCourses = signal<CourseWithStudents[]>([]);
@@ -73,7 +75,10 @@ export class TeacherDashboard {
       error: () => console.error('Failed to load quizzes')
     });
 
-    this.pendingAssignments.set(5);
+
+    this.homeworkService.getTeacherHomeworks().subscribe((data) => {
+      this.totalHomeworks.set(data.length);
+    });
     this.isLoading.set(false);
   }
 
