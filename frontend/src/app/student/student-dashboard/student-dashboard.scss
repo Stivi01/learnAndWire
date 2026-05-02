@@ -350,6 +350,41 @@
   color: #ffffff;
 }
 
+.stats-mini {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.stat {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+}
+
+.stat-label {
+  font-size: 12px;
+  opacity: 0.8;
+  padding-left: 6px;
+}
+
+.stat.danger .stat-number {
+  color: #ff6b6b;
+}
+
+.stat.warning .stat-number {
+  color: #ffb347;
+}
+
+.stat.success .stat-number {
+  color: #68e0c6;
+}
+
 /* --- MODALE --- */
 .modal-backdrop {
   position: fixed;

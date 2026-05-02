@@ -99,43 +99,61 @@
     <!-- RIGHT COLUMN -->
     <aside class="right-column">
       <div class="card card-purple">
-        <h2>Attendance</h2>
+        <h2>Homework Status</h2>
+
+        <div class="stats-mini">
+          <div class="stat warning">
+            <div class="stat-number">{{ pendingHomeworks() }}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+
+          <div class="stat danger">
+            <div class="stat-number">{{ overdueHomeworks() }}</div>
+            <div class="stat-label">Overdue</div>
+          </div>
+          <div class="stat success">
+            <div class="stat-number">{{ submittedHomeworks() }}</div>
+            <div class="stat-label">Completed</div>
+          </div>
+        </div>
+      </div>
+      <div class="card card-purple">
+        <h2>Homework Completion</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(attendance(), '#FF6B9A') }">
-            <span>{{ attendance() }}%</span>
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homeworkCompletion(), '#FF6B9A') }">
+            <span>{{ homeworkCompletion() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
       </div>
       <div class="card card-purple">
-        <h2>Homework</h2>
+        <h2>On-time submissions</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homework(), '#68E0C6') }">
-            <span>{{ homework() }}%</span>
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(onTimeRate(), '#68E0C6') }">
+            <span>{{ onTimeRate() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
         <a class="see-more white" (click)="goToHomeworks()">Vezi teme &gt;</a>
       </div>
       <div class="card card-purple">
-        <h2>Rating</h2>
+        <h2>Average Grade Percentage</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(rating(), '#FFD36B') }">
-            <span>{{ rating() }}%</span>
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(averageGrade(), '#FFD36B') }">
+            <span>{{ averageGrade() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
         <a class="see-more white" href="#">See more &gt;</a>
       </div>
       <div class="card card-purple">
-        <h2>Homework</h2>
+        <h2>Student Performance Score</h2>
         <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homework(), '#68E0C6') }">
-            <span>{{ homework() }}%</span>
+          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(studentPerformanceScore(), '#FF6B9A') }">
+            <span>{{ studentPerformanceScore() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
-        <a class="see-more white" (click)="goToHomeworks()">Vezi teme &gt;</a>
       </div>
     </aside>
 

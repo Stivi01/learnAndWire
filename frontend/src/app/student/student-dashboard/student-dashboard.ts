@@ -97,12 +97,95 @@ export class StudentDashboard implements OnDestroy {
   );
 
   allEvents = computed(() =>
-  [
-    ...this.quizEvents(),
-    ...this.upcomingSchedules(),
-    ...this.homeworkEvents()
-  ].sort((a, b) => a.timestamp - b.timestamp)
-);
+    [
+      ...this.quizEvents(),
+      ...this.upcomingSchedules(),
+      ...this.homeworkEvents()
+    ].sort((a, b) => a.timestamp - b.timestamp)
+  );
+
+  homeworkCompletion = computed(() => {
+    const hw = this.upcomingHomeworks();
+
+    if (hw.length === 0) return 0;
+
+    const submitted = hw.filter(h => h.submissionId).length;
+
+    return Math.round((submitted / hw.length) * 100);
+  });
+
+  onTimeRate = computed(() => {
+    const total = this.upcomingHomeworks().length;
+
+    const onTime = this.upcomingHomeworks().filter(h =>
+      h.submissionId && !h.isLate
+    ).length;
+
+    return Math.round((onTime / total) * 100);
+  });
+
+  averageGrade = computed(() => {
+    const graded = this.upcomingHomeworks()
+      .filter(h => h.grade != null && h.maxPoints != null);
+
+    const total = graded.reduce((sum, h) => sum + h.grade, 0);
+    const max = graded.reduce((sum, h) => sum + h.maxPoints, 0);
+
+    return max === 0 ? 0 : Math.round((total / max) * 100);
+  });
+
+  pendingHomeworks = computed(() => {
+    const now = new Date();
+
+    return this.upcomingHomeworks().filter(h =>
+      !h.submissionId && new Date(h.dueAt) >= now
+    ).length;
+  });
+
+  overdueHomeworks = computed(() => {
+    const now = new Date();
+
+    return this.upcomingHomeworks().filter(h =>
+      !h.submissionId && new Date(h.dueAt) < now
+    ).length;
+  });
+
+  submittedHomeworks = computed(() => {
+    return this.upcomingHomeworks().filter(h =>
+      !!h.submissionId
+    ).length;
+  });
+
+  studentPerformanceScore = computed(() => {
+    const hw = this.upcomingHomeworks();
+
+    if (!hw.length) return 0;
+
+    // 1. completare teme
+    const completion = hw.filter(h => h.submissionId).length / hw.length;
+
+    // 2. punctualitate
+    const onTime = hw.filter(h => h.submissionId && !h.isLate).length;
+    const onTimeRate = hw.length ? onTime / hw.length : 0;
+
+    // 3. note (dacă există)
+    const graded = hw.filter(h => h.grade != null && h.maxPoints != null);
+
+    let gradeRate = 0;
+    if (graded.length) {
+      const total = graded.reduce((sum, h) => sum + h.grade, 0);
+      const max = graded.reduce((sum, h) => sum + h.maxPoints, 0);
+      gradeRate = max ? total / max : 0;
+    }
+
+    // scor ponderat
+    const score =
+      completion * 0.4 +
+      onTimeRate * 0.3 +
+      gradeRate * 0.3;
+
+    return Math.round(score * 100);
+  });
 
   eventDisplayLimit = 4;
   visibleQuizEvents = computed(() => this.allEvents().slice(0, this.eventDisplayLimit));
