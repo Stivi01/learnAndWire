@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth';
 import { CommonModule } from '@angular/common';
 import { CourseSchedules } from '../../core/services/course-schedules';
 import { parseLocalDateTime } from '../../shared/utils/date-utils';
+import { Homework } from '../../core/services/homework';
 
 @Component({
   selector: 'app-teacher-calendar',
@@ -18,6 +19,7 @@ export class TeacherCalendar {
   schedules = signal<any[]>([]);
   selectedDate = signal<Date>(new Date());
   currentMonth = signal<Date>(new Date());
+  homeworks = signal<any[]>([]);
   rawSchedules: any[] = [];
 
   // Zilele lunii curente pentru grid
@@ -59,7 +61,18 @@ export class TeacherCalendar {
     });
   });
 
-  constructor(private quizService: Quiz, private courseScheduleService: CourseSchedules, private auth: AuthService) {}
+  homeworksForSelectedDate = computed(() => {
+    const sel = this.selectedDate();
+
+    return this.homeworks().filter(h => {
+      if (!h.dueAt) return false;
+      const d = new Date(h.dueAt);
+
+      return d.toDateString() === sel.toDateString();
+    });
+  });
+
+  constructor(private quizService: Quiz, private courseScheduleService: CourseSchedules, private homeworkService: Homework, private auth: AuthService) {}
 
   ngOnInit() {
     const user = this.auth.currentUserValue;
@@ -76,6 +89,10 @@ export class TeacherCalendar {
     this.courseScheduleService.getCoursesWithSchedules().subscribe(data => {
       this.rawSchedules = data;
       this.loadSchedules(data);
+    });
+
+    this.homeworkService.getTeacherHomeworks().subscribe(data => {
+      this.homeworks.set(data);
     });
   }
   selectDate(day: Date | null) {
@@ -95,6 +112,17 @@ export class TeacherCalendar {
     return this.schedules().some(s => {
       // s.Date este deja Date
       return (s.Date as Date).toDateString() === day.toDateString();
+    });
+  }
+
+  hasHomework(day: Date | null): boolean {
+    if (!day) return false;
+
+    return this.homeworks().some(h => {
+      if (!h.dueAt) return false;
+      const d = new Date(h.dueAt);
+
+      return d.toDateString() === day.toDateString();
     });
   }
 

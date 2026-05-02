@@ -33,6 +33,8 @@
           <!-- în calendar grid -->
           <span *ngIf="hasSchedule(day)" class="schedule-dot"></span>
 
+          <span *ngIf="hasHomework(day)" class="homework-dot"></span>
+
         </div>
       }
     </div>
@@ -52,7 +54,7 @@
 
     <div class="details-content">
     
-    @if (schedulesForSelectedDate().length > 0 || quizzesForSelectedDate().length > 0) {
+    @if (schedulesForSelectedDate().length > 0 || quizzesForSelectedDate().length > 0 || homeworksForSelectedDate().length > 0) {
       
       @for (schedule of schedulesForSelectedDate(); track schedule.Id) {
         <div class="schedule-card">
@@ -73,6 +75,19 @@
             <span class="time">{{ quiz.scheduledAt | date:'HH:mm' }}</span>
             <span class="title">{{ quiz.title }}</span>
             <span class="status">{{ quiz.isPublished ? 'Publicat' : 'Draft' }}</span>
+          </div>
+        </div>
+      }
+
+      @for (hw of homeworksForSelectedDate(); track hw.id) {
+        <div class="homework-card">
+          <div class="card-accent"></div>
+          <div class="card-info">
+            <span class="time">Deadline: {{ hw.dueAt | date:'HH:mm' }}</span>
+            <span class="title">{{ hw.title }}</span>
+            <span class="status">
+              {{ hw.submissionCount }} submissions
+            </span>
           </div>
         </div>
       }
