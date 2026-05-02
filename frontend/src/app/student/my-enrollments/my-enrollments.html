@@ -1,15 +1,57 @@
 <div class="enrollments-container">
-  <h2>📩 Invitații la cursuri</h2>
+  <h2>📩 Notificări</h2>
 
   <div *ngIf="loading()">Se încarcă...</div>
   <div *ngIf="error()">{{ error() }}</div>
-  <div *ngIf="!loading() && invitations().length === 0">Nu există invitații noi.</div>
+  <div *ngIf="!loading() && !hasNotifications">Nu există notificări noi.</div>
 
-  <div class="invitation-card" *ngFor="let inv of invitations()">
-    <h3>{{ inv.Title }}</h3>
-    <p>{{ inv.Description }}</p>
-    <p>Profesor: {{ inv.TeacherFirstName }} {{ inv.TeacherLastName }}</p>
-    <button (click)="respond(inv.Id, true)">✅ Accept</button>
-    <button (click)="respond(inv.Id, false)">❌ Refuz</button>
-  </div>
+  <section *ngIf="invitationItems.length > 0">
+    <h3>Invitații la cursuri</h3>
+    <div class="invitation-card" *ngFor="let inv of invitationItems">
+      <h4>{{ inv.Title }}</h4>
+      <p>{{ inv.Description }}</p>
+      <p>Profesor: {{ inv.TeacherFirstName }} {{ inv.TeacherLastName }}</p>
+      <button (click)="respond(inv.Id, true)">✅ Accept</button>
+      <button (click)="respond(inv.Id, false)">❌ Refuz</button>
+    </div>
+  </section>
+
+  <section *ngIf="exclusionItems.length > 0">
+    <h3>Excluderi din cursuri</h3>
+    <div class="notification-card" *ngFor="let exc of exclusionItems">
+      <p>Ai fost exclus din cursul <strong>{{ exc.courseTitle }}</strong>.</p>
+      <p>Data excluderii: {{ exc.excludedAt | date:'short' }}</p>
+    </div>
+  </section>
+
+  <section *ngIf="quizItems.length > 0">
+    <h3>Quiz-uri noi</h3>
+    <div class="notification-card" *ngFor="let quiz of quizItems">
+      <p><strong>{{ quiz.title }}</strong> a fost publicat pentru cursul <strong>{{ quiz.courseTitle }}</strong>.</p>
+      <p *ngIf="quiz.description">{{ quiz.description }}</p>
+      <p *ngIf="quiz.scheduledAt">Programat pentru: {{ quiz.scheduledAt | date:'short' }}</p>
+    </div>
+  </section>
+
+  <section *ngIf="moduleItems.length > 0">
+    <h3>Capitole noi</h3>
+    <div class="notification-card" *ngFor="let module of moduleItems">
+      <p>Capitol nou în cursul <strong>{{ module.courseTitle }}</strong>: <strong>{{ module.title }}</strong>.</p>
+    </div>
+  </section>
+
+  <section *ngIf="lessonItems.length > 0">
+    <h3>Subcapitole noi</h3>
+    <div class="notification-card" *ngFor="let lesson of lessonItems">
+      <p>Subcapitol nou în cursul <strong>{{ lesson.courseTitle }}</strong> / capitolul <strong>{{ lesson.moduleTitle }}</strong>: <strong>{{ lesson.title }}</strong>.</p>
+    </div>
+  </section>
+
+  <section *ngIf="homeworkItems.length > 0">
+    <h3>Teme noi</h3>
+    <div class="notification-card" *ngFor="let homework of homeworkItems">
+      <p>Temă nouă în cursul <strong>{{ homework.courseTitle }}</strong>: <strong>{{ homework.title }}</strong>.</p>
+      <p *ngIf="homework.dueAt">Termen limită: {{ homework.dueAt | date:'short' }}</p>
+    </div>
+  </section>
 </div>
