@@ -87,10 +87,10 @@
 
     </form>
     <div *ngIf="profile().updatedAt" class="updated-at">
-      Ultima actualizare: {{ formatDateTime(profile().updatedAt) }}
+      Ultima actualizare: {{ profile().updatedAt | date:'dd.MM.yyyy HH:mm':'UTC'}}
     </div>
     <div *ngIf="profile().lastLogin" class="updated-at">
-      Ultima autentificare: {{ formatDateTime(profile().lastLogin) }}
+      Ultima autentificare: {{ profile().lastLogin | date:'dd.MM.yyyy HH:mm':'UTC'}}
     </div>
 
     <!-- Recovery Codes Settings Section -->
