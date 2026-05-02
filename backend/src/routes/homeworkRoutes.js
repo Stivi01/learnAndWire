@@ -157,8 +157,7 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
                hs.FileUrls AS fileUrls,
                hs.Grade AS grade,
                hs.SubmittedAt AS submittedAt,
-               hs.GradedAt AS gradedAt,
-               hs.Comments AS comments
+               hs.GradedAt AS gradedAt
         FROM Homeworks h
         INNER JOIN CourseEnrollments ce ON ce.CourseId = h.CourseId AND ce.StudentId = ${req.user.id}
         INNER JOIN Courses c ON c.Id = h.CourseId
@@ -261,7 +260,6 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
                hs.Grade AS grade,
                hs.SubmittedAt AS submittedAt,
                hs.GradedAt AS gradedAt,
-               hs.Comments AS comments,
                u.FirstName AS firstName,
                u.LastName AS lastName,
                CONCAT(u.FirstName, ' ', u.LastName) AS studentName,
@@ -286,7 +284,7 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
   app.put('/api/homeworks/submissions/:submissionId/grade', protect, restrictTo('Profesor'), async (req, res) => {
     const submissionId = parseInt(req.params.submissionId, 10);
-    const { grade, comments } = req.body;
+    const { grade } = req.body;
 
     if (grade === undefined || grade === null || Number.isNaN(Number(grade))) {
       return res.status(400).json({ message: 'Este nevoie de o notă validă.' });
@@ -320,7 +318,7 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
       await sqlPool.query`
         UPDATE HomeworkSubmissions
-        SET Grade = ${grade}, Comments = ${comments || null}, GradedAt = GETDATE(), GradedBy = ${req.user.id}
+        SET Grade = ${grade}, GradedAt = GETDATE(), GradedBy = ${req.user.id}
         WHERE Id = ${submissionId}
       `;
 
