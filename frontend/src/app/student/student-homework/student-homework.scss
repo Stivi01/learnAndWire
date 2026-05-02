@@ -9,13 +9,25 @@
   min-height: 100vh;
 }
 
-.student-homework-page h2 {
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.page-header h2 {
   color: #0f172a;
   font-size: 1.75rem;
-  margin-top: 0;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 1rem;
+  margin: 0;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 0.5rem 0 0 0;
+  font-size: 1rem;
 }
 
 /* Stări de încărcare și empty state */
