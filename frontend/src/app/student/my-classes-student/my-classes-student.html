@@ -1,6 +1,11 @@
 <div class="my-classes-container">
-  <h2>Cursurile mele</h2>
-
+  <header class="page-header">
+    <div>
+      <h2><i class="fas fa-graduation-cap"></i> Cursurile mele</h2>
+      <p class="subtitle">Vizualizează cursurile la care ești înscris</p>
+    </div>
+  </header>
+  
   <div *ngIf="loading()">Se încarcă cursurile...</div>
   <div class="error" *ngIf="error()">{{ error() }}</div>
 

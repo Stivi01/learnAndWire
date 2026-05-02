@@ -1,6 +1,10 @@
 <div class="quizzes-container">
-  <h2>Testele Mele (Quiz-uri)</h2>
-
+  <header class="page-header">
+    <div>
+      <h2>Quiz-uri disponibile</h2>
+      <p class="subtitle">Aici poți vedea toate quiz-urile disponibile pentru cursurile la care ești înscris. Apasă pe "Începe Testul" pentru a susține un quiz.</p>
+    </div>
+  </header>
   <div *ngIf="loading()" class="loading-state">Se încarcă testele...</div>
   <div *ngIf="error()" class="error-state">{{ error() }}</div>
 

@@ -1,5 +1,10 @@
 <div class="enrollments-container">
-  <h2>📩 Notificări</h2>
+  <header class="page-header">
+    <div>
+      <h2><i class="fas fa-bell"></i> Notificări</h2>
+      <p class="subtitle">Vizualizează notificările despre cursurile la care ești înscris</p>
+    </div>
+  </header>
 
   <div *ngIf="loading()">Se încarcă...</div>
   <div *ngIf="error()">{{ error() }}</div>
