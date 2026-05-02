@@ -8,6 +8,7 @@ export interface HomeworkItem {
   instructionsUrl?: string | null;
   dueAt: string;
   createdAt: string;
+  maxPoints?: number;
   submissionId?: number | null;
   submissionType?: 'classic' | 'breadbord' | null;
   submittedAt?: string | null;
@@ -26,6 +27,7 @@ export interface HomeworkSubmission {
   submissionType: 'classic' | 'breadbord';
   fileUrls: string[];
   grade?: number | null;
+  maxPoints?: number;
   submittedAt: string;
   gradedAt?: string | null;
   comments?: string | null;

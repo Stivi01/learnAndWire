@@ -14,6 +14,7 @@ import { HomeworkItem } from '../../core/models/homework.model';
   styleUrl: './homework.scss',
 })
 export class Homework {
+  private backendBaseUrl = 'http://localhost:3000';
   courses = signal<any[]>([]);
   homeworks = signal<HomeworkItem[]>([]);
   selectedHomework: HomeworkItem | null = null;
@@ -24,6 +25,7 @@ export class Homework {
   description = '';
   homeworkType: 'classic' | 'breadbord' = 'classic';
   dueAt = '';
+  maxPoints = 100;
   instructionsFile: File | null = null;
 
   constructor(
@@ -90,12 +92,18 @@ export class Homework {
       return;
     }
 
+    if (!Number.isInteger(this.maxPoints) || this.maxPoints < 1 || this.maxPoints > 1000) {
+      this.toast.show('Punctajul temei trebuie să fie un număr între 1 și 1000.', 'error');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('courseId', String(this.selectedCourseId));
     formData.append('title', this.title.trim());
     formData.append('type', this.homeworkType);
     formData.append('description', this.description.trim());
     formData.append('dueAt', this.dueAt);
+    formData.append('maxPoints', String(this.maxPoints));
 
     if (this.instructionsFile) {
       formData.append('instructions', this.instructionsFile);
@@ -107,6 +115,7 @@ export class Homework {
         this.title = '';
         this.description = '';
         this.dueAt = '';
+        this.maxPoints = 100;
         this.instructionsFile = null;
         this.homeworkType = 'classic';
         this.selectedCourseId = null;
@@ -130,7 +139,8 @@ export class Homework {
         const normalized = (data || []).map(item => ({
           ...item,
           _grade: item.grade ?? null,
-          comments: item.comments || ''
+          comments: item.comments || '',
+          maxPoints: item.maxPoints ?? 100
         }));
         this.submissions.set(normalized);
       },
@@ -145,8 +155,11 @@ export class Homework {
 
   gradeSubmission(submissionId: number, gradeValue: string, comments: string) {
     const grade = Number(gradeValue);
-    if (Number.isNaN(grade) || grade < 0 || grade > 100) {
-      this.toast.show('Nota trebuie să fie un număr între 0 și 100.', 'error');
+    const submission = this.submissions().find(s => s.id === submissionId);
+    const maxPoints = submission.maxPoints ?? this.selectedHomework?.maxPoints ?? 100;
+
+    if (Number.isNaN(grade) || grade < 0 || grade > maxPoints) {
+      this.toast.show(`Nota trebuie să fie un număr între 0 și ${maxPoints}.`, 'error');
       return;
     }
 
@@ -164,6 +177,13 @@ export class Homework {
         }
       }
     });
+  }
+
+  getDownloadUrl(url?: string | null) {
+    if (!url) {
+      return '';
+    }
+    return url.startsWith('http') ? url : `${this.backendBaseUrl}${url}`;
   }
 
   formatDate(value?: string | null) {

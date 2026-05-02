@@ -365,7 +365,7 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
             c.Title AS CourseTitle,
             hs.Grade AS Score,
             hs.GradedAt AS SubmittedAt,
-            100 AS MaxScore,
+            COALESCE(h.MaxPoints, 100) AS MaxScore,
             'homework' AS Type
         FROM HomeworkSubmissions hs
         INNER JOIN Homeworks h ON hs.HomeworkId = h.Id

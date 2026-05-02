@@ -32,6 +32,11 @@
     </div>
 
     <div class="form-row">
+      <label>Puncte maximă</label>
+      <input type="number" min="1" max="1000" [(ngModel)]="maxPoints" />
+    </div>
+
+    <div class="form-row">
       <label>Document cerință (opțional)</label>
       <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx" />
     </div>
@@ -54,11 +59,13 @@
       <div>
         <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</span>
         <span class="due">Până la: {{ formatDate(hw.dueAt) }}</span>
+        <span class="points">Puncte: {{ hw.maxPoints ?? 100 }}</span>
       </div>
     </div>
 
     <div *ngIf="selectedHomework" class="selected-panel">
       <h3>Submisiile pentru: {{ selectedHomework.title }}</h3>
+      <p class="homework-points">Puncte maxim: {{ selectedHomework.maxPoints ?? 100 }}</p>
       <div *ngIf="submissions().length === 0" class="empty-state">
         Nu există încă submisii.
       </div>
@@ -76,22 +83,27 @@
         </thead>
         <tbody>
           <tr *ngFor="let submission of submissions()">
-            <td>{{ submission.FirstName }} {{ submission.LastName }}</td>
+            <td>{{ submission.studentName || (submission.firstName + ' ' + submission.lastName) || (submission.FirstName + ' ' + submission.LastName) }}</td>
             <td>{{ submission.submissionType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</td>
-            <td>{{ formatDate(submission.SubmittedAt) }}</td>
+            <td>{{ formatDate(submission.submittedAt || submission.SubmittedAt) }}</td>
             <td>
               <ng-container *ngIf="submission.fileUrls?.length; else noFiles">
                 <div *ngFor="let url of submission.fileUrls">
-                  <a [href]="url" target="_blank">Descarcă</a>
+                  <a [href]="getDownloadUrl(url)" target="_blank" rel="noopener">Descarcă</a>
                 </div>
               </ng-container>
               <ng-template #noFiles>–</ng-template>
             </td>
             <td>
-              <input type="number" min="0" max="100" [(ngModel)]="submission._grade" placeholder="Nota" />
+              <ng-container *ngIf="submission.grade === null || submission.grade === undefined; else gradedValue">
+                <input type="number" min="0" [max]="submission.maxPoints ?? selectedHomework.maxPoints ?? 100" [(ngModel)]="submission._grade" placeholder="Nota" />
+              </ng-container>
+              <ng-template #gradedValue>{{ submission.grade }} / {{ submission.maxPoints ?? selectedHomework.maxPoints ?? 100 }}</ng-template>
             </td>
             <td>
-              <button type="button" class="btn-save" (click)="gradeSubmission(submission.Id, submission._grade, submission.comments || '')">Notează</button>
+              <button type="button" class="btn-save" (click)="gradeSubmission(submission.id, submission._grade, submission.comments || '')" [disabled]="submission.grade !== null && submission.grade !== undefined">
+                {{ submission.grade !== null && submission.grade !== undefined ? 'Notată' : 'Notează' }}
+              </button>
             </td>
           </tr>
         </tbody>

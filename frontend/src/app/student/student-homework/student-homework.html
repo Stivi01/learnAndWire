@@ -16,6 +16,9 @@
         </div>
         <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</span>
       </div>
+      <div class="meta-row">
+        <span>Puncte: {{ hw.maxPoints ?? 100 }}</span>
+      </div>
 
       <div class="meta-row">
         <span>Deadline: {{ formatDate(hw.dueAt) }}</span>
@@ -27,34 +30,40 @@
       </div>
 
       <div *ngIf="hw.instructionsUrl" class="body-row">
-        <a [href]="hw.instructionsUrl" target="_blank">Descarcă documentul cerință</a>
+        <a [href]="getDownloadUrl(hw.instructionsUrl)" target="_blank" rel="noopener">Descarcă documentul cerință</a>
       </div>
 
       <div class="actions-row">
-        <button *ngIf="hw.homeworkType === 'breadbord'" type="button" class="btn" (click)="openBreadbord()">Deschide Breadbord</button>
+        <button *ngIf="hw.homeworkType === 'breadbord'" type="button" class="btn" (click)="openBreadbord()" [disabled]="hw.submissionId">Deschide Breadbord</button>
         <div *ngIf="hw.homeworkType === 'breadbord'" class="upload-section">
-          <input type="file" accept=".svg" (change)="onFileChange(hw.id, $event)" />
-          <button type="button" class="btn-save" (click)="submitBreadbord(hw)" [disabled]="submitting()">Încarcă SVG și trimite</button>
+          <input type="file" accept=".svg" (change)="onFileChange(hw.id, $event)" [disabled]="hw.submissionId" />
+          <button type="button" class="btn-save" (click)="submitBreadbord(hw)" [disabled]="submitting() || hw.submissionId">Încarcă SVG și trimite</button>
           <div *ngIf="selectedFiles[hw.id]?.length" class="selected-files">
             Fișier selectat: {{ getSelectedFileNames(hw.id) }}
+          </div>
+          <div *ngIf="hw.submissionId" class="submitted-note">
+            Ai trimis deja tema. Nu poți încărca din nou.
           </div>
         </div>
 
         <div *ngIf="hw.homeworkType === 'classic'" class="upload-section">
-          <input type="file" multiple accept=".pdf,.doc,.docx" (change)="onFileChange(hw.id, $event)" />
-          <button type="button" class="btn-save" (click)="submitClassic(hw)" [disabled]="submitting()">Trimite fișiere</button>
+          <input type="file" multiple accept=".pdf,.doc,.docx" (change)="onFileChange(hw.id, $event)" [disabled]="hw.submissionId" />
+          <button type="button" class="btn-save" (click)="submitClassic(hw)" [disabled]="submitting() || hw.submissionId">Trimite fișiere</button>
+          <div *ngIf="hw.submissionId" class="submitted-note">
+            Ai trimis deja tema. Nu poți încărca din nou.
+          </div>
         </div>
       </div>
 
       <div *ngIf="hw.fileUrls?.length" class="body-row">
         <strong>Fișiere trimise:</strong>
         <ul>
-          <li *ngFor="let url of hw.fileUrls"><a [href]="url" target="_blank">{{ url }}</a></li>
+          <li *ngFor="let url of hw.fileUrls"><a [href]="getDownloadUrl(url)" target="_blank" rel="noopener">{{ url }}</a></li>
         </ul>
       </div>
 
       <div *ngIf="hw.grade != null" class="grade-row">
-        <strong>Notă:</strong> {{ hw.grade }} / 100
+        <strong>Notă:</strong> {{ hw.grade }} / {{ hw.maxPoints ?? 100 }}
       </div>
     </div>
   </div>

@@ -14,6 +14,7 @@ import { HomeworkItem } from '../../core/models/homework.model';
   styleUrl: './student-homework.scss',
 })
 export class StudentHomework {
+  private backendBaseUrl = 'http://localhost:3000';
   homeworks = signal<HomeworkItem[]>([]);
   loading = signal(true);
   submitting = signal(false);
@@ -52,6 +53,11 @@ export class StudentHomework {
   }
 
   submitClassic(homework: HomeworkItem) {
+    if (homework.submissionId) {
+      this.toast.show('Ai deja o submisie pentru această temă.', 'info');
+      return;
+    }
+
     const files = this.selectedFiles[homework.id] || [];
     if (files.length === 0) {
       this.toast.show('Alege cel puțin un fișier PDF/DOC/DOCX.', 'error');
@@ -81,6 +87,11 @@ export class StudentHomework {
   }
 
   submitBreadbord(homework: HomeworkItem) {
+    if (homework.submissionId) {
+      this.toast.show('Ai deja o submisie pentru această temă.', 'info');
+      return;
+    }
+
     const files = this.selectedFiles[homework.id] || [];
     if (files.length === 0) {
       this.toast.show('Alege fișierul SVG exportat din Breadbord.', 'error');
@@ -117,6 +128,13 @@ export class StudentHomework {
 
   openBreadbord() {
     this.router.navigate(['/breadbord']);
+  }
+
+  getDownloadUrl(url?: string | null) {
+    if (!url) {
+      return '';
+    }
+    return url.startsWith('http') ? url : `${this.backendBaseUrl}${url}`;
   }
 
   formatDate(value?: string | null) {

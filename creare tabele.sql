@@ -184,6 +184,7 @@ CREATE TABLE Homeworks (
     InstructionsUrl NVARCHAR(500) NULL,
     DueAt DATETIME2 NOT NULL,
     CreatedAt DATETIME2 DEFAULT GETDATE(),
+    MaxPoints INT NOT NULL DEFAULT 100,
     FOREIGN KEY (CourseId) REFERENCES Courses(Id),
     FOREIGN KEY (CreatedBy) REFERENCES Users(Id)
 );
