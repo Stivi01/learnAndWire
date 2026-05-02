@@ -6,6 +6,7 @@ import { Quiz } from '../../core/services/quiz';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Course, CourseItem } from '../../core/services/course';
 import { ToastService } from '../../core/services/toast';
+import { parseLocalDateTime, toDateTimeLocalString } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-quiz-form',
@@ -80,16 +81,8 @@ export class QuizForm {
   this.quizService.getQuizFull(id).subscribe({
     next: data => {
 
-      let scheduled = data.quiz.ScheduledAt;
-      let closed = data.quiz.ClosedAt;
-
-      // 🔥 Conversie pentru datetime-local
-      if (scheduled) {
-        scheduled = scheduled.substring(0, 16);
-      }
-      if (closed) {
-        closed = closed.substring(0, 16);
-      }
+      const scheduled = toDateTimeLocalString(data.quiz.ScheduledAt);
+      const closed = toDateTimeLocalString(data.quiz.ClosedAt);
 
       this.quiz.set({
         title: data.quiz.Title,
@@ -119,10 +112,10 @@ export class QuizForm {
   }
 
   if (quizData.scheduledAt) {
+    const scheduled = parseLocalDateTime(quizData.scheduledAt);
     const now = new Date();
-    const scheduled = new Date(quizData.scheduledAt);
 
-    if (scheduled <= now) {
+    if (!scheduled || scheduled <= now) {
       this.toast.show('Data trebuie să fie în viitor.', 'error');
       return;
     }

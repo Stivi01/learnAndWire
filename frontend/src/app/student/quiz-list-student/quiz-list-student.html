@@ -19,10 +19,10 @@
       
       <div class="quiz-meta">
         <small *ngIf="quiz.scheduledAt">
-          📅 Programat: {{ quiz.scheduledAt | date:'short' }}
+          📅 Programat: {{ quiz.scheduledAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}
         </small>
         <small *ngIf="quiz.closedAt">
-          ⏰ Limită: {{ quiz.closedAt | date:'short' }}
+          ⏰ Limită: {{ quiz.closedAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}
         </small>
       </div>
 

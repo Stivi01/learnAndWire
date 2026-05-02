@@ -1,7 +1,7 @@
 <div class="calendar-layout">
   <div class="calendar-main">
     <div class="calendar-nav">
-      <h3>{{ currentMonth() | date:'MMMM yyyy' }}</h3>
+      <h3>{{ currentMonth() | date:'MMMM yyyy':undefined:'ro-RO' }}</h3>
       <div class="nav-buttons">
         <button (click)="changeMonth(-1)">‹</button>
         <button (click)="changeMonth(1)">›</button>
@@ -42,7 +42,7 @@
     <div class="details-header">
       <div class="date-badge">
         <span class="day">{{ selectedDate() | date:'dd' }}</span>
-        <span class="month">{{ selectedDate() | date:'MMM' }}</span>
+        <span class="month">{{ selectedDate() | date:'MMM':undefined:'ro-RO' }}</span>
       </div>
       <div class="header-text">
         <h4>Programul zilei</h4>

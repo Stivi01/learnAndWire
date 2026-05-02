@@ -3,6 +3,7 @@ import { Quiz } from '../../core/services/quiz';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
+import { parseLocalDateTime } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-quiz-list-student',
@@ -46,7 +47,7 @@ export class QuizListStudent {
     const now = new Date();
 
     if (quiz.scheduledAt) {
-      const scheduledDate = new Date(quiz.scheduledAt);
+      const scheduledDate = parseLocalDateTime(quiz.scheduledAt) || new Date(quiz.scheduledAt);
 
       // Dacă data curentă este mai mică (mai devreme) decât data programată
       if (now < scheduledDate) {
@@ -60,7 +61,7 @@ export class QuizListStudent {
     }
 
     if (quiz.closedAt) {
-      const closedDate = new Date(quiz.closedAt);
+      const closedDate = parseLocalDateTime(quiz.closedAt) || new Date(quiz.closedAt);
 
       // Dacă data curentă este mai mare decât data limită
       if (now > closedDate) {

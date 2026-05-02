@@ -4,6 +4,7 @@ import { Quiz } from '../../core/services/quiz';
 import { AuthService } from '../../core/services/auth';
 import { CommonModule } from '@angular/common';
 import { CourseSchedules } from '../../core/services/course-schedules';
+import { parseLocalDateTime } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-teacher-calendar',
@@ -42,7 +43,7 @@ export class TeacherCalendar {
     const sel = this.selectedDate();
     return this.quizzes().filter(q => {
       if (!q.scheduledAt) return false;
-      const d = new Date(q.scheduledAt);
+      const d = parseLocalDateTime(q.scheduledAt) || new Date(q.scheduledAt);
       return d.getDate() === sel.getDate() && 
              d.getMonth() === sel.getMonth() && 
              d.getFullYear() === sel.getFullYear();
@@ -84,7 +85,7 @@ export class TeacherCalendar {
   hasQuiz(day: Date | null): boolean {
     if (!day) return false;
     return this.quizzes().some(q => {
-      const d = new Date(q.scheduledAt!);
+      const d = parseLocalDateTime(q.scheduledAt!) || new Date(q.scheduledAt!);
       return d.toDateString() === day.toDateString();
     });
   }

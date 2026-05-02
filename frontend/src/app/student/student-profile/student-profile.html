@@ -49,10 +49,10 @@
     <button (click)="saveProfile()">Salvează modificările</button>
 
     <div *ngIf="profile().updatedAt" class="updated-at">
-      Ultima actualizare: {{ profile().updatedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}
+      Ultima actualizare: {{ formatDateTime(profile().updatedAt) }}
     </div>
     <div *ngIf="profile().lastLogin" class="updated-at">
-      Ultima autentificare: {{ profile().lastLogin | date:'dd/MM/yyyy HH:mm':'UTC' }}
+      Ultima autentificare: {{ formatDateTime(profile().lastLogin) }}
     </div>
 
     <!-- Change Password Section -->

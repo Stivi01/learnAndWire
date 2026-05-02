@@ -1,5 +1,6 @@
 const { createOwnershipHelpers } = require('../utils/ownership');
 const { createPublishReadinessHelpers } = require('../utils/publishReadiness');
+const { parseLocalDateTime } = require('../utils/dateUtils');
 
 function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
   const {
@@ -35,20 +36,20 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
       let scheduledDate = null;
       if (scheduledAt) {
-        scheduledDate = new Date(scheduledAt);
+        scheduledDate = parseLocalDateTime(scheduledAt);
         const now = new Date();
 
-        if (Number.isNaN(scheduledDate.getTime()) || scheduledDate <= now) {
+        if (!scheduledDate || scheduledDate <= now) {
           return res.status(400).json({ message: 'Data quiz-ului trebuie să fie în viitor.' });
         }
       }
 
       let closedDate = null;
       if (closedAt) {
-        closedDate = new Date(closedAt);
+        closedDate = parseLocalDateTime(closedAt);
         const now = new Date();
 
-        if (Number.isNaN(closedDate.getTime())) {
+        if (!closedDate) {
           return res.status(400).json({ message: 'Data limită pentru quiz este invalidă.' });
         }
 
@@ -175,9 +176,9 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
       let scheduledDate = null;
       if (scheduledAt) {
-        scheduledDate = new Date(scheduledAt);
+        scheduledDate = parseLocalDateTime(scheduledAt);
 
-        if (Number.isNaN(scheduledDate.getTime())) {
+        if (!scheduledDate) {
           return res.status(400).json({ message: 'Data programată este invalidă.' });
         }
 
@@ -188,9 +189,9 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
 
       let closedDate = null;
       if (closedAt) {
-        closedDate = new Date(closedAt);
+        closedDate = parseLocalDateTime(closedAt);
 
-        if (Number.isNaN(closedDate.getTime())) {
+        if (!closedDate) {
           return res.status(400).json({ message: 'Data limită este invalidă.' });
         }
 
@@ -209,8 +210,8 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         cleanTitle !== (currentQuiz.Title || '').trim() ||
         cleanDescription !== (currentQuiz.Description || '').trim() ||
         Number(courseId) !== Number(currentQuiz.CourseId) ||
-        (scheduledDate ? scheduledDate.toISOString() : null) !== (currentQuiz.ScheduledAt ? new Date(currentQuiz.ScheduledAt).toISOString() : null) ||
-        (closedDate ? closedDate.toISOString() : null) !== (currentQuiz.ClosedAt ? new Date(currentQuiz.ClosedAt).toISOString() : null);
+        (scheduledDate ? scheduledDate.getTime() : null) !== (currentQuiz.ScheduledAt ? new Date(currentQuiz.ScheduledAt).getTime() : null) ||
+        (closedDate ? closedDate.getTime() : null) !== (currentQuiz.ClosedAt ? new Date(currentQuiz.ClosedAt).getTime() : null);
 
       if (currentQuiz.IsPublished && (nextPublishedState || metadataChanged)) {
         return res.status(400).json({

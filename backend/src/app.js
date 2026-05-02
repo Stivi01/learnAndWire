@@ -28,7 +28,7 @@ registerAuthRoutes(app, { getSqlPool, bcrypt, jwt, JWT_SECRET, protect });
 registerRecoveryRoutes(app, { getSqlPool, sql, protect, bcrypt });
 registerProfileRoutes(app, { getSqlPool, protect });
 registerCourseRoutes(app, { getSqlPool, protect, restrictTo });
-registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo });
+registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql });
 registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql });
 registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql });
 registerScheduleRoutes(app, { getSqlPool, protect, restrictTo });

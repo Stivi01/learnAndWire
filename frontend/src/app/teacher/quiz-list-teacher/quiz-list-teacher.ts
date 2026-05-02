@@ -6,6 +6,8 @@ import { Quiz } from '../../core/services/quiz';
 import { AuthService } from '../../core/services/auth';
 import { Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
+import { parseLocalDateTime } from '../../shared/utils/date-utils';
+import { toDateTimeLocalString } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-quiz-list-teacher',
@@ -58,24 +60,12 @@ export class QuizListTeacher {
 
   let scheduledAt: string | null = null;
   if (quiz.scheduledAt) {
-    const d = new Date(quiz.scheduledAt);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    scheduledAt = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    scheduledAt = toDateTimeLocalString(quiz.scheduledAt);
   }
 
   let closedAt: string | null = null;
   if (quiz.closedAt) {
-    const d = new Date(quiz.closedAt);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    closedAt = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    closedAt = toDateTimeLocalString(quiz.closedAt);
   }
 
   this.editingQuiz.set({ ...quiz, scheduledAt, closedAt });
@@ -146,8 +136,8 @@ export class QuizListTeacher {
       return '';
     }
 
-    const start = new Date(quiz.scheduledAt);
-    const end = new Date(quiz.closedAt);
+    const start = parseLocalDateTime(quiz.scheduledAt) || new Date(quiz.scheduledAt);
+    const end = parseLocalDateTime(quiz.closedAt) || new Date(quiz.closedAt);
     const diffMs = end.getTime() - start.getTime();
 
     if (diffMs <= 0) {

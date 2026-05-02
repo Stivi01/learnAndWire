@@ -9,10 +9,10 @@
     <div class="quiz-header">
       <h3>{{ quiz().Title }}</h3>
       <p *ngIf="quiz().ScheduledAt">
-        Programat pentru: {{ quiz().ScheduledAt | date:'dd.MM.yyyy HH:mm' }}
+        Programat pentru: {{ quiz().ScheduledAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}
       </p>
       <p *ngIf="quiz().ClosedAt">
-        Limită: {{ quiz().ClosedAt | date:'dd.MM.yyyy HH:mm' }}
+        Limită: {{ quiz().ClosedAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}
       </p>
       <p>{{ quiz().Description }}</p>
       <p>Total puncte: {{ totalPoints }}</p>

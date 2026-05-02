@@ -21,7 +21,7 @@
       <tr *ngFor="let grade of grades()">
         <td>{{ grade.courseTitle }}</td>
         <td>{{ grade.title }}</td>
-        <td>{{ grade.date | date:'medium' }}</td>
+        <td>{{ grade.date | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}</td>
         <td><strong>{{ grade.score }}</strong> / {{ grade.maxScore }} puncte</td>
         <td [ngClass]="{'pass': (grade.score/grade.maxScore) >= 0.5, 'fail': (grade.score/grade.maxScore) < 0.5}">
           {{ (grade.score / grade.maxScore) | percent }}

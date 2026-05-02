@@ -38,7 +38,7 @@
                 <div class="st-name">{{ student.studentName }}</div>
                 <div class="st-email">{{ student.studentEmail }}</div>
               </td>
-              <td>{{ student.submittedAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</td>
+              <td>{{ student.submittedAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}</td>
               <td><strong>{{ student.score }}</strong> / {{ group.maxScore }}</td>
               <td [ngClass]="(student.score / group.maxScore) >= 0.5 ? 'pass' : 'fail'">
                 {{ (student.score / group.maxScore) | percent }}

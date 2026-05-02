@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecoveryService, RecoveryCode } from '../../../core/services/recovery';
 import { ToastService } from '../../../core/services/toast';
+import { formatRomanianDate } from '../../utils/date-utils';
 
 @Component({
   selector: 'app-recovery-codes-settings',
@@ -542,12 +543,7 @@ export class RecoveryCodesSettings implements OnInit {
 
   formatDate(date: string | null): string {
     if (!date) return '';
-    const d = new Date(date);
-    // Foloseste UTC pentru a evita schimbarea zilei din cauza timezone
-    const year = d.getUTCFullYear();
-    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day = d.getUTCDate().toString().padStart(2, '0');
-    return `${day}.${month}.${year}`;
+    return formatRomanianDate(date);
   }
 
   copyCode(code: string) {

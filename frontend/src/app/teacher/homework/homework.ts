@@ -5,6 +5,7 @@ import { Course } from '../../core/services/course';
 import { Homework as HomeworkService } from '../../core/services/homework';
 import { ToastService } from '../../core/services/toast';
 import { HomeworkItem } from '../../core/models/homework.model';
+import { formatRomanianDateTime } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-homework',
@@ -187,7 +188,7 @@ export class Homework {
   }
 
   formatDate(value?: string | null) {
-    return value ? new Date(value).toLocaleString() : '-';
+    return formatRomanianDateTime(value);
   }
 
   getCourseTitle(courseId: number) {

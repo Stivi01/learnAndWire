@@ -1,8 +1,9 @@
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const { parseLocalDateTime } = require('../utils/dateUtils');
 
-function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo }) {
+function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       const dir = 'uploads/documents/';
@@ -82,16 +83,26 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo }) {
       }
 
       const instructionsUrl = req.file ? `/uploads/documents/${req.file.filename}` : null;
-      const dueDate = new Date(dueAt);
-      if (Number.isNaN(dueDate.getTime())) {
+      const dueDate = parseLocalDateTime(dueAt);
+      if (!dueDate) {
         return res.status(400).json({ message: 'Data limită este invalidă.' });
       }
 
-      const result = await sqlPool.query`
+      const request = sqlPool.request()
+        .input('CourseId', sql.Int, courseId)
+        .input('CreatedBy', sql.Int, req.user.id)
+        .input('Title', sql.NVarChar(255), cleanTitle)
+        .input('Description', sql.NVarChar(sql.MAX), cleanDescription || null)
+        .input('HomeworkType', sql.NVarChar(50), homeworkType)
+        .input('InstructionsUrl', sql.NVarChar(255), instructionsUrl)
+        .input('DueAt', sql.DateTime2, dueDate)
+        .input('MaxPoints', sql.Int, maxPoints);
+
+      const result = await request.query(`
         INSERT INTO Homeworks (CourseId, CreatedBy, Title, Description, HomeworkType, InstructionsUrl, DueAt, CreatedAt, MaxPoints)
         OUTPUT INSERTED.*
-        VALUES (${courseId}, ${req.user.id}, ${cleanTitle}, ${cleanDescription || null}, ${homeworkType}, ${instructionsUrl}, ${dueDate}, GETDATE(), ${maxPoints})
-      `;
+        VALUES (@CourseId, @CreatedBy, @Title, @Description, @HomeworkType, @InstructionsUrl, @DueAt, GETDATE(), @MaxPoints)
+      `);
 
       res.status(201).json(result.recordset[0]);
     } catch (err) {

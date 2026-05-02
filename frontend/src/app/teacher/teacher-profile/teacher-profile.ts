@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth';
 import { ToastService } from '../../core/services/toast';
 import { RecoveryCodesSettings } from '../../shared/components/recovery-codes-settings/recovery-codes-settings';
 import { ChangePasswordSettings } from '../../shared/components/change-password-settings/change-password-settings';
+import { formatRomanianDateTime } from '../../shared/utils/date-utils';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -31,6 +32,8 @@ export class TeacherProfile implements OnDestroy {
     phone: '',   // Adăugat pentru siguranță
     address: ''  // Adăugat pentru siguranță
   });
+
+  formatDateTime = formatRomanianDateTime;
 
   isLoading = signal(true);
 

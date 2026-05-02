@@ -7,6 +7,7 @@ import { Quiz } from '../../core/services/quiz';
 import { CourseSchedules } from '../../core/services/course-schedules';
 import { Subject, catchError, of, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
+import { parseLocalDateTime } from '../../shared/utils/date-utils';
 
 interface Lesson {
   day: number;
@@ -59,7 +60,7 @@ export class StudentDashboard implements OnDestroy {
 
   quizEvents = computed(() =>
     this.upcomingQuizzes().map(q => {
-      const dateObj = new Date(q.scheduledAt);
+      const dateObj = parseLocalDateTime(q.scheduledAt) || new Date(q.scheduledAt);
       return {
         courseTitle: q.courseTitle,
         title: q.title,
@@ -162,8 +163,12 @@ export class StudentDashboard implements OnDestroy {
     ).subscribe(quizzes => {
       const now = new Date();
       const upcoming = quizzes
-        .filter(q => q.scheduledAt && new Date(q.scheduledAt) > now)
-        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+        .filter(q => q.scheduledAt && ((parseLocalDateTime(q.scheduledAt) || new Date(q.scheduledAt)) > now))
+        .sort((a, b) => {
+          const aDate = parseLocalDateTime(a.scheduledAt) || new Date(a.scheduledAt);
+          const bDate = parseLocalDateTime(b.scheduledAt) || new Date(b.scheduledAt);
+          return aDate.getTime() - bDate.getTime();
+        });
       this.upcomingQuizzes.set(upcoming);
     });
   }
