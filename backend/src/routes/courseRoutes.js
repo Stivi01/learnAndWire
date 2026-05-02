@@ -856,10 +856,9 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
       const transaction = new sql.Transaction(sqlPool);
       try {
         await transaction.begin();
-        const request = transaction.request();
 
         // Sterge explicit toate datele asociate cursului, pentru a evita erori de referință
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.LessonResources','U') IS NOT NULL
           BEGIN
             DELETE FROM LessonResources
@@ -872,7 +871,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.LessonProgress','U') IS NOT NULL
           BEGIN
             DELETE FROM LessonProgress
@@ -885,7 +884,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.CourseLessons','U') IS NOT NULL
           BEGIN
             DELETE FROM CourseLessons
@@ -895,7 +894,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.CourseModules','U') IS NOT NULL
           BEGIN
             DELETE FROM CourseModules
@@ -903,7 +902,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.StudentAnswers','U') IS NOT NULL
           BEGIN
             DELETE FROM StudentAnswers
@@ -916,7 +915,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.QuizOptions','U') IS NOT NULL
           BEGIN
             DELETE FROM QuizOptions
@@ -929,7 +928,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.QuizQuestions','U') IS NOT NULL
           BEGIN
             DELETE FROM QuizQuestions
@@ -939,7 +938,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.QuizResults','U') IS NOT NULL
           BEGIN
             DELETE FROM QuizResults
@@ -949,7 +948,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.CourseQuizzes','U') IS NOT NULL
           BEGIN
             DELETE FROM CourseQuizzes
@@ -957,7 +956,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.CourseSchedule','U') IS NOT NULL
           BEGIN
             DELETE FROM CourseSchedule
@@ -965,7 +964,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.CourseEnrollments','U') IS NOT NULL
           BEGIN
             DELETE FROM CourseEnrollments
@@ -973,7 +972,7 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
           IF OBJECT_ID('dbo.CourseInvitations','U') IS NOT NULL
           BEGIN
             DELETE FROM CourseInvitations
@@ -981,7 +980,25 @@ function registerCourseRoutes(app, { getSqlPool, protect, restrictTo }) {
           END
         `;
 
-        await request.query`
+        await transaction.request().query`
+          IF OBJECT_ID('dbo.HomeworkSubmissions','U') IS NOT NULL
+          BEGIN
+            DELETE FROM HomeworkSubmissions
+            WHERE HomeworkId IN (
+              SELECT Id FROM Homeworks WHERE CourseId = ${courseId}
+            )
+          END
+        `;
+
+        await transaction.request().query`
+          IF OBJECT_ID('dbo.Homeworks','U') IS NOT NULL
+          BEGIN
+            DELETE FROM Homeworks
+            WHERE CourseId = ${courseId}
+          END
+        `;
+
+        await transaction.request().query`
           DELETE FROM Courses WHERE Id = ${courseId} AND CreatedBy = ${req.user.id}
         `;
 
