@@ -34,7 +34,10 @@ export class StudentHomework {
   loadHomeworks() {
     this.homeworkService.getStudentHomeworks().subscribe({
       next: (data) => {
-        this.homeworks.set(data || []);
+        this.homeworks.set((data || []).map(hw => ({
+          ...hw,
+          isLate: !!hw.isLate
+        })));
         this.loading.set(false);
       },
       error: (err) => {

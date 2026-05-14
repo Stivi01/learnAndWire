@@ -280,6 +280,49 @@ h3 {
   color: #4f46e5;
 }
 
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.not-submitted {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.submitted-on-time {
+  background-color: #dcfce7;
+  color: #065f46;
+}
+
+.status-badge.submitted-late {
+  background-color: #fef08a;
+  color: #92400e;
+}
+
+/* Row Highlighting */
+.submissions-table tr.status-not_submitted:hover td {
+  background-color: #fef2f2;
+}
+
+.submissions-table tr.status-submitted_late:hover td {
+  background-color: #fffbeb;
+}
+
+.submissions-table tr.status-submitted_on_time:hover td {
+  background-color: #f0fdf4;
+}
+
+.no-submission-text {
+  color: #cbd5e1;
+  font-size: 1.2rem;
+}
+
 /* Responsivitate pentru ecrane mici (Tablete / Telefoane) */
 @media (max-width: 1024px) {
   .homework-page {

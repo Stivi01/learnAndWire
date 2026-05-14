@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth';
 import { Observable } from 'rxjs';
-import { HomeworkItem, HomeworkSubmission } from '../models/homework.model';
+import { HomeworkItem, HomeworkSubmission, HomeworkStudentStatus } from '../models/homework.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +30,10 @@ export class Homework {
 
   getHomeworkSubmissions(homeworkId: number): Observable<HomeworkSubmission[]> {
     return this.http.get<HomeworkSubmission[]>(`${this.api}/${homeworkId}/submissions`, this.headers());
+  }
+
+  getAllStudents(homeworkId: number): Observable<HomeworkStudentStatus[]> {
+    return this.http.get<HomeworkStudentStatus[]>(`${this.api}/${homeworkId}/all-students`, this.headers());
   }
 
   gradeSubmission(submissionId: number, data: { grade: number; comments?: string }): Observable<any> {

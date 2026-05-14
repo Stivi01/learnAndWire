@@ -64,46 +64,67 @@
     </div>
 
     <div *ngIf="selectedHomework" class="selected-panel">
-      <h3>Submisiile pentru: {{ selectedHomework.title }}</h3>
+      <h3>Evidența temei: {{ selectedHomework.title }}</h3>
       <p class="homework-points">Puncte maxim: {{ selectedHomework.maxPoints ?? 100 }}</p>
-      <div *ngIf="submissions().length === 0" class="empty-state">
-        Nu există încă submisii.
+      <div *ngIf="allStudents().length === 0" class="empty-state">
+        Nu sunt elevi înscriși la acest curs.
       </div>
 
-      <table *ngIf="submissions().length > 0" class="submissions-table">
+      <table *ngIf="allStudents().length > 0" class="submissions-table">
         <thead>
           <tr>
             <th>Student</th>
-            <th>Tip</th>
+            <th>Status</th>
             <th>Trimis la</th>
+            <th>Tip</th>
             <th>Fișiere</th>
             <th>Notă</th>
+            <th>Comentariu</th>
             <th>Acțiuni</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let submission of submissions()">
-            <td>{{ submission.studentName || (submission.firstName + ' ' + submission.lastName) || (submission.FirstName + ' ' + submission.LastName) }}</td>
-            <td>{{ submission.submissionType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</td>
-            <td>{{ formatDate(submission.submittedAt || submission.SubmittedAt) }}</td>
+          <tr *ngFor="let student of allStudents()" [ngClass]="'status-' + student.status">
+            <td>{{ student.studentName || (student.firstName + ' ' + student.lastName) }}</td>
             <td>
-              <ng-container *ngIf="submission.fileUrls?.length; else noFiles">
-                <div *ngFor="let url of submission.fileUrls">
+              <span *ngIf="student.status === 'not_submitted'" class="status-badge not-submitted">Nu a încărcat</span>
+              <span *ngIf="student.status === 'submitted_on_time'" class="status-badge submitted-on-time">Trimisă la timp</span>
+              <span *ngIf="student.status === 'submitted_late'" class="status-badge submitted-late">Trimisă cu întârziere</span>
+            </td>
+            <td>{{ student.submittedAt ? formatDate(student.submittedAt) : '–' }}</td>
+            <td>{{ student.submissionType === 'breadbord' ? 'Breadbord' : (student.submissionType ? 'Clasică' : '–') }}</td>
+            <td>
+              <ng-container *ngIf="student.fileUrls?.length; else noFiles">
+                <div *ngFor="let url of student.fileUrls">
                   <a [href]="getDownloadUrl(url)" target="_blank" rel="noopener">Descarcă</a>
                 </div>
               </ng-container>
               <ng-template #noFiles>–</ng-template>
             </td>
             <td>
-              <ng-container *ngIf="submission.grade === null || submission.grade === undefined; else gradedValue">
-                <input type="number" min="0" [max]="submission.maxPoints ?? selectedHomework.maxPoints ?? 100" [(ngModel)]="submission._grade" placeholder="Nota" />
+              <ng-container *ngIf="student.submissionId; else noSubmission">
+                <ng-container *ngIf="student.grade === null || student.grade === undefined; else gradedValue">
+                  <input type="number" min="0" [max]="student.maxPoints ?? selectedHomework.maxPoints ?? 100" [(ngModel)]="student._grade" placeholder="Nota" />
+                </ng-container>
+                <ng-template #gradedValue>{{ student.grade }} / {{ student.maxPoints ?? selectedHomework.maxPoints ?? 100 }}</ng-template>
               </ng-container>
-              <ng-template #gradedValue>{{ submission.grade }} / {{ submission.maxPoints ?? selectedHomework.maxPoints ?? 100 }}</ng-template>
+              <ng-template #noSubmission>–</ng-template>
             </td>
             <td>
-              <button type="button" class="btn-save" (click)="gradeSubmission(submission.id, submission._grade, submission.comments || '')" [disabled]="submission.grade !== null && submission.grade !== undefined">
-                {{ submission.grade !== null && submission.grade !== undefined ? 'Notată' : 'Notează' }}
-              </button>
+              <ng-container *ngIf="student.submissionId; else noComment">
+                <textarea rows="2" [(ngModel)]="student.comments" placeholder="Comentariu profesor"></textarea>
+              </ng-container>
+              <ng-template #noComment>–</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="student.submissionId">
+                <button type="button" class="btn-save" (click)="gradeSubmission(student.submissionId, student._grade, student.comments || '')" [disabled]="student.grade !== null && student.grade !== undefined">
+                  {{ student.grade !== null && student.grade !== undefined ? 'Notată' : 'Notează' }}
+                </button>
+              </ng-container>
+              <ng-container *ngIf="!student.submissionId">
+                <span class="no-submission-text">–</span>
+              </ng-container>
             </td>
           </tr>
         </tbody>

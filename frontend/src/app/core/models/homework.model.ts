@@ -16,6 +16,7 @@ export interface HomeworkItem {
   grade?: number | null;
   gradedAt?: string | null;
   comments?: string | null;
+  isLate?: boolean;
 }
 
 export interface HomeworkSubmission {
@@ -31,4 +32,23 @@ export interface HomeworkSubmission {
   submittedAt: string;
   gradedAt?: string | null;
   comments?: string | null;
+  isLate?: boolean;
+}
+
+export interface HomeworkStudentStatus {
+  studentId: number;
+  firstName: string;
+  lastName: string;
+  studentName: string;
+  email: string;
+  submissionId?: number | null;
+  submissionType?: 'classic' | 'breadbord' | null;
+  fileUrls?: string[];
+  grade?: number | null;
+  submittedAt?: string | null;
+  gradedAt?: string | null;
+  isLate?: boolean;
+  comments?: string | null;
+  status: 'not_submitted' | 'submitted_late' | 'submitted_on_time';
+  maxPoints?: number;
 }

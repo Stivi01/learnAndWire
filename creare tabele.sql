@@ -208,3 +208,7 @@ CREATE TABLE HomeworkSubmissions (
 ALTER TABLE HomeworkSubmissions
 ADD CONSTRAINT UQ_HomeworkSubmissions_Homework_Student
 UNIQUE (HomeworkId, StudentId);
+
+-- 🔄 Migration: Track late submissions
+ALTER TABLE HomeworkSubmissions
+ADD IsLate BIT DEFAULT 0;

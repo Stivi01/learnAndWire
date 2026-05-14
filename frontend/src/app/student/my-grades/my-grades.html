@@ -16,7 +16,8 @@
     <thead>
       <tr>
         <th>Curs</th>
-        <th>Test</th>
+        <th>Tip</th>
+        <th>Titlu</th>
         <th>Data Susținerii</th>
         <th>Scor Obținut</th>
         <th>Procentaj</th>
@@ -25,6 +26,7 @@
     <tbody>
       <tr *ngFor="let grade of grades()">
         <td>{{ grade.courseTitle }}</td>
+        <td>{{ grade.type === 'homework' ? 'Temă' : 'Quiz' }}</td>
         <td>{{ grade.title }}</td>
         <td>{{ grade.date | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}</td>
         <td><strong>{{ grade.score }}</strong> / {{ grade.maxScore }} puncte</td>

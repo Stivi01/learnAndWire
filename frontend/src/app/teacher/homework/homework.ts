@@ -20,6 +20,7 @@ export class Homework {
   homeworks = signal<HomeworkItem[]>([]);
   selectedHomework: HomeworkItem | null = null;
   submissions = signal<any[]>([]);
+  allStudents = signal<any[]>([]);
   loading = signal(false);
   selectedCourseId: number | null = null;
   title = '';
@@ -135,6 +136,26 @@ export class Homework {
   }
 
   loadSubmissions(homeworkId: number) {
+    // Load all students with their submission status
+    this.homeworkService.getAllStudents(homeworkId).subscribe({
+      next: (data) => {
+        const normalized = (data || []).map(item => ({
+          ...item,
+          _grade: item.grade ?? null,
+          comments: item.comments || '',
+          maxPoints: item.maxPoints ?? 100
+        }));
+        this.allStudents.set(normalized);
+      },
+      error: (err) => {
+        console.error(err);
+        if (err.status !== 401) {
+          this.toast.show('Nu s-au putut încărca elevii.', 'error');
+        }
+      }
+    });
+
+    // Also load submitted submissions for backwards compatibility
     this.homeworkService.getHomeworkSubmissions(homeworkId).subscribe({
       next: (data) => {
         const normalized = (data || []).map(item => ({

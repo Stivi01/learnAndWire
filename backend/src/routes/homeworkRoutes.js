@@ -157,19 +157,21 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
                hs.FileUrls AS fileUrls,
                hs.Grade AS grade,
                hs.SubmittedAt AS submittedAt,
-               hs.GradedAt AS gradedAt
+               hs.GradedAt AS gradedAt,
+               hs.IsLate AS isLate,
+               hs.Comments AS comments
         FROM Homeworks h
         INNER JOIN CourseEnrollments ce ON ce.CourseId = h.CourseId AND ce.StudentId = ${req.user.id}
         INNER JOIN Courses c ON c.Id = h.CourseId
         LEFT JOIN HomeworkSubmissions hs ON hs.HomeworkId = h.Id AND hs.StudentId = ${req.user.id}
         WHERE ce.IsExcluded = ${0}
-        ORDER BY h.DueAt ASC
+        ORDER BY h.CreatedAt DESC
       `;
 
       const homeworks = result.recordset.map(hw => ({
         ...hw,
         fileUrls: parseJsonArray(hw.fileUrls),
-        isLate: hw.dueAt ? new Date() > new Date(hw.dueAt) : false
+        isLate: hw.isLate === true || hw.isLate === 1
       }));
 
       res.json(homeworks);
@@ -210,10 +212,6 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         return res.status(403).json({ message: 'Nu ai acces la această temă.' });
       }
 
-      if (homework.DueAt && new Date() > new Date(homework.DueAt)) {
-        return res.status(403).json({ message: 'Termenul limită de predare a fost depășit.' });
-      }
-
       const fileUrls = (req.files || []).map(file => `/uploads/documents/${file.filename}`);
       const fileUrlsJson = JSON.stringify(fileUrls);
 
@@ -227,8 +225,10 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
       }
 
       await sqlPool.query`
-        INSERT INTO HomeworkSubmissions (HomeworkId, StudentId, SubmissionType, SubmittedAt, FileUrls)
-        VALUES (${homeworkId}, ${req.user.id}, ${submissionType}, GETDATE(), ${fileUrlsJson})
+        INSERT INTO HomeworkSubmissions (HomeworkId, StudentId, SubmissionType, SubmittedAt, FileUrls, IsLate)
+        SELECT ${homeworkId}, ${req.user.id}, ${submissionType}, GETDATE(), ${fileUrlsJson}, CASE WHEN GETDATE() > DueAt THEN 1 ELSE 0 END
+        FROM Homeworks
+        WHERE Id = ${homeworkId}
       `;
 
       res.status(201).json({ message: 'Tema a fost trimisă cu succes.' });
@@ -244,12 +244,14 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
     try {
       const sqlPool = getSqlPool();
       const homeworkResult = await sqlPool.query`
-        SELECT Id FROM Homeworks WHERE Id = ${homeworkId} AND CreatedBy = ${req.user.id}
+        SELECT Id, DueAt FROM Homeworks WHERE Id = ${homeworkId} AND CreatedBy = ${req.user.id}
       `;
 
       if (homeworkResult.recordset.length === 0) {
         return res.status(404).json({ message: 'Tema nu a fost găsită sau nu îți aparține.' });
       }
+
+      const homework = homeworkResult.recordset[0];
 
       const submissions = await sqlPool.query`
         SELECT hs.Id AS id,
@@ -260,6 +262,8 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
                hs.Grade AS grade,
                hs.SubmittedAt AS submittedAt,
                hs.GradedAt AS gradedAt,
+               hs.IsLate AS isLate,
+               hs.Comments AS comments,
                u.FirstName AS firstName,
                u.LastName AS lastName,
                CONCAT(u.FirstName, ' ', u.LastName) AS studentName,
@@ -282,18 +286,76 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
     }
   });
 
+  // 📋 NEW ENDPOINT: Get all students with submission status for a homework
+  app.get('/api/homeworks/:id/all-students', protect, restrictTo('Profesor'), async (req, res) => {
+    const homeworkId = parseInt(req.params.id, 10);
+
+    try {
+      const sqlPool = getSqlPool();
+      const homeworkResult = await sqlPool.query`
+        SELECT h.Id, h.CourseId, h.DueAt, h.MaxPoints
+        FROM Homeworks h
+        WHERE h.Id = ${homeworkId} AND h.CreatedBy = ${req.user.id}
+      `;
+
+      if (homeworkResult.recordset.length === 0) {
+        return res.status(404).json({ message: 'Tema nu a fost găsită sau nu îți aparține.' });
+      }
+
+      const homework = homeworkResult.recordset[0];
+
+      const allStudents = await sqlPool.query`
+        SELECT u.Id AS studentId,
+               u.FirstName AS firstName,
+               u.LastName AS lastName,
+               CONCAT(u.FirstName, ' ', u.LastName) AS studentName,
+               u.Email AS email,
+               hs.Id AS submissionId,
+               hs.SubmissionType AS submissionType,
+               hs.FileUrls AS fileUrls,
+               hs.Grade AS grade,
+               hs.SubmittedAt AS submittedAt,
+               hs.GradedAt AS gradedAt,
+               hs.IsLate AS isLate,
+               hs.Comments AS comments,
+               CASE 
+                 WHEN hs.Id IS NULL THEN 'not_submitted'
+                 WHEN hs.IsLate = 1 THEN 'submitted_late'
+                 ELSE 'submitted_on_time'
+               END AS status,
+               COALESCE(${homework.MaxPoints}, 100) AS maxPoints
+        FROM CourseEnrollments ce
+        INNER JOIN Users u ON u.Id = ce.StudentId
+        LEFT JOIN HomeworkSubmissions hs ON hs.HomeworkId = ${homeworkId} AND hs.StudentId = u.Id
+        WHERE ce.CourseId = ${homework.CourseId} AND ce.IsExcluded = 0
+        ORDER BY u.FirstName, u.LastName
+      `;
+
+      res.json(allStudents.recordset.map(row => ({
+        ...row,
+        fileUrls: row.fileUrls ? parseJsonArray(row.fileUrls) : []
+      })));
+    } catch (err) {
+      console.error('❌ Error fetching all students:', err);
+      res.status(500).json({ message: 'Eroare la preluarea elevilor.' });
+    }
+  });
+
   app.put('/api/homeworks/submissions/:submissionId/grade', protect, restrictTo('Profesor'), async (req, res) => {
     const submissionId = parseInt(req.params.submissionId, 10);
-    const { grade } = req.body;
+    const { grade, comments } = req.body;
+    const gradeValue = grade !== undefined && grade !== null && grade !== '' ? Number(grade) : null;
+    const hasGrade = gradeValue !== null && !Number.isNaN(gradeValue);
+    const hasComments = typeof comments === 'string';
 
-    if (grade === undefined || grade === null || Number.isNaN(Number(grade))) {
-      return res.status(400).json({ message: 'Este nevoie de o notă validă.' });
+    if (!hasGrade && !hasComments) {
+      return res.status(400).json({ message: 'Este nevoie de o notă validă sau un comentariu.' });
     }
 
     try {
       const sqlPool = getSqlPool();
       const submissionResult = await sqlPool.query`
-        SELECT hs.Id, hs.HomeworkId, hs.Grade, h.CreatedBy, h.MaxPoints AS MaxPoints
+        SELECT hs.Id, hs.Grade, h.CreatedBy, h.MaxPoints AS MaxPoints
         FROM HomeworkSubmissions hs
         INNER JOIN Homeworks h ON h.Id = hs.HomeworkId
         WHERE hs.Id = ${submissionId}
@@ -308,21 +370,37 @@ function registerHomeworkRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
         return res.status(403).json({ message: 'Nu poți nota această submisie.' });
       }
 
-      if (submission.Grade !== null && submission.Grade !== undefined) {
-        return res.status(409).json({ message: 'Această submisie a fost deja notată.' });
+      if (hasGrade) {
+        if (submission.Grade !== null && submission.Grade !== undefined) {
+          return res.status(409).json({ message: 'Această submisie a fost deja notată.' });
+        }
+
+        if (gradeValue < 0 || gradeValue > submission.MaxPoints) {
+          return res.status(400).json({ message: `Nota trebuie să fie între 0 și ${submission.MaxPoints}.` });
+        }
       }
 
-      if (grade < 0 || grade > submission.MaxPoints) {
-        return res.status(400).json({ message: `Nota trebuie să fie între 0 și ${submission.MaxPoints}.` });
+      const updateFields = [];
+      const request = sqlPool.request().input('submissionId', sql.Int, submissionId);
+
+      if (hasGrade) {
+        request.input('grade', sql.Int, gradeValue);
+        request.input('gradedBy', sql.Int, req.user.id);
+        updateFields.push('Grade = @grade', 'GradedAt = GETDATE()', 'GradedBy = @gradedBy');
       }
 
-      await sqlPool.query`
+      if (hasComments) {
+        request.input('comments', sql.NVarChar(sql.MAX), comments || null);
+        updateFields.push('Comments = @comments');
+      }
+
+      await request.query(`
         UPDATE HomeworkSubmissions
-        SET Grade = ${grade}, GradedAt = GETDATE(), GradedBy = ${req.user.id}
-        WHERE Id = ${submissionId}
-      `;
+        SET ${updateFields.join(', ')}
+        WHERE Id = @submissionId
+      `);
 
-      res.json({ message: 'Nota a fost salvată.' });
+      res.json({ message: 'Submisia a fost actualizată.' });
     } catch (err) {
       console.error('❌ Error grading homework submission:', err);
       res.status(500).json({ message: 'Eroare la salvarea notei.' });

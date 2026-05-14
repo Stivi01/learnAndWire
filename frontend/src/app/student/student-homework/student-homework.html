@@ -28,7 +28,12 @@
 
       <div class="meta-row">
         <span>Deadline: {{ formatDate(hw.dueAt) }}</span>
-        <span>Status: {{ hw.grade != null ? 'Notată' : hw.submittedAt ? 'Trimisă' : 'Neîncepută' }}</span>
+        <span>Status: 
+          <span *ngIf="hw.grade != null" class="status notata">Notată</span>
+          <span *ngIf="hw.grade == null && hw.submittedAt && !hw.isLate" class="status submitted">Trimisă la timp</span>
+          <span *ngIf="hw.grade == null && hw.submittedAt && hw.isLate" class="status late">Trimisă cu întârziere</span>
+          <span *ngIf="hw.grade == null && !hw.submittedAt" class="status not-started">Neîncepută</span>
+        </span>
       </div>
 
       <div class="body-row">
@@ -48,7 +53,8 @@
             Fișier selectat: {{ getSelectedFileNames(hw.id) }}
           </div>
           <div *ngIf="hw.submissionId" class="submitted-note">
-            Ai trimis deja tema. Nu poți încărca din nou.
+            <span *ngIf="hw.isLate" class="late-badge">Ai trimis cu întârziere</span>
+            <span *ngIf="!hw.isLate" class="on-time-badge">Ai trimis la timp</span>
           </div>
         </div>
 
@@ -56,7 +62,8 @@
           <input type="file" multiple accept=".pdf,.doc,.docx" (change)="onFileChange(hw.id, $event)" [disabled]="hw.submissionId" />
           <button type="button" class="btn-save" (click)="submitClassic(hw)" [disabled]="submitting() || hw.submissionId">Trimite fișiere</button>
           <div *ngIf="hw.submissionId" class="submitted-note">
-            Ai trimis deja tema. Nu poți încărca din nou.
+            <span *ngIf="hw.isLate" class="late-badge">Ai trimis cu întârziere</span>
+            <span *ngIf="!hw.isLate" class="on-time-badge">Ai trimis la timp</span>
           </div>
         </div>
       </div>
@@ -70,6 +77,9 @@
 
       <div *ngIf="hw.grade != null" class="grade-row">
         <strong>Notă:</strong> {{ hw.grade }} / {{ hw.maxPoints ?? 100 }}
+      </div>
+      <div *ngIf="hw.comments" class="comment-row">
+        <strong>Comentariu profesor:</strong> {{ hw.comments }}
       </div>
     </div>
   </div>
