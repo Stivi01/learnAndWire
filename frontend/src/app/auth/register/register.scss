@@ -1,103 +1,242 @@
-:host {
-    display: block;
-    --color-primary: #84cc16; /* Verde vibrant (Tailwind green-500) */
-    --color-primary-dark: #65a30d; /* Verde mai închis (Tailwind lime-600) */
-    --color-background: #ecfdf5; /* Foarte deschis verde pal (Tailwind green-50) */
-    font-family: 'Inter', sans-serif;
-}
-
+/* Containerul general (Ocupă tot ecranul, centrează cardul) */
 .main-container {
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 93vh;
-  background-color: #ecfdf5;
+  justify-content: center;
+  background-color: #f8fafc;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
 .auth-card-wrapper {
-  display: flex;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-  max-width: 1000px;
   width: 100%;
-  overflow: hidden;
-}
-
-.auth-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 550px;
-}
-
-.illustration-panel {
-  background-color: #d1fae5;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 2rem;
 }
 
-.form-panel {
+/* Cardul de Autentificare (Split Layout) */
+.auth-card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  overflow: hidden;
+  max-width: 1000px;
+  width: 100%;
+  min-height: 600px;
+}
+
+/* --- PANOU STÂNGA (Ilustrație - Tema Dark) --- */
+.illustration-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+}
+
+.character-placeholder {
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2.5rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Suprascriem verdele din SVG pentru a-l face Indigo */
+.character-placeholder svg {
+  stroke: #818cf8 !important; 
+  margin-bottom: 1.5rem;
+  width: 80px;
+  height: 80px;
+}
+
+/* Suprascriem textul gri din HTML pentru a fi vizibil pe fundal închis */
+.character-placeholder p.text-gray-700 {
+  color: #e2e8f0 !important;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+
+/* --- PANOU DREAPTA (Formular) --- */
+.form-panel {
+  flex: 1.2; /* Oferim puțin mai mult spațiu formularului de register deoarece are mai multe câmpuri */
+  padding: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-/* --- Input-uri și Validări Formular --- */
+.logo-area {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #6366f1; /* Accent Indigo */
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.5px;
+}
 
+.form-panel h1 {
+  font-size: 2rem;
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* --- GRID ȘI INPUT-URI --- */
+/* Suprascriem Tailwind-ul din HTML pentru a ne asigura că arată bine peste tot */
+.grid.grid-cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.space-y-4 > div {
+  margin-bottom: 1.25rem;
+}
+
+/* Clasa de bază pentru input-uri */
 .input-field {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  transition: border-color 0.2s ease, outline 0.2s ease;
-
-  /* Margine roșie dacă input-ul este invalid și s-a interacționat cu el */
-  &.ng-invalid.ng-touched,
-  &.ng-invalid.ng-dirty {
-    border-color: #dc2626 !important;
-    outline: 1px solid #dc2626 !important;
-  }
+  padding: 0.85rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background-color: #f8fafc;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
+.input-field::placeholder {
+  color: #94a3b8;
+}
+
+.input-field:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.input-field:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Mesaje eroare */
 .error-message {
-  small {
-    color: #dc2626 !important; /* Roșu de avertizare */
-    font-size: 0.75rem;
-    margin-top: 4px;
-    display: block;
-    font-weight: 500;
-  }
+  color: #e11d48;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
+/* --- INDICATOR ROL --- */
+.role-indicator {
+  background-color: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4f46e5;
+  padding: 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+/* --- BUTON AUTENTIFICARE --- */
 .submit-button {
   width: 100%;
-  padding: 0.9rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background-color: #84cc16;
+  background-color: #6366f1;
   color: white;
-  font-weight: 600;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
-}
-
-/* Efect vizual când butonul este blocat de validări */
-.submit-button:disabled,
-.disabled-btn {
-  background-color: #9ca3af !important; /* Gri pentru starea blocată */
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-.role-indicator {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1e40af;
-  background-color: #dbeafe;
-  padding: 0.5rem;
-  border-radius: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   margin-top: 0.5rem;
+}
+
+.submit-button:hover:not(:disabled):not(.disabled-btn) {
+  background-color: #4f46e5;
+  box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Styling pentru disabled (inclusiv clasa ta .disabled-btn) */
+.submit-button:disabled,
+.submit-button.disabled-btn {
+  background-color: #cbd5e1;
+  color: #f8fafc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* --- LINK-URI (Logare) --- */
+/* Suprascriem .text-green-600 din HTML cu !important pentru a forța nuanța de indigo */
+.form-panel a {
+  color: #6366f1 !important; 
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 600;
+}
+
+.form-panel a:hover {
+  color: #4f46e5 !important;
+  text-decoration: underline;
+}
+
+.switch {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #475569;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+
+/* --- RESPONSIVITATE --- */
+@media (max-width: 900px) {
+  .auth-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .illustration-panel {
+    display: none;
+  }
+  
+  .form-panel {
+    padding: 2.5rem;
+  }
+}
+
+@media (max-width: 500px) {
+  /* Pe telefoane foarte mici, gridul cu 2 coloane devine o singură coloană */
+  .grid.grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
 }
