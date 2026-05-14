@@ -78,8 +78,11 @@
       <div *ngIf="hw.grade != null" class="grade-row">
         <strong>Notă:</strong> {{ hw.grade }} / {{ hw.maxPoints ?? 100 }}
       </div>
-      <div *ngIf="hw.comments" class="comment-row">
+      <div *ngIf="hw.comments && hw.comments.trim().length > 0" class="comment-row">
         <strong>Comentariu profesor:</strong> {{ hw.comments }}
+      </div>
+      <div *ngIf="hw.submissionId && (!hw.comments || hw.comments.trim().length === 0)" class="comment-row no-comment">
+        <strong>Comentariu profesor:</strong> Încă nu există niciun comentariu de la profesor.
       </div>
     </div>
   </div>

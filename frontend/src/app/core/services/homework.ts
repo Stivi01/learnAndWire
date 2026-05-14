@@ -36,7 +36,7 @@ export class Homework {
     return this.http.get<HomeworkStudentStatus[]>(`${this.api}/${homeworkId}/all-students`, this.headers());
   }
 
-  gradeSubmission(submissionId: number, data: { grade: number; comments?: string }): Observable<any> {
+  gradeSubmission(submissionId: number, data: { grade?: number; comments?: string }): Observable<any> {
     return this.http.put(`${this.api}/submissions/${submissionId}/grade`, data, this.headers());
   }
 

@@ -176,18 +176,36 @@ export class Homework {
   }
 
   gradeSubmission(submissionId: number, gradeValue: string, comments: string) {
-    const grade = Number(gradeValue);
+    const grade = gradeValue !== null && gradeValue !== undefined && gradeValue !== '' ? Number(gradeValue) : null;
     const submission = this.submissions().find(s => s.id === submissionId);
-    const maxPoints = submission.maxPoints ?? this.selectedHomework?.maxPoints ?? 100;
+    const maxPoints = submission?.maxPoints ?? this.selectedHomework?.maxPoints ?? 100;
+    const hasGrade = grade !== null && !Number.isNaN(grade);
+    const hasComments = typeof comments === 'string' && comments.trim().length > 0;
 
-    if (Number.isNaN(grade) || grade < 0 || grade > maxPoints) {
+    if (!hasGrade && !hasComments) {
+      this.toast.show('Completează o notă sau un comentariu înainte de a trimite.', 'error');
+      return;
+    }
+
+    if (hasGrade && (Number.isNaN(grade) || grade < 0 || grade > maxPoints)) {
       this.toast.show(`Nota trebuie să fie un număr între 0 și ${maxPoints}.`, 'error');
       return;
     }
 
-    this.homeworkService.gradeSubmission(submissionId, { grade, comments }).subscribe({
+    const gradeLabel = hasGrade ? grade : 'fără notă';
+    const commentLabel = hasComments ? ` și comentariul "${comments.trim()}"` : '';
+    const confirmMessage = `Sunteți sigur că acordați nota ${gradeLabel}${commentLabel}?`;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    const payload: { grade?: number; comments?: string } = {};
+    if (hasGrade) payload.grade = grade as number;
+    if (hasComments) payload.comments = comments.trim();
+
+    this.homeworkService.gradeSubmission(submissionId, payload).subscribe({
       next: () => {
-        this.toast.show('Submisia a fost notată.', 'success');
+        this.toast.show('Submisia a fost actualizată.', 'success');
         if (this.selectedHomework) {
           this.loadSubmissions(this.selectedHomework.id);
         }
