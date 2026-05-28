@@ -96,13 +96,26 @@
         padding: 10px 20px;
         border-radius: 5px;
         font-weight: bold;
-        }
+      }
 
-        .btn-start {
+      .btn-start {
         background-color: #28a745; /* Verde */
         color: white;
-        /* restul stilului tău */
+        cursor: pointer;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+
+        &:hover {
+          background-color: #218838; /* Un verde un pic mai închis la hover */
         }
+
+        &:active {
+          transform: scale(0.98); /* Efect subtil de apăsare */
+        }
+      }
     }
   }
 }

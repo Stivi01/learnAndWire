@@ -1,49 +1,170 @@
+/* Containerul Principal */
 .settings-page {
-  max-width: 600px;
+  max-width: 800px; /* Lățime redusă pentru formulare mai ușor de citit */
   margin: 0 auto;
-  padding: 20px;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #334155;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
 
-  h1 { color: #5a3968; margin-bottom: 20px; }
+.settings-page h1 {
+  color: #0f172a;
+  font-size: 1.75rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
 
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 16px;
+/* Starea de încărcare */
+.settings-page > div[ngIf="isLoading()"] {
+  padding: 3rem;
+  text-align: center;
+  color: #64748b;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
 
-    label { font-weight: 600; margin-bottom: 6px; }
-    input { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; }
-    input[readonly] { background: #f0f0f0; }
-  }
-
-  button {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px;
-    background: #6b4a7c;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .success { color: green; margin-top: 12px; }
-  .error { color: red; margin-top: 12px; }
-  .updated-at { color: #666; font-size: 14px; margin-top: 12px; }
+/* --- SECȚIUNEA AVATAR --- */
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .avatar-preview {
-  width: 120px;
-  height: 120px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #ccc;
+  border: 3px solid #e0e7ff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.error-message {
-  small {
-    color: #dc3545 !important; /* Forțăm roșul pentru textul de eroare */
-    font-size: 0.85rem;
-    margin-top: 4px;
-    display: block;
-    font-weight: 500;
+.avatar-section input[type="file"] {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.avatar-section input[type="file"]::file-selector-button {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 1rem;
+}
+
+.avatar-section input[type="file"]::file-selector-button:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* --- FORMULAR (Câmpuri Text) --- */
+.form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.form-group input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background-color: #ffffff;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group input:focus:not(:disabled) {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.form-group input:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+/* --- BUTON SALVARE --- */
+.settings-page button:not(.close-btn) { /* Excludem eventuale butoane de close din sub-componente */
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  display: block;
+  width: 100%;
+}
+
+.settings-page button:hover {
+  background-color: #4f46e5;
+}
+
+.settings-page button:active {
+  transform: translateY(1px);
+}
+
+/* --- DETALII META (Ultima logare / actualizare) --- */
+.updated-at {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.updated-at::before {
+  content: '🕒';
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* --- SUB-COMPONENTE --- */
+app-change-password-settings,
+app-recovery-codes-settings {
+  display: block;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+/* Pentru o organizare mai bună vizual, poți lăsa ecranele mari să aibă 2 coloane (Opțional, doar dacă pui câmpurile într-un wrapper "form-grid") */
+@media (min-width: 768px) {
+  .settings-page button:not(.close-btn) {
+    width: auto; /* Pe ecrane mari butonul nu mai stă pe toată lățimea */
   }
 }

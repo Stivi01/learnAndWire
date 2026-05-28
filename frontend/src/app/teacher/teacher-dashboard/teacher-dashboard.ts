@@ -40,8 +40,12 @@ export class TeacherDashboard {
   // Date pentru afișare
   recentCourses = signal<CourseWithStudents[]>([]);
   isLoading = signal(true);
+  userName = signal('');
 
   constructor() {
+    const user = this.auth.getUser();
+    if (user) this.userName.set(`${user.firstName} ${user.lastName}`);
+
     this.loadDashboardData();
   }
 

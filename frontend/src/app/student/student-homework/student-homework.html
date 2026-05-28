@@ -20,7 +20,7 @@
           <h3>{{ hw.title }}</h3>
           <p>{{ hw.courseTitle }}</p>
         </div>
-        <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</span>
+        <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadboard' : 'Clasică' }}</span>
       </div>
       <div class="meta-row">
         <span>Puncte: {{ hw.maxPoints ?? 100 }}</span>
@@ -45,7 +45,7 @@
       </div>
 
       <div class="actions-row">
-        <button *ngIf="hw.homeworkType === 'breadbord'" type="button" class="btn" (click)="openBreadbord()" [disabled]="hw.submissionId">Deschide Breadbord</button>
+        <button *ngIf="hw.homeworkType === 'breadbord'" type="button" class="btn" (click)="openBreadbord()" [disabled]="hw.submissionId">Deschide Breadboard</button>
         <div *ngIf="hw.homeworkType === 'breadbord'" class="upload-section">
           <input type="file" accept=".svg" (change)="onFileChange(hw.id, $event)" [disabled]="hw.submissionId" />
           <button type="button" class="btn-save" (click)="submitBreadbord(hw)" [disabled]="submitting() || hw.submissionId">Încarcă SVG și trimite</button>

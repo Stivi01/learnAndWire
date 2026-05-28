@@ -1,6 +1,6 @@
 <div class="homework-page">
   <div class="form-panel">
-    <h2>Crează temă nouă</h2>
+    <h2>Creează temă nouă</h2>
 
     <div class="form-row">
       <label>Materie</label>
@@ -18,7 +18,7 @@
     <div class="form-row radio-row">
       <label>Tip temă</label>
       <label><input type="radio" name="type" value="classic" [(ngModel)]="homeworkType" /> Clasică</label>
-      <label><input type="radio" name="type" value="breadbord" [(ngModel)]="homeworkType" /> Breadbord</label>
+      <label><input type="radio" name="type" value="breadbord" [(ngModel)]="homeworkType" /> Breadboard</label>
     </div>
 
     <div class="form-row">
@@ -57,7 +57,7 @@
         <p>{{ hw.courseTitle }}</p>
       </div>
       <div>
-        <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadbord' : 'Clasică' }}</span>
+        <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadboard' : 'Clasică' }}</span>
         <span class="due">Până la: {{ formatDate(hw.dueAt) }}</span>
         <span class="points">Puncte: {{ hw.maxPoints ?? 100 }}</span>
       </div>
@@ -92,7 +92,7 @@
               <span *ngIf="student.status === 'submitted_late'" class="status-badge submitted-late">Trimisă cu întârziere</span>
             </td>
             <td>{{ student.submittedAt ? formatDate(student.submittedAt) : '–' }}</td>
-            <td>{{ student.submissionType === 'breadbord' ? 'Breadbord' : (student.submissionType ? 'Clasică' : '–') }}</td>
+            <td>{{ student.submissionType === 'breadbord' ? 'Breadboard' : (student.submissionType ? 'Clasică' : '–') }}</td>
             <td>
               <ng-container *ngIf="student.fileUrls?.length; else noFiles">
                 <div *ngFor="let url of student.fileUrls">
