@@ -98,7 +98,8 @@ function registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           FROM CourseQuizzes q
           INNER JOIN Courses c ON c.Id = q.CourseId
           INNER JOIN CourseEnrollments ce ON ce.CourseId = q.CourseId AND ce.StudentId = ${studentId}
-          WHERE q.IsPublished = ${1} AND c.IsPublished = ${1} AND ce.IsExcluded = ${0}
+          INNER JOIN CourseInvitations ci ON ci.CourseId = q.CourseId AND ci.StudentId = ${studentId}
+          WHERE q.IsPublished = ${1} AND c.IsPublished = ${1} AND ce.IsExcluded = ${0} AND ci.Status = 'Accepted'
           ORDER BY q.CreatedAt DESC
         `,
         sqlPool.query`
@@ -110,7 +111,8 @@ function registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           FROM CourseModules m
           INNER JOIN Courses c ON c.Id = m.CourseId
           INNER JOIN CourseEnrollments ce ON ce.CourseId = m.CourseId AND ce.StudentId = ${studentId}
-          WHERE ce.IsExcluded = ${0}
+          INNER JOIN CourseInvitations ci ON ci.CourseId = m.CourseId AND ci.StudentId = ${studentId}
+          WHERE ce.IsExcluded = ${0} AND ci.Status = 'Accepted'
           ORDER BY m.Id DESC
         `,
         sqlPool.query`
@@ -125,7 +127,8 @@ function registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           INNER JOIN CourseModules m ON m.Id = l.ModuleId
           INNER JOIN Courses c ON c.Id = m.CourseId
           INNER JOIN CourseEnrollments ce ON ce.CourseId = c.Id AND ce.StudentId = ${studentId}
-          WHERE ce.IsExcluded = ${0}
+          INNER JOIN CourseInvitations ci ON ci.CourseId = c.Id AND ci.StudentId = ${studentId}
+          WHERE ce.IsExcluded = ${0} AND ci.Status = 'Accepted'
           ORDER BY l.Id DESC
         `,
         sqlPool.query`
@@ -140,7 +143,8 @@ function registerUserRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
           FROM Homeworks h
           INNER JOIN Courses c ON c.Id = h.CourseId
           INNER JOIN CourseEnrollments ce ON ce.CourseId = h.CourseId AND ce.StudentId = ${studentId}
-          WHERE ce.IsExcluded = ${0}
+          INNER JOIN CourseInvitations ci ON ci.CourseId = h.CourseId AND ci.StudentId = ${studentId}
+          WHERE ce.IsExcluded = ${0} AND ci.Status = 'Accepted'
           ORDER BY h.CreatedAt DESC
         `,
       ]);

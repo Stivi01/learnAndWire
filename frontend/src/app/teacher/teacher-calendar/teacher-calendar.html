@@ -72,7 +72,7 @@
         <div class="quiz-card" [class.draft]="!quiz.isPublished">
           <div class="card-accent"></div>
           <div class="card-info">
-            <span class="time">{{ quiz.scheduledAt | date:'HH:mm' }}</span>
+            <span class="time">{{ quiz.scheduledAt | date:'HH:mm':'UTC' }}</span>
             <span class="title">{{ quiz.title }}</span>
             <span class="status">{{ quiz.isPublished ? 'Publicat' : 'Draft' }}</span>
           </div>
@@ -83,7 +83,7 @@
         <div class="homework-card">
           <div class="card-accent"></div>
           <div class="card-info">
-            <span class="time">Deadline: {{ hw.dueAt | date:'HH:mm' }}</span>
+            <span class="time">Deadline: {{ hw.dueAt | date:'HH:mm':'UTC' }}</span>
             <span class="title">{{ hw.title }}</span>
             <span class="status">
               {{ hw.submissionCount }} submissions

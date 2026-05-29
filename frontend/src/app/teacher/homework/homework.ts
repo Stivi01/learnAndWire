@@ -226,9 +226,7 @@ export class Homework {
     return url.startsWith('http') ? url : `${this.backendBaseUrl}${url}`;
   }
 
-  formatDate(value?: string | null) {
-    return formatRomanianDateTime(value);
-  }
+  formatDateTime = formatRomanianDateTime;
 
   getCourseTitle(courseId: number) {
     const course = this.courses().find(c => c.Id === courseId);

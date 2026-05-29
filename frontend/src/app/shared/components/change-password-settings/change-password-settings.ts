@@ -37,7 +37,7 @@ interface ChangePasswordRequest {
             [(ngModel)]="formData.oldPassword"
             name="oldPassword"
             #oldPwInput="ngModel"
-            placeholder="Introduce-ți parola actuală"
+            placeholder="Introducere parola actuală"
             class="input-field"
             required
           />
@@ -78,7 +78,7 @@ interface ChangePasswordRequest {
             [(ngModel)]="formData.confirmPassword"
             name="confirmPassword"
             #confirmInput="ngModel"
-            placeholder="Confirmă noua parolă"
+            placeholder="Confirmare noua parolă"
             class="input-field"
             required
           />

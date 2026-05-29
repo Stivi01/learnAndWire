@@ -12,7 +12,7 @@
 
       <!-- TEACHERS -->
       <div class="card card-teachers">
-        <h2>Linked Teachers</h2>
+        <h2>Profesori asociați</h2>
         <div *ngFor="let t of visibleTeachers()" class="teacher-item">
           <div class="teacher-left">
             <img [src]="t.avatarUrl" [alt]="t.fullName" class="teacher-avatar"/>
@@ -21,16 +21,16 @@
               <div class="t-role">{{ t.role }}</div>
             </div>
           </div>
-          <a class="see-more view-profile-link" (click)="openTeacherModal(t)">View Profile &gt;</a>
+          <a class="see-more view-profile-link" (click)="openTeacherModal(t)">Vizualizează profilul &gt;</a>
         </div>
         <a *ngIf="hasMoreTeachers()" class="see-more" (click)="isAllTeachersModalOpen.set(true)">
-          See more >
+          Vezi toți profesorii &gt;>
         </a>
       </div>
 
       <!-- EVENTS -->
       <div class="card card-events">
-        <h2>Upcoming events</h2>
+        <h2>Evenimente viitoare</h2>
         <div *ngFor="let e of visibleQuizEvents()" class="event-item">
           <div class="event-emoji">{{ e.emoji }}</div>
           <div class="event-meta">
@@ -45,13 +45,13 @@
               </div>         
              </div>
         </div>
-        <a *ngIf="hasMoreQuizEvents()" class="see-more" (click)="isAllEventsModalOpen.set(true)">See more ></a>
+        <a *ngIf="hasMoreQuizEvents()" class="see-more" (click)="isAllEventsModalOpen.set(true)">Vezi toate evenimentele &gt;</a>
         
       </div>
 
       <!-- CALENDAR & SCHEDULE -->
       <div class="card card-schedule lavender">
-        <h2>My schedule</h2>
+        <h2>Calendar</h2>
         <div class="schedule-inner">
 
           <!-- Calendar -->
@@ -99,26 +99,26 @@
     <!-- RIGHT COLUMN -->
     <aside class="right-column">
       <div class="card card-purple">
-        <h2>Homework Status</h2>
+        <h2>Status teme</h2>
 
         <div class="stats-mini">
           <div class="stat warning">
             <div class="stat-number">{{ pendingHomeworks() }}</div>
-            <div class="stat-label">Pending</div>
+            <div class="stat-label">În așteptare</div>
           </div>
 
           <div class="stat danger">
             <div class="stat-number">{{ overdueHomeworks() }}</div>
-            <div class="stat-label">Overdue</div>
+            <div class="stat-label">Întârziat</div>
           </div>
           <div class="stat success">
             <div class="stat-number">{{ submittedHomeworks() }}</div>
-            <div class="stat-label">Completed</div>
+            <div class="stat-label">Finalizat</div>
           </div>
         </div>
       </div>
       <div class="card card-purple">
-        <h2>Homework Completion</h2>
+        <h2>Progres teme</h2>
         <div class="gauge-wrap">
           <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(homeworkCompletion(), '#FF6B9A') }">
             <span>{{ homeworkCompletion() }}%</span>
@@ -127,7 +127,7 @@
         </div>
       </div>
       <div class="card card-purple">
-        <h2>On-time submissions</h2>
+        <h2>Prezentări la timp</h2>
         <div class="gauge-wrap">
           <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(onTimeRate(), '#68E0C6') }">
             <span>{{ onTimeRate() }}%</span>
@@ -137,20 +137,10 @@
         <a class="see-more white" (click)="goToHomeworks()">Vezi teme &gt;</a>
       </div>
       <div class="card card-purple">
-        <h2>Average Grade Percentage</h2>
+        <h2>Procentaj mediu al notelor</h2>
         <div class="gauge-wrap">
           <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(averageGrade(), '#FFD36B') }">
             <span>{{ averageGrade() }}%</span>
-            <div class="gauge-inner-circle"></div>
-          </div>
-        </div>
-        <a class="see-more white" href="#">See more &gt;</a>
-      </div>
-      <div class="card card-purple">
-        <h2>Student Performance Score</h2>
-        <div class="gauge-wrap">
-          <div class="gauge-container" [ngStyle]="{ 'background': gaugeStyle(studentPerformanceScore(), '#FF6B9A') }">
-            <span>{{ studentPerformanceScore() }}%</span>
             <div class="gauge-inner-circle"></div>
           </div>
         </div>
@@ -176,7 +166,7 @@
   <div class="modal-backdrop" *ngIf="isAllTeachersModalOpen()">
     <div class="modal">
       <button class="close-btn" (click)="isAllTeachersModalOpen.set(false)">X</button>
-      <h3>All Teachers</h3>
+      <h3>Toți profesorii</h3>
       <div *ngFor="let t of teachers()" class="teacher-item">
         <div class="teacher-left">
           <img [src]="t.avatarUrl" class="teacher-avatar"/>
@@ -185,7 +175,7 @@
             <div class="t-role">{{ t.role }}</div>
           </div>
         </div>
-        <a class="see-more view-profile-link" (click)="openTeacherModal(t)">View Profile ></a>
+        <a class="see-more view-profile-link" (click)="openTeacherModal(t)">Vizualizează profilul ></a>
       </div>
     </div>
   </div>
@@ -194,7 +184,7 @@
   <div class="modal-backdrop" *ngIf="isAllEventsModalOpen()" (click)="isAllEventsModalOpen.set(false)">
     <div class="modal" (click)="$event.stopPropagation()">
       <button class="close-btn" (click)="isAllEventsModalOpen.set(false)">X</button>
-      <h3>All Events ({{ allEvents().length }})</h3>
+      <h3>Toate evenimentele ({{ allEvents().length }})</h3>
       <div *ngFor="let e of allEvents()" class="event-item">
         <div class="event-emoji">{{ e.emoji }}</div>
         <div class="event-meta">

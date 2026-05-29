@@ -58,7 +58,7 @@
       </div>
       <div>
         <span class="badge">{{ hw.homeworkType === 'breadbord' ? 'Breadboard' : 'Clasică' }}</span>
-        <span class="due">Până la: {{ formatDate(hw.dueAt) }}</span>
+        <span class="due">Până la: {{ hw.dueAt | date:'dd.MM.yyyy HH:mm':'UTC' }}</span>
         <span class="points">Puncte: {{ hw.maxPoints ?? 100 }}</span>
       </div>
     </div>
@@ -91,7 +91,7 @@
               <span *ngIf="student.status === 'submitted_on_time'" class="status-badge submitted-on-time">Trimisă la timp</span>
               <span *ngIf="student.status === 'submitted_late'" class="status-badge submitted-late">Trimisă cu întârziere</span>
             </td>
-            <td>{{ student.submittedAt ? formatDate(student.submittedAt) : '–' }}</td>
+            <td>{{ student.submittedAt ? (student.submittedAt | date:'dd.MM.yyyy HH:mm':'UTC') : '–' }}</td>
             <td>{{ student.submissionType === 'breadbord' ? 'Breadboard' : (student.submissionType ? 'Clasică' : '–') }}</td>
             <td>
               <ng-container *ngIf="student.fileUrls?.length; else noFiles">

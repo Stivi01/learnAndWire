@@ -2,7 +2,7 @@
   <header class="page-header">
     <div>
       <h2><i class="fas fa-bell"></i> Notificări</h2>
-      <p class="subtitle">Vizualizează notificările despre cursurile la care ești înscris</p>
+      <p class="subtitle">Vizualizează notificările despre cursurile la care ești înscris.</p>
     </div>
   </header>
 
@@ -25,7 +25,7 @@
     <h3>Excluderi din cursuri</h3>
     <div class="notification-card" *ngFor="let exc of exclusionItems">
       <p>Ai fost exclus din cursul <strong>{{ exc.courseTitle }}</strong>.</p>
-      <p>Data excluderii: {{ exc.excludedAt | date:'short' }}</p>
+      <p>Data excluderii: {{ exc.excludedAt | date:'dd.MM.yyyy HH:mm':'UTC' }}</p>
     </div>
   </section>
 
@@ -34,7 +34,7 @@
     <div class="notification-card" *ngFor="let quiz of quizItems">
       <p><strong>{{ quiz.title }}</strong> a fost publicat pentru cursul <strong>{{ quiz.courseTitle }}</strong>.</p>
       <p *ngIf="quiz.description">{{ quiz.description }}</p>
-      <p *ngIf="quiz.scheduledAt">Programat pentru: {{ quiz.scheduledAt | date:'short' }}</p>
+      <p *ngIf="quiz.scheduledAt">Programat pentru: {{ quiz.scheduledAt | date:'dd.MM.yyyy HH:mm':'UTC' }}</p>
     </div>
   </section>
 
@@ -56,7 +56,7 @@
     <h3>Teme noi</h3>
     <div class="notification-card" *ngFor="let homework of homeworkItems">
       <p>Temă nouă în cursul <strong>{{ homework.courseTitle }}</strong>: <strong>{{ homework.title }}</strong>.</p>
-      <p *ngIf="homework.dueAt">Termen limită: {{ homework.dueAt | date:'short' }}</p>
+      <p *ngIf="homework.dueAt">Termen limită: {{ homework.dueAt | date:'dd.MM.yyyy HH:mm':'UTC' }}</p>
     </div>
   </section>
 </div>

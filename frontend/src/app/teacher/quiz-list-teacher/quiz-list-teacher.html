@@ -18,10 +18,10 @@
     <h3>{{ q.title }}</h3>
     <p>{{ q.description }}</p>
     <p *ngIf="q.scheduledAt">
-      Programat pentru: {{ q.scheduledAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}
+      Programat pentru: {{ q.scheduledAt | date:'dd.MM.yyyy HH:mm':'UTC' }}
     </p>
     <p *ngIf="q.closedAt">
-      Limită: {{ q.closedAt | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}
+      Limiţă: {{ q.closedAt | date:'dd.MM.yyyy HH:mm':'UTC' }}
     </p>
     <p *ngIf="calculateDuration(q)" class="duration">
       {{ calculateDuration(q) }}

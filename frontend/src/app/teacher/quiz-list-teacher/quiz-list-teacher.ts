@@ -6,8 +6,7 @@ import { Quiz } from '../../core/services/quiz';
 import { AuthService } from '../../core/services/auth';
 import { Router } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
-import { parseLocalDateTime } from '../../shared/utils/date-utils';
-import { toDateTimeLocalString } from '../../shared/utils/date-utils';
+import { parseLocalDateTime, toDateTimeLocalString } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-quiz-list-teacher',

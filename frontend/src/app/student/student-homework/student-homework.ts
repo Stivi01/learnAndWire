@@ -141,9 +141,7 @@ export class StudentHomework {
     return url.startsWith('http') ? url : `${this.backendBaseUrl}${url}`;
   }
 
-  formatDate(value?: string | null) {
-    return formatRomanianDateTime(value);
-  }
+  formatDateTime = formatRomanianDateTime;
 
   getSelectedFileNames(homeworkId: number) {
     const files = this.selectedFiles[homeworkId] || [];

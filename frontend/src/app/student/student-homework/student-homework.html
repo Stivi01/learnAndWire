@@ -27,7 +27,7 @@
       </div>
 
       <div class="meta-row">
-        <span>Deadline: {{ formatDate(hw.dueAt) }}</span>
+        <span>Deadline: {{ hw.dueAt | date:'dd.MM.yyyy HH:mm':'UTC' }}</span>
         <span>Status: 
           <span *ngIf="hw.grade != null" class="status notata">Notată</span>
           <span *ngIf="hw.grade == null && hw.submittedAt && !hw.isLate" class="status submitted">Trimisă la timp</span>

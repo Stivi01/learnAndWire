@@ -17,7 +17,7 @@
     <div class="course-card" *ngFor="let course of courses()">
       <h3>{{ course.Title }}</h3>
       <p>{{ course.Description }}</p>
-      <small>Creat la: {{ course.CreatedAt | date:'dd.MM.yyyy':undefined:'ro-RO' }}</small>
+      <small>Creat la: {{ course.CreatedAt | date:'dd.MM.yyyy':'UTC' }}</small>
       <a [routerLink]="['/student/course', course.Id]" class="btn-view-course">Vezi cursul</a>
     </div>
   </div>

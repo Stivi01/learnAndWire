@@ -2,14 +2,14 @@
   <header class="page-header">
     <div>
       <h2><i class="fas fa-chart-bar"></i> Notele Mele</h2>
-      <p class="subtitle">Vizualizează rezultatele testelor susținute</p>
+      <p class="subtitle">Vizualizează rezultatele tale de până acum.</p>
     </div>
   </header>
 
   <div *ngIf="loading()" class="loader">Se încarcă notele...</div>
 
   <div *ngIf="!loading() && grades().length === 0" class="empty-info">
-    Nu ai susținut niciun test până acum.
+    Rezultatele tale vor apărea aici după evaluarea testelor și temelor.
   </div>
 
   <table *ngIf="!loading() && grades().length > 0" class="grades-table">
@@ -28,7 +28,7 @@
         <td>{{ grade.courseTitle }}</td>
         <td>{{ grade.type === 'homework' ? 'Temă' : 'Quiz' }}</td>
         <td>{{ grade.title }}</td>
-        <td>{{ grade.date | date:'dd.MM.yyyy HH:mm':undefined:'ro-RO' }}</td>
+        <td>{{ grade.date | date:'dd.MM.yyyy HH:mm':'UTC' }}</td>
         <td><strong>{{ grade.score }}</strong> / {{ grade.maxScore }} puncte</td>
         <td [ngClass]="{'pass': (grade.score/grade.maxScore) >= 0.5, 'fail': (grade.score/grade.maxScore) < 0.5}">
           {{ (grade.score / grade.maxScore) | percent }}

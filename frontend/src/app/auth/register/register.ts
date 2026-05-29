@@ -113,16 +113,11 @@ export class Register {
   }
 
   onContinueFromRecoveryModal() {
-    const role = this.roleDisplay;
     this.showRecoveryModal.set(false);
     
-    // Redirecționare
+    // Redirecționare la login
     setTimeout(() => {
-      if (role === 'profesor') {
-        this.router.navigate(['/teacher-dashboard']);
-      } else {
-        this.router.navigate(['/student-dashboard']);
-      }
+      this.router.navigate(['/login']);
     }, 500);
   }
 }

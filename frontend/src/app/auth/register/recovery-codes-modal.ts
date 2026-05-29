@@ -56,7 +56,7 @@ import { ToastService } from '../../core/services/toast';
 
           <div class="info-box">
             <p class="info-text">
-              <strong>Sfat:</strong> Poți nota aceste coduri pe o foi de hârtie și o ține în loc sigur, sau le salvezi într-un manager de parole.
+              <strong>Sfat:</strong> Poți nota aceste coduri pe o foaie de hârtie și ține-o într-un loc sigur, sau le salvezi într-un manager de parole.
             </p>
           </div>
         </div>

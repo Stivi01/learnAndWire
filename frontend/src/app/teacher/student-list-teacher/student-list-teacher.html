@@ -104,7 +104,7 @@
               <tr *ngFor="let student of course.excludedStudents">
                 <td>{{ student.FirstName }} {{ student.LastName }}</td>
                 <td>{{ student.Email }}</td>
-                <td>{{ student.ExcludedAt | date:'dd.MM.yyyy':undefined:'ro-RO' }}</td>
+                <td>{{ student.ExcludedAt | date:'dd.MM.yyyy':'UTC' }}</td>
                 <td class="quiz-count">{{ student.QuizAttempts }}</td>
                 <td>
                   <button 

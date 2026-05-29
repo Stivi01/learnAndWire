@@ -2,7 +2,6 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecoveryService, RecoveryCode } from '../../../core/services/recovery';
 import { ToastService } from '../../../core/services/toast';
-import { formatRomanianDate } from '../../utils/date-utils';
 
 @Component({
   selector: 'app-recovery-codes-settings',
@@ -69,7 +68,7 @@ import { formatRomanianDate } from '../../utils/date-utils';
         <div class="warning-box">
           <span class="warning-icon">⚠️</span>
           <p class="warning-text">
-            Fiecare cod poate fi folosit o singură dată. Nu și-i comunica cu nimeni și păstrează-i în loc sigur.
+            Fiecare cod poate fi folosit o singură dată. Nu comunica codurile cu nimeni și păstrează-le într-un loc sigur.
           </p>
         </div>
       </div>
@@ -105,7 +104,7 @@ import { formatRomanianDate } from '../../utils/date-utils';
               <span class="code-text">{{ formatCode(code.Code) }}</span>
               <div class="code-status">
                 <span *ngIf="!code.IsUsed" class="badge-unused">Neutilizat</span>
-                <span *ngIf="code.IsUsed" class="badge-used">Folosit pe {{ formatDate(code.UsedAt) }}</span>
+                <span *ngIf=\"code.IsUsed\" class=\"badge-used\">Folosit pe {{ code.UsedAt | date:'dd.MM.yyyy HH:mm':'UTC' }}</span>
               </div>
               <button 
                 type="button"
@@ -539,11 +538,6 @@ export class RecoveryCodesSettings implements OnInit {
 
   formatCode(code: string): string {
     return this.recoveryService.formatCodeForDisplay(code);
-  }
-
-  formatDate(date: string | null): string {
-    if (!date) return '';
-    return formatRomanianDate(date);
   }
 
   copyCode(code: string) {
