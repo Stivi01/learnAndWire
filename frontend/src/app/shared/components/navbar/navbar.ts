@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AuthService, UserInfo } from '../../../core/services/auth';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,8 +11,9 @@ import { Subscription } from 'rxjs';
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
-export class Navbar {
+export class Navbar implements OnInit, OnDestroy {
   @Input() role: string | null = null;
+
   user: UserInfo | null = null;
   private userSubscription: Subscription | undefined;
 
@@ -21,22 +22,38 @@ export class Navbar {
   ngOnInit() {
     this.userSubscription = this.auth.currentUser$.subscribe(user => {
       this.user = user;
-      // Actualizează rolul din @Input dacă este cazul (pentru a afișa/ascunde link-uri)
+
       if (user && !this.role) {
-         this.role = user.role;
+        this.role = user.role;
       }
     });
   }
 
   ngOnDestroy() {
-    // Curățenie: Oprește abonamentul când componenta este distrusă
     this.userSubscription?.unsubscribe();
+  }
+
+  getAvatarUrl(): string {
+    if (!this.user?.avatar) {
+      return '/assets/avatar-default.png';
+    }
+
+    if (this.user.avatar.startsWith('http')) {
+      return this.user.avatar;
+    }
+
+    if (this.user.avatar.startsWith('/assets')) {
+      return this.user.avatar;
+    }
+
+    return `http://localhost:3000/${this.user.avatar}`;
   }
 
   logout() {
     this.auth.logout();
     this.router.navigate(['/login']);
   }
+
   navigateToDashboard() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher-dashboard']);
@@ -44,6 +61,7 @@ export class Navbar {
       this.router.navigate(['/student-dashboard']);
     }
   }
+
   navigateToProfile() {
     if (this.role === 'Student') {
       this.router.navigate(['/student-profile']);
@@ -51,16 +69,15 @@ export class Navbar {
       this.router.navigate(['/teacher-profile']);
     }
   }
-  // navigateToCourseForm() {
-  //   this.router.navigate(['/teacher/course-form']);
-  // }
+
   navigateToMyClasses() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher/my-classes']);
     } else if (this.role === 'Student') {
-      this.router.navigate(['/student/my-classes']); // dacă vrei să faci și pentru student
+      this.router.navigate(['/student/my-classes']);
     }
   }
+
   navigateToHomeworks() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher/homeworks']);
@@ -68,6 +85,7 @@ export class Navbar {
       this.router.navigate(['/student/homeworks']);
     }
   }
+
   navigateToInvitations() {
     if (this.role === 'Profesor') {
       this.router.navigate(['/teacher/invite-students']);
@@ -110,10 +128,7 @@ export class Navbar {
 
   navigateToTeacherCalendar() {
     if (this.role === 'Profesor') {
-        this.router.navigate(['/teacher/calendar']);
-      }
+      this.router.navigate(['/teacher/calendar']);
+    }
   }
-
-
-
 }

@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Course, EditableCourse, PublishReadinessResponse } from '../../core/services/course';
+import { Course, PublishReadinessResponse } from '../../core/services/course';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
 import { ToastService } from '../../core/services/toast';
@@ -41,13 +41,16 @@ export class CourseEdit {
 
     this.route.queryParams.subscribe(params => {
       this.courseId = +params['id'];
+
       if (this.courseId) {
         const user = this.authService.currentUserValue;
+
         if (!user) {
           this.toast.show('Nu sunteți logat!', 'error');
           this.router.navigate(['/login']);
           return;
         }
+
         this.loadCourse(this.courseId, user.id);
       }
     });
@@ -58,7 +61,7 @@ export class CourseEdit {
     const description = (this.courseForm?.get('description')?.value || '').trim();
     const checks = this.publishReadiness?.checks;
 
-    return !!title && !!description && !!checks?.hasModule && !!checks?.everyModuleHasLesson;
+    return !!title && !!description && !!checks?.hasModule;
   }
 
   get publishChecklist() {
@@ -69,8 +72,7 @@ export class CourseEdit {
     return [
       { label: 'Titlul cursului este completat', done: !!title },
       { label: 'Descrierea cursului este completată', done: !!description },
-      { label: 'Există cel puțin un modul', done: !!checks?.hasModule },
-      { label: 'Fiecare modul are cel puțin o lecție', done: !!checks?.everyModuleHasLesson },
+      { label: 'Există cel puțin un capitol', done: !!checks?.hasModule },
     ];
   }
 
@@ -89,7 +91,24 @@ export class CourseEdit {
 
     for (const item of this.publishReadiness?.missingItems || []) {
       const normalized = item.toLowerCase();
-      if (normalized.includes('titlul cursului') || normalized.includes('descrierea cursului')) {
+
+      if (
+        normalized.includes('titlul cursului') ||
+        normalized.includes('descrierea cursului') ||
+        normalized.includes('lecție') ||
+        normalized.includes('lectie') ||
+        normalized.includes('fiecare modul')
+      ) {
+        continue;
+      }
+
+      if (normalized.includes('modul')) {
+        const chapterMessage = 'Adaugă cel puțin un capitol.';
+
+        if (!items.includes(chapterMessage)) {
+          items.push(chapterMessage);
+        }
+
         continue;
       }
 
@@ -106,10 +125,11 @@ export class CourseEdit {
 
     forkJoin({
       courses: this.courseService.getEditableCoursesByTeacher(teacherId),
-      readiness: this.courseService.getPublishReadiness(courseId)
+      readiness: this.courseService.getPublishReadiness(courseId),
     }).subscribe({
       next: ({ courses, readiness }) => {
         const course = courses.find(c => c.Id === courseId);
+
         if (!course) {
           this.toast.show('Cursul nu a fost găsit.', 'error');
           this.loading = false;
@@ -118,8 +138,8 @@ export class CourseEdit {
           return;
         }
 
-        // Permitem editarea cursului chiar dacă este publicat.
         this.publishReadiness = readiness;
+
         this.courseForm.patchValue({
           title: course.Title,
           description: course.Description || '',
@@ -127,21 +147,23 @@ export class CourseEdit {
         });
 
         this.updatePublishControl();
+
         this.loading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: err => {
         console.error(err);
         this.toast.show('Eroare la încărcarea cursului.', 'error');
         this.loading = false;
         this.cdr.detectChanges();
         this.router.navigate(['/teacher/my-classes']);
-      }
+      },
     });
   }
 
   private updatePublishControl() {
     const publishControl = this.courseForm.get('isPublished');
+
     if (!publishControl) {
       return;
     }
@@ -163,6 +185,7 @@ export class CourseEdit {
     }
 
     const formValue = this.courseForm.getRawValue();
+
     const payload = {
       title: (formValue.title || '').trim(),
       description: (formValue.description || '').trim(),
@@ -170,7 +193,10 @@ export class CourseEdit {
     };
 
     if (payload.isPublished && !this.canPublish) {
-      this.toast.show(`Cursul nu poate fi publicat încă. ${this.missingPublishItems.join(' ')}`, 'error');
+      this.toast.show(
+        `Cursul nu poate fi publicat încă. ${this.missingPublishItems.join(' ')}`,
+        'error'
+      );
       return;
     }
 
@@ -182,8 +208,9 @@ export class CourseEdit {
         this.toast.show('Curs actualizat cu succes!', 'success');
         this.router.navigate(['/teacher/my-classes']);
       },
-      error: (err) => {
+      error: err => {
         console.error(err);
+
         const message = err?.error?.message || 'Eroare la actualizarea cursului.';
         const missingItems = Array.isArray(err?.error?.missingItems)
           ? ` ${err.error.missingItems.join(' ')}`
@@ -192,7 +219,7 @@ export class CourseEdit {
         this.toast.show(`${message}${missingItems}`, 'error');
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 }

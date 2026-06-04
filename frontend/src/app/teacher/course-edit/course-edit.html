@@ -1,9 +1,11 @@
 <div class="course-edit-container" *ngIf="!loading; else loadingTemplate">
-  <h2>Editare Curs</h2>
+  <h2>Editare curs</h2>
+
   <form [formGroup]="courseForm" (ngSubmit)="onSubmit()">
     <div class="form-group">
       <label for="title">Titlu</label>
       <input id="title" type="text" formControlName="title" />
+
       <div class="error" *ngIf="courseForm.get('title')?.invalid && courseForm.get('title')?.touched">
         Titlul este obligatoriu.
       </div>
@@ -16,6 +18,7 @@
 
     <div class="publish-card">
       <h3>Condiții pentru publicare</h3>
+
       <ul class="publish-checklist">
         <li *ngFor="let item of publishChecklist" [class.done]="item.done">
           <span>{{ item.done ? '✅' : '⬜' }}</span>
@@ -37,12 +40,16 @@
     </div>
 
     <p class="publish-hint" [class.ready]="canPublish" [class.blocked]="!canPublish">
-      {{ canPublish
-        ? 'Cursul este pregătit și poate fi publicat.'
-        : 'Publicarea devine disponibilă după ce completezi descrierea, modulele și lecțiile.' }}
+      {{
+        canPublish
+          ? 'Cursul este pregătit și poate fi publicat.'
+          : 'Publicarea devine disponibilă după ce completezi titlul, descrierea și adaugi cel puțin un capitol.'
+      }}
     </p>
 
-    <button type="submit" [disabled]="courseForm.invalid">Actualizează Curs</button>
+    <button type="submit" [disabled]="courseForm.invalid">
+      Actualizează Curs
+    </button>
   </form>
 </div>
 

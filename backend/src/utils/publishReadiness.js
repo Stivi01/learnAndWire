@@ -1,6 +1,7 @@
 function createPublishReadinessHelpers({ getSqlPool }) {
   async function getCoursePublishReadiness(courseId, teacherId, draftData = {}) {
     const sqlPool = getSqlPool();
+
     const courseResult = await sqlPool.query`
       SELECT Id, Title, Description, IsPublished
       FROM Courses
@@ -14,17 +15,18 @@ function createPublishReadinessHelpers({ getSqlPool }) {
         checks: {
           hasTitle: false,
           hasDescription: false,
-          hasModule: false,
-          everyModuleHasLesson: false
+          hasModule: false
         },
         missingItems: ['Cursul nu a fost găsit.']
       };
     }
 
     const course = courseResult.recordset[0];
+
     const title = typeof draftData.title === 'string'
       ? draftData.title.trim()
       : (course.Title || '').trim();
+
     const description = typeof draftData.description === 'string'
       ? draftData.description.trim()
       : (course.Description || '').trim();
@@ -37,37 +39,18 @@ function createPublishReadinessHelpers({ getSqlPool }) {
     `;
 
     const modules = modulesResult.recordset;
-    const modulesWithoutLessons = [];
-
-    for (const module of modules) {
-      const lessonCountResult = await sqlPool.query`
-        SELECT COUNT(1) AS LessonCount
-        FROM CourseLessons
-        WHERE ModuleId = ${module.Id}
-      `;
-
-      const lessonCount = lessonCountResult.recordset[0]?.LessonCount || 0;
-      if (lessonCount === 0) {
-        modulesWithoutLessons.push(module.Title);
-      }
-    }
 
     const checks = {
       hasTitle: !!title,
       hasDescription: !!description,
-      hasModule: modules.length > 0,
-      everyModuleHasLesson: modules.length > 0 && modulesWithoutLessons.length === 0
+      hasModule: modules.length > 0
     };
 
     const missingItems = [];
 
     if (!checks.hasTitle) missingItems.push('Adaugă titlul cursului.');
     if (!checks.hasDescription) missingItems.push('Adaugă descrierea cursului.');
-    if (!checks.hasModule) missingItems.push('Adaugă cel puțin un modul.');
-
-    for (const moduleTitle of modulesWithoutLessons) {
-      missingItems.push(`Adaugă cel puțin o lecție la modulul "${moduleTitle}".`);
-    }
+    if (!checks.hasModule) missingItems.push('Adaugă cel puțin un capitol.');
 
     return {
       found: true,
@@ -79,6 +62,7 @@ function createPublishReadinessHelpers({ getSqlPool }) {
 
   async function getQuizPublishReadiness(quizId, teacherId, draftData = {}) {
     const sqlPool = getSqlPool();
+
     const quizResult = await sqlPool.query`
       SELECT q.Id, q.Title, q.Description, q.ScheduledAt, q.ClosedAt, q.CourseId,
              c.Title AS CourseTitle, c.IsPublished AS CourseIsPublished
@@ -106,12 +90,15 @@ function createPublishReadinessHelpers({ getSqlPool }) {
     }
 
     const quiz = quizResult.recordset[0];
+
     const title = typeof draftData.title === 'string'
       ? draftData.title.trim()
       : (quiz.Title || '').trim();
+
     const description = typeof draftData.description === 'string'
       ? draftData.description.trim()
       : (quiz.Description || '').trim();
+
     const targetCourseId = draftData.courseId ?? quiz.CourseId;
 
     const courseResult = await sqlPool.query`
@@ -121,33 +108,36 @@ function createPublishReadinessHelpers({ getSqlPool }) {
     `;
 
     const course = courseResult.recordset[0] || null;
+
     const scheduleSource = Object.prototype.hasOwnProperty.call(draftData, 'scheduledAt')
       ? draftData.scheduledAt
       : quiz.ScheduledAt;
+
     const closedSource = Object.prototype.hasOwnProperty.call(draftData, 'closedAt')
       ? draftData.closedAt
       : quiz.ClosedAt;
 
     let hasFutureSchedule = false;
+
     if (scheduleSource) {
       const parsed = new Date(scheduleSource);
       hasFutureSchedule = !Number.isNaN(parsed.getTime()) && parsed > new Date();
     }
 
     let hasValidClosedAt = true;
+
     if (closedSource) {
       const closedParsed = new Date(closedSource);
       hasValidClosedAt = !Number.isNaN(closedParsed.getTime());
-      
+
       if (hasValidClosedAt) {
-        // Dacă există scheduledAt, closedAt trebuie să fie după scheduledAt
         if (scheduleSource) {
           const scheduledParsed = new Date(scheduleSource);
+
           if (closedParsed <= scheduledParsed) {
             hasValidClosedAt = false;
           }
         } else {
-          // Dacă nu există scheduledAt, closedAt trebuie să fie în viitor
           if (closedParsed <= new Date()) {
             hasValidClosedAt = false;
           }
@@ -199,7 +189,7 @@ function createPublishReadinessHelpers({ getSqlPool }) {
       coursePublished: !!course?.IsPublished,
       hasScheduledAt: !!scheduleSource,
       hasFutureSchedule,
-      hasValidClosedAt: !closedSource || hasValidClosedAt, // Dacă nu există closedAt, e valid; altfel verificăm
+      hasValidClosedAt: !closedSource || hasValidClosedAt,
       hasQuestion: questions.length > 0,
       everyQuestionHasEnoughOptions: optionIssues.length === 0,
       everyQuestionHasValidAnswers: answerIssues.length === 0
@@ -211,8 +201,10 @@ function createPublishReadinessHelpers({ getSqlPool }) {
     if (!checks.hasDescription) missingItems.push('Adaugă descrierea quiz-ului.');
     if (!course) missingItems.push('Selectează un curs valid pentru acest quiz.');
     else if (!checks.coursePublished) missingItems.push(`Publică mai întâi cursul asociat: "${course.Title}".`);
+
     if (!checks.hasScheduledAt) missingItems.push('Setează data și ora susținerii.');
     else if (!checks.hasFutureSchedule) missingItems.push('Data quiz-ului trebuie să fie în viitor la momentul publicării.');
+
     if (closedSource && !checks.hasValidClosedAt) {
       if (scheduleSource) {
         missingItems.push('Data limită trebuie să fie după data de începere a quiz-ului.');
@@ -220,6 +212,7 @@ function createPublishReadinessHelpers({ getSqlPool }) {
         missingItems.push('Data limită trebuie să fie în viitor.');
       }
     }
+
     if (!checks.hasQuestion) missingItems.push('Adaugă cel puțin o întrebare.');
 
     missingItems.push(...optionIssues, ...answerIssues);

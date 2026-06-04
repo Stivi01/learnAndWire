@@ -17,11 +17,20 @@ $text-muted: #6b7280;
 
   .page-header {
     margin-bottom: 2rem;
-    h2 { font-size: 1.75rem; font-weight: 800; color: #111827; margin: 0; }
-    .subtitle { color: $text-muted; margin-top: 0.5rem; }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #111827;
+      margin: 0;
+    }
+
+    .subtitle {
+      color: $text-muted;
+      margin-top: 0.5rem;
+    }
   }
 
-  // Mesaje Status
   .state-msg {
     padding: 1rem;
     border-radius: 8px;
@@ -29,21 +38,29 @@ $text-muted: #6b7280;
     display: flex;
     align-items: center;
     gap: 10px;
-    &.loading { background: #eff6ff; color: #1d4ed8; }
-    &.error { background: #fef2f2; color: #b91c1c; }
+
+    &.loading {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    &.error {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
   }
 
-  // Secțiune Adăugare
   .add-section {
     background: white;
     padding: 1.25rem;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
 
     .input-group {
       display: flex;
       gap: 10px;
+
       input {
         flex: 1;
         padding: 0.75rem 1rem;
@@ -51,21 +68,31 @@ $text-muted: #6b7280;
         border-radius: 8px;
         font-size: 1rem;
         transition: border-color 0.2s;
-        &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.1); }
+
+        &:focus {
+          outline: none;
+          border-color: $primary;
+          box-shadow: 0 0 0 3px rgba($primary, 0.1);
+        }
       }
     }
   }
 
-  // Cards Module
   .module-card {
     background: white;
     border: 1px solid $border-color;
     border-radius: 12px;
     margin-bottom: 1rem;
     transition: all 0.2s ease;
-    
-    &:hover { border-color: $primary; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    &.expanded { border-left: 4px solid $primary; }
+
+    &:hover {
+      border-color: $primary;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    &.expanded {
+      border-left: 4px solid $primary;
+    }
 
     .module-header {
       display: flex;
@@ -94,20 +121,24 @@ $text-muted: #6b7280;
           font-size: 0.85rem;
         }
 
-        .title-text { font-weight: 600; font-size: 1.05rem; }
+        .title-text {
+          font-weight: 600;
+          font-size: 1.05rem;
+        }
       }
 
-      // Stiluri Editare Inline
       .edit-wrapper {
         display: flex;
         gap: 8px;
         flex: 1;
+
         input {
           flex: 1;
           padding: 0.5rem;
           border: 2px solid $primary;
           border-radius: 6px;
         }
+
         .edit-actions {
           display: flex;
           gap: 5px;
@@ -116,7 +147,6 @@ $text-muted: #6b7280;
     }
   }
 
-  // Butoane
   .btn-primary {
     background: $primary;
     color: white;
@@ -125,8 +155,33 @@ $text-muted: #6b7280;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    &:hover { background: $primary-hover; }
-    &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    &:hover {
+      background: $primary-hover;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  /* BUTONUL ȘTERGE TOATE CAPITOLELE */
+  .btn-danger {
+    background: white;
+    color: #111827;
+    border: 1px solid $border-color;
+    padding: 0.75rem 1rem;
+    border-radius: 999px; // complet rotunjit
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #fef2f2;
+      border-color: $danger;
+      color: $danger;
+    }
   }
 
   .btn-icon {
@@ -138,8 +193,16 @@ $text-muted: #6b7280;
     display: flex;
     align-items: center;
     justify-content: center;
-    &.save { background: $success; color: white; }
-    &.cancel { background: $text-muted; color: white; }
+
+    &.save {
+      background: $success;
+      color: white;
+    }
+
+    &.cancel {
+      background: $text-muted;
+      color: white;
+    }
   }
 
   .btn-ghost {
@@ -150,11 +213,18 @@ $text-muted: #6b7280;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
-    &:hover { background: $bg-body; color: $primary; }
-    &.delete:hover { color: $danger; background: #fef2f2; }
+
+    &:hover {
+      background: $bg-body;
+      color: $primary;
+    }
+
+    &.delete:hover {
+      color: $danger;
+      background: #fef2f2;
+    }
   }
 
-  // Subcapitole (Lesson List)
   .module-content {
     background: #fafafa;
     border-top: 1px solid $border-color;
@@ -174,8 +244,14 @@ $text-muted: #6b7280;
         display: flex;
         align-items: center;
         gap: 10px;
-        i { color: $text-muted; }
-        span { font-size: 0.95rem; }
+
+        i {
+          color: $text-muted;
+        }
+
+        span {
+          font-size: 0.95rem;
+        }
       }
 
       .btn-mini {
@@ -185,8 +261,15 @@ $text-muted: #6b7280;
         border-radius: 4px;
         font-size: 0.8rem;
         cursor: pointer;
-        &:hover { background: $bg-body; }
-        &.danger:hover { color: $danger; border-color: $danger; }
+
+        &:hover {
+          background: $bg-body;
+        }
+
+        &.danger:hover {
+          color: $danger;
+          border-color: $danger;
+        }
       }
     }
   }
@@ -195,9 +278,30 @@ $text-muted: #6b7280;
     margin-top: 1rem;
     display: flex;
     gap: 8px;
-    input { flex: 1; padding: 0.5rem; border: 1px solid $border-color; border-radius: 6px; }
-    .btn-success { background: $success; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
-    .btn-link { background: none; border: none; color: $text-muted; cursor: pointer; text-decoration: underline; }
+
+    input {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid $border-color;
+      border-radius: 6px;
+    }
+
+    .btn-success {
+      background: $success;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: $text-muted;
+      cursor: pointer;
+      text-decoration: underline;
+    }
   }
 
   .chevron {

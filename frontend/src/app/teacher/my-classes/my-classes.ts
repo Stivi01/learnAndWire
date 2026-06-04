@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
-import { filter, startWith, Subject, switchMap, take, takeUntil } from 'rxjs';
+import { filter, startWith, Subject, switchMap, take, takeUntil, forkJoin, of, catchError } from 'rxjs';
 import { CourseSchedules } from '../../core/services/course-schedules';
 import { ToastService } from '../../core/services/toast';
 
@@ -58,8 +58,39 @@ export class MyClasses implements OnInit{
     this.loading.set(true);
     this.courseService.getCoursesByTeacher(user.id, this.authService.getToken()!).subscribe({
       next: courses => {
-        this.courses.set(courses);
-        this.loading.set(false);
+        // Încarcă datele complete (cu module) pentru fiecare curs
+        const courseRequests = (courses as any[]).map(course =>
+          this.courseService.getFullCourse(course.Id).pipe(
+            catchError(err => {
+              console.error(`Error loading course ${course.Id}:`, err);
+              // Dacă nu se poate încărca datele complete, returnează cursul cu module gol
+              return of({ ...course, modules: [] });
+            })
+          )
+        );
+
+        if (courseRequests.length === 0) {
+          this.courses.set([]);
+          this.loading.set(false);
+          return;
+        }
+
+        forkJoin(courseRequests).subscribe({
+          next: fullCourses => {
+            // Combină course cu modules în structura corectă
+            const mergedCourses = (fullCourses as any[]).map(response => ({
+              ...response.course,
+              modules: response.modules || []
+            }));
+            this.courses.set(mergedCourses);
+            this.loading.set(false);
+          },
+          error: err => {
+            console.error(err);
+            this.error.set('Nu s-au putut încărca cursurile.');
+            this.loading.set(false);
+          }
+        });
       },
       error: err => {
         console.error(err);
@@ -82,23 +113,28 @@ export class MyClasses implements OnInit{
 
     this.expandedCourseId.set(courseId);
 
-    this.courseService.getFullCourse(courseId).subscribe({
-      next: (full) => {
-        // adăugăm expanded = false pentru fiecare lecție
-        full.modules.forEach((mod: any) => {
-          mod.lessons.forEach((lesson: any) => lesson.expanded = false);
+    // Datele sunt deja încărcate în loadCourses(), deci doar inițializăm expanded pentru lecții
+    const course = this.courses().find(c => c.Id === courseId);
+    if (course && course.modules) {
+      course.modules.forEach((mod: any) => {
+        mod.lessons.forEach((lesson: any) => {
+          if (lesson.expanded === undefined) {
+            lesson.expanded = false;
+          }
         });
-
-        const updated = this.courses().map(c =>
-          c.Id === courseId ? { ...c, modules: full.modules } : c
-        );
-        this.courses.set(updated);
-      }
-    });
+      });
+    }
   }
 
   toggleLesson(lesson: any) {
     lesson.expanded = !lesson.expanded;
+  }
+
+  getModulesLabel(modulesLength: number): string {
+    if (modulesLength === 1) {
+      return '1 capitol';
+    }
+    return `${modulesLength} capitole`;
   }
 
   addModule(course: any) {

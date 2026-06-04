@@ -1,16 +1,17 @@
 <div class="main-container">
   <div class="auth-card-wrapper">
     <div class="auth-card">
+
       <div class="illustration-panel">
-        <div class="clock-icon">📚</div>
-        <div class="plant-icon">💻</div>
         <div class="character-placeholder">
-          <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h6v6"/>
-            <path d="M10 14L21 3"/>
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          </svg>
-          <p class="text-xs text-gray-700 mt-2 font-medium">Acces securizat la resursele educaționale.</p>
+          <img
+            src="assets/logo.png"
+            alt="Learn&Wire Logo"
+            class="hero-logo">
+
+          <p class="text-xs text-gray-700 mt-2 font-medium">
+            Acces securizat la resursele educaționale.
+          </p>
         </div>
       </div>
 
@@ -19,17 +20,18 @@
         <h1 class="text-3xl font-extrabold text-gray-900 mb-6">Autentificare</h1>
 
         <form #loginForm="ngForm" (ngSubmit)="login(loginForm)" class="space-y-4">
-          
+
           <div>
-            <input 
-              type="email" 
-              [(ngModel)]="email" 
-              name="email" 
+            <input
+              type="email"
+              [(ngModel)]="email"
+              name="email"
               #emailInput="ngModel"
-              placeholder="Adresa de Email" 
-              class="input-field" 
-              required 
+              placeholder="Adresa de Email"
+              class="input-field"
+              required
               email/>
+
             <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="error-message">
               <small *ngIf="emailInput.errors?.['required']">Emailul este obligatoriu.</small>
               <small *ngIf="emailInput.errors?.['email']">Formatul adresei de email este invalid.</small>
@@ -37,22 +39,23 @@
           </div>
 
           <div>
-            <input 
-              type="password" 
-              [(ngModel)]="password" 
-              name="password" 
+            <input
+              type="password"
+              [(ngModel)]="password"
+              name="password"
               #passwordInput="ngModel"
-              placeholder="Parolă" 
-              class="input-field" 
-              required 
+              placeholder="Parolă"
+              class="input-field"
+              required
               minlength="6"/>
+
             <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="error-message">
               <small *ngIf="passwordInput.errors?.['required']">Parola este obligatorie.</small>
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             [disabled]="loading"
             class="submit-button">
             {{ loading ? 'Se autentifică...' : 'Loghează-te' }}
@@ -60,19 +63,28 @@
         </form>
 
         <p class="text-xs text-center text-gray-500 mt-4">
-          Ai uitat parola? <a href="#" (click)="$event.preventDefault(); showForgotPasswordModal = true" class="text-green-600 font-medium hover:underline">Resetează</a>
+          Ai uitat parola?
+          <a
+            href="#"
+            (click)="$event.preventDefault(); showForgotPasswordModal = true"
+            class="text-green-600 font-medium hover:underline">
+            Resetează
+          </a>
         </p>
 
         <p class="switch mt-6">
-          Nu ai cont? <a routerLink="/register" class="font-bold text-green-600 hover:text-green-700">Înregistrează-te</a>
+          Nu ai cont?
+          <a routerLink="/register" class="font-bold text-green-600 hover:text-green-700">
+            Înregistrează-te
+          </a>
         </p>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Forgot Password Modal -->
-<app-forgot-password-modal 
+<app-forgot-password-modal
   [isOpen]="showForgotPasswordModal"
-  (onClose)="showForgotPasswordModal = false"
-></app-forgot-password-modal>
+  (onClose)="showForgotPasswordModal = false">
+</app-forgot-password-modal>

@@ -15,7 +15,11 @@
         <h2>Profesori asociați</h2>
         <div *ngFor="let t of visibleTeachers()" class="teacher-item">
           <div class="teacher-left">
-            <img [src]="t.avatarUrl" [alt]="t.fullName" class="teacher-avatar"/>
+            <img
+                [src]="getTeacherAvatarUrl(t)"
+                [alt]="t.fullName"
+                class="teacher-avatar"
+                onerror="this.src='/assets/avatar-default.png'"/>
             <div class="teacher-meta">
               <div class="t-name">{{ t.fullName }}</div>
               <div class="t-role">{{ t.role }}</div>
@@ -153,7 +157,11 @@
   <div class="modal-backdrop" *ngIf="isModalOpen()">
     <div class="modal">
       <button class="close-btn" (click)="closeTeacherModal()">X</button>
-      <img *ngIf="selectedTeacher()?.avatarUrl" [src]="selectedTeacher()?.avatarUrl" alt="{{selectedTeacher()?.fullName}}" class="modal-avatar"/>
+      <img
+      [src]="getTeacherAvatarUrl(selectedTeacher())"
+      alt="{{ selectedTeacher()?.fullName }}"
+      class="modal-avatar"
+      onerror="this.src='/assets/avatar-default.png'"/>
       <h3>{{ selectedTeacher()?.fullName }}</h3>
       <p><strong>Email:</strong> {{ selectedTeacher()?.email }}</p>
       <p><strong>Rol:</strong> {{ selectedTeacher()?.role }}</p>
@@ -169,7 +177,10 @@
       <h3>Toți profesorii</h3>
       <div *ngFor="let t of teachers()" class="teacher-item">
         <div class="teacher-left">
-          <img [src]="t.avatarUrl" class="teacher-avatar"/>
+         <img
+          [src]="getTeacherAvatarUrl(t)"
+          class="teacher-avatar"
+          onerror="this.src='/assets/avatar-default.png'"/>
           <div>
             <div class="t-name">{{ t.fullName }}</div>
             <div class="t-role">{{ t.role }}</div>

@@ -1,113 +1,1087 @@
 <div class="app-layout">
+  <div class="simulator-container">
+    <div class="toolbar">
+      <div>
+        <h3>
+          Simulator Breadboard Pro
+          <span class="badge">9V Power</span>
+        </h3>
+
+        <small>
+          Click pe gaură liberă = fir | Esc = anulare | Click dreapta pe piesă/fir/gaură ocupată = ștergere
+        </small>
+      </div>
+    </div>
+
+    <div class="alerts-zone">
+      <div class="short-alert" *ngIf="shortCircuit().active">
+        {{ shortCircuit().message }}
+      </div>
+
+      <div class="warning-alert" *ngIf="warningMessage()">
+        {{ warningMessage() }}
+      </div>
+    </div>
+
+    <div class="svg-scroll-container">
+      <svg
+        #breadboardSvg
+        width="1400"
+        height="500"
+        (mousemove)="onMouseMove($event)"
+      >
+        <rect
+          x="0"
+          y="0"
+          width="1400"
+          height="500"
+          rx="15"
+          fill="#f8f9fa"
+          stroke="#e0e0e0"
+        />
+
+        <rect
+          x="20"
+          y="210"
+          width="1360"
+          height="15"
+          fill="#e9ecef"
+        />
+
+        <circle
+          *ngFor="let hole of allHoles()"
+          [attr.cx]="hole.x"
+          [attr.cy]="hole.y"
+          r="3"
+          fill="#ccc"
+          class="hole visual-hole"
+          [class.power-plus]="hole.id.includes('power-plus')"
+          [class.power-minus]="hole.id.includes('power-minus')"
+          [class.occupied]="isHoleOccupied(hole.id)"
+        >
+          <title>{{ hole.id }}</title>
+        </circle>
+
+        <text
+          *ngFor="let r of rowsTop; let i = index"
+          x="20"
+          [attr.y]="originY + i * spacing + 5"
+          fill="#555"
+          font-size="12"
+          font-weight="bold"
+        >
+          {{ r }}
+        </text>
+
+        <text
+          *ngFor="let r of rowsBottom; let i = index"
+          x="20"
+          [attr.y]="originY + 130 + i * spacing + 5"
+          fill="#555"
+          font-size="12"
+          font-weight="bold"
+        >
+          {{ r }}
+        </text>
+
+        <g
+          *ngFor="let comp of components()"
+          class="component"
+          [class.selected]="comp.id === selectedComponentId()"
+          (click)="selectComponent(comp.id)"
+          (contextmenu)="onRightClickComponent($event, comp.id)"
+        >
+          <ng-container *ngIf="comp.type === 'LED'">
+            <path
+              *ngFor="let pin of comp.pini"
+              [attr.d]="
+                'M ' +
+                getHoleById(pin.holeId)?.x +
+                ' ' +
+                getHoleById(pin.holeId)?.y +
+                ' L ' +
+                getHoleById(pin.holeId)?.x +
+                ' ' +
+                (getHoleById(pin.holeId)!.y - 15)
+              "
+              stroke="#999"
+              stroke-width="2"
+              fill="none"
+            />
+
+            <circle
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 10"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 20"
+              r="12"
+              [attr.fill]="
+                comp.state.isBurnt
+                  ? '#2d3436'
+                  : comp.state.isOn
+                    ? comp.state.color
+                    : '#e0e0e0'
+              "
+              [style.filter]="
+                comp.state.isOn && !comp.state.isBurnt
+                  ? 'drop-shadow(0 0 ' + comp.state.current * 1000 + 'px ' + comp.state.color + ')'
+                  : 'none'
+              "
+            />
+
+            <text
+              *ngIf="comp.state.isBurnt"
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 4"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 16"
+              font-size="14"
+            >
+              🔥
+            </text>
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'RESISTOR'">
+            <path
+              [attr.d]="
+                'M ' +
+                getHoleById(comp.pini[0].holeId)?.x +
+                ' ' +
+                getHoleById(comp.pini[0].holeId)?.y +
+                ' L ' +
+                getHoleById(comp.pini[0].holeId)?.x +
+                ' ' +
+                (getHoleById(comp.pini[0].holeId)!.y - 20) +
+                ' L ' +
+                getHoleById(comp.pini[1].holeId)?.x +
+                ' ' +
+                (getHoleById(comp.pini[1].holeId)!.y - 20) +
+                ' L ' +
+                getHoleById(comp.pini[1].holeId)?.x +
+                ' ' +
+                getHoleById(comp.pini[1].holeId)?.y
+              "
+              stroke="#b66a2c"
+              stroke-width="4"
+              fill="none"
+              stroke-linecap="round"
+            />
+
+            <rect
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 15"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 27"
+              width="50"
+              height="14"
+              fill="#d2b48c"
+              rx="6"
+              stroke="#8b5a2b"
+            />
+
+            <text
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 40"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 17"
+              text-anchor="middle"
+              font-size="8"
+              fill="#333"
+            >
+              {{ comp.state.ohms }}Ω
+            </text>
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'POTENTIOMETER'">
+            <rect
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 10"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 40"
+              width="60"
+              height="30"
+              fill="#34495e"
+              rx="6"
+              stroke="#2f3542"
+              stroke-width="2"
+            />
+
+            <circle
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 25"
+              r="11"
+              fill="#bdc3c7"
+              stroke="#2f3542"
+            />
+
+            <line
+              [attr.x1]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.y1]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 25"
+              [attr.x2]="
+                (getHoleById(comp.pini[0].holeId)?.x || 0) +
+                20 +
+                Math.cos((comp.state.value / comp.state.maxOhms) * Math.PI - Math.PI) * 10
+              "
+              [attr.y2]="
+                (getHoleById(comp.pini[0].holeId)?.y || 0) -
+                25 +
+                Math.sin((comp.state.value / comp.state.maxOhms) * Math.PI - Math.PI) * 10
+              "
+              stroke="white"
+              stroke-width="2"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'BUTTON'">
+            <rect
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 5"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 30"
+              width="50"
+              height="25"
+              fill="#bdc3c7"
+              rx="4"
+              stroke="#7f8c8d"
+            />
+
+            <circle
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 17"
+              r="8"
+              [attr.fill]="comp.state.isPressed ? '#c0392b' : '#e74c3c'"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'MULTIMETER'">
+            <rect
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 10"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 80"
+              width="80"
+              height="60"
+              fill="#f1c40f"
+              rx="5"
+              stroke="#333"
+              stroke-width="2"
+            />
+
+            <rect
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 15"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 75"
+              width="70"
+              height="25"
+              fill="#a4b0be"
+            />
+
+            <text
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 50"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 58"
+              text-anchor="middle"
+              font-family="monospace"
+              font-size="16"
+              font-weight="bold"
+              fill="black"
+            >
+              {{ comp.state.readingV.toFixed(2) }} V
+            </text>
+
+            <path
+              [attr.d]="
+                getWirePath(null, getHoleById(comp.pini[0].holeId), {
+                  x: (getHoleById(comp.pini[0].holeId)?.x || 0) + 30,
+                  y: (getHoleById(comp.pini[0].holeId)?.y || 0) - 20
+                })
+              "
+              stroke="#e74c3c"
+              fill="none"
+              stroke-width="2"
+            />
+
+            <path
+              [attr.d]="
+                getWirePath(null, getHoleById(comp.pini[1].holeId), {
+                  x: (getHoleById(comp.pini[0].holeId)?.x || 0) + 70,
+                  y: (getHoleById(comp.pini[0].holeId)?.y || 0) - 20
+                })
+              "
+              stroke="#2c3e50"
+              fill="none"
+              stroke-width="2"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'CAPACITOR'">
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[0].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 20"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[1].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 20"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <ellipse
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 42"
+              rx="18"
+              ry="24"
+              fill="#1e5fa8"
+              stroke="#16477d"
+              stroke-width="2"
+            />
+
+            <path
+              [attr.d]="
+                'M ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 9) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 57) +
+                ' C ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 2) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 48) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 3) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 36) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 9) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 27)
+              "
+              fill="none"
+              stroke="#5dade2"
+              stroke-width="2"
+              opacity="0.8"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'DIODE'">
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[0].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 20"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[1].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 20"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 20"
+              [attr.x2]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 20"
+              stroke="#555"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+
+            <rect
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 12"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 30"
+              width="18"
+              height="18"
+              fill="#2f3542"
+              rx="2"
+              stroke="#111"
+            />
+
+            <line
+              [attr.x1]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 28"
+              [attr.y1]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 30"
+              [attr.x2]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 28"
+              [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 12"
+              stroke="#ecf0f1"
+              stroke-width="3"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'SWITCH'">
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[0].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 18"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[1].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 18"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <circle
+              [attr.cx]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 22"
+              r="4"
+              fill="#555"
+            />
+
+            <circle
+              [attr.cx]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.cy]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 22"
+              r="4"
+              fill="#555"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 22"
+              [attr.x2]="
+                comp.state.isOn
+                  ? getHoleById(comp.pini[1].holeId)?.x
+                  : (getHoleById(comp.pini[1].holeId)?.x || 0) - 6
+              "
+              [attr.y2]="
+                comp.state.isOn
+                  ? (getHoleById(comp.pini[1].holeId)?.y || 0) - 22
+                  : (getHoleById(comp.pini[1].holeId)?.y || 0) - 38
+              "
+              stroke="#2f3542"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'BUZZER'">
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[0].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 18"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[1].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 18"
+              stroke="#777"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <circle
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 38"
+              r="20"
+              [attr.fill]="comp.state.active ? '#ff9f43' : '#2f3542'"
+              stroke="#111"
+              stroke-width="2"
+            />
+
+            <circle
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 38"
+              r="7"
+              fill="#111"
+            />
+
+            <path
+              *ngIf="comp.state.active"
+              [attr.d]="
+                'M ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 46) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 50) +
+                ' Q ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 56) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 38) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 46) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 26)
+              "
+              fill="none"
+              stroke="#ff9f43"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+
+            <text
+              [attr.x]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 5"
+              text-anchor="middle"
+              font-size="9"
+              fill="#e74c3c"
+              font-weight="bold"
+            >
+              +
+            </text>
+
+            <text
+              [attr.x]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 5"
+              text-anchor="middle"
+              font-size="9"
+              fill="#2c3e50"
+              font-weight="bold"
+            >
+              -
+            </text>
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'INDUCTOR'">
+            <line
+              [attr.x1]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[0].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[0].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 22"
+              stroke="#9a5a1f"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+
+            <line
+              [attr.x1]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y1]="getHoleById(comp.pini[1].holeId)?.y"
+              [attr.x2]="getHoleById(comp.pini[1].holeId)?.x"
+              [attr.y2]="(getHoleById(comp.pini[1].holeId)?.y || 0) - 22"
+              stroke="#9a5a1f"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+
+            <path
+              *ngFor="let coil of [0,1,2,3,4,5,6,7]"
+              [attr.d]="
+                'M ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 8 + coil * 8) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 22) +
+                ' C ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 8 + coil * 8) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 42) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 16 + coil * 8) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 42) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 16 + coil * 8) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 22)
+              "
+              fill="none"
+              stroke="#b9770e"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+          </ng-container>
+
+          <ng-container *ngIf="comp.type === 'TRANSISTOR_NPN' || comp.type === 'TRANSISTOR_PNP'">
+            <line
+              *ngFor="let pin of comp.pini"
+              [attr.x1]="getHoleById(pin.holeId)?.x"
+              [attr.y1]="getHoleById(pin.holeId)?.y"
+              [attr.x2]="getHoleById(pin.holeId)?.x"
+              [attr.y2]="(getHoleById(pin.holeId)?.y || 0) - 22"
+              stroke="#8b8b8b"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+
+            <path
+              [attr.d]="
+                'M ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) - 7) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 23) +
+                ' L ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) - 7) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 62) +
+                ' Q ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 20) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 80) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 47) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 62) +
+                ' L ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 47) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 23) +
+                ' Z'
+              "
+              fill="#3d3d3d"
+              stroke="#222"
+              stroke-width="2"
+            />
+
+            <path
+              [attr.d]="
+                'M ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) - 4) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 63) +
+                ' Q ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 20) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 72) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.x || 0) + 44) +
+                ' ' +
+                ((getHoleById(comp.pini[0].holeId)?.y || 0) - 63)
+              "
+              fill="none"
+              stroke="#6c6c6c"
+              stroke-width="3"
+            />
+
+            <text
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 42"
+              text-anchor="middle"
+              font-size="22"
+              fill="#ffffff"
+              font-weight="bold"
+            >
+              {{ comp.type === 'TRANSISTOR_NPN' ? 'N' : 'P' }}
+            </text>
+
+            <text
+              *ngFor="let pin of comp.pini"
+              [attr.x]="getHoleById(pin.holeId)?.x"
+              [attr.y]="(getHoleById(pin.holeId)?.y || 0) - 25"
+              text-anchor="middle"
+              font-size="8"
+              fill="#a0a0a0"
+            >
+              {{ pin.id }}
+            </text>
+          </ng-container>
+
+          <rect
+            *ngIf="comp.id === selectedComponentId()"
+            class="selected-export-remove"
+            [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 14"
+            [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 86"
+            width="112"
+            height="96"
+            fill="none"
+            stroke="#3498db"
+            stroke-width="2"
+            stroke-dasharray="4"
+            rx="5"
+          />
+        </g>
+
+        <path
+          *ngFor="let w of wires()"
+          [attr.d]="getWirePath(w)"
+          [attr.stroke]="w.color"
+          fill="none"
+          stroke-width="3"
+          stroke-linecap="round"
+          opacity="0.8"
+          style="cursor: pointer"
+          (contextmenu)="onRightClickWire($event, w.id)"
+        />
+
+        <path
+          *ngIf="activeWireStartHole()"
+          [attr.d]="getWirePath(null, activeWireStartHole(), mousePos())"
+          [attr.stroke]="selectedWireColor()"
+          fill="none"
+          stroke-width="3"
+          stroke-dasharray="4"
+          stroke-linecap="round"
+        />
+
+        <g class="interactive-holes-layer">
+          <circle
+            *ngFor="let hole of allHoles()"
+            [attr.cx]="hole.x"
+            [attr.cy]="hole.y"
+            r="8"
+            class="interactive-hole"
+            [class.busy-hole]="isHoleOccupied(hole.id)"
+            (click)="onClickHole(hole, $event)"
+            (contextmenu)="onRightClickHole($event, hole)"
+            (dragover)="onDragOver($event)"
+            (drop)="onDropOnHole(hole, $event)"
+          >
+            <title>{{ hole.id }}</title>
+          </circle>
+        </g>
+
+        <g class="button-control-layer">
+          <ng-container *ngFor="let comp of components()">
+            <circle
+              *ngIf="comp.type === 'BUTTON'"
+              class="button-control-zone"
+              [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20"
+              [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 17"
+              r="10"
+              (mousedown)="updateComponentState(comp.id, { isPressed: true }); $event.stopPropagation()"
+              (mouseup)="updateComponentState(comp.id, { isPressed: false }); $event.stopPropagation()"
+              (mouseleave)="updateComponentState(comp.id, { isPressed: false })"
+              (click)="$event.stopPropagation()"
+              (contextmenu)="onRightClickComponent($event, comp.id)"
+            >
+              <title>Apasă butonul</title>
+            </circle>
+          </ng-container>
+        </g>
+
+        <g class="switch-control-layer">
+          <ng-container *ngFor="let comp of components()">
+            <rect
+              *ngIf="comp.type === 'SWITCH'"
+              class="button-control-zone"
+              [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 8"
+              [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 46"
+              width="56"
+              height="34"
+              rx="6"
+              (click)="updateComponentState(comp.id, { isOn: !comp.state.isOn }); $event.stopPropagation()"
+              (contextmenu)="onRightClickComponent($event, comp.id)"
+            >
+              <title>Comută ON/OFF</title>
+            </rect>
+          </ng-container>
+        </g>
+      </svg>
+    </div>
+
+    <div class="board-actions">
+      <button class="clear-btn export-btn" (click)="exportAsSVG()">
+        📸 Exportă SVG
+      </button>
+
+      <button class="clear-btn" (click)="clearWires()">
+        Șterge Firele
+      </button>
+
+      <button class="clear-btn danger-btn" (click)="clearBoard()">
+        Șterge Tot
+      </button>
+    </div>
+  </div>
+
   <div class="sidebar">
     <h3>Cutia cu Piese</h3>
-    <div class="component-box" *ngFor="let item of availableComponents" draggable="true" (dragstart)="onDragStart(item.type, $event)">
-      <span class="color-dot" [style.background]="item.color"></span> {{ item.label }}
+
+    <div class="wire-color-panel">
+      <label>Culoare fir:</label>
+
+      <input
+        type="color"
+        [ngModel]="selectedWireColor()"
+        (ngModelChange)="selectedWireColor.set($event)"
+      />
+
+      <span
+        class="wire-color-preview"
+        [style.background]="selectedWireColor()"
+      ></span>
     </div>
-    
-    <hr>
-    
+
+    <div
+      class="component-box"
+      *ngFor="let item of availableComponents"
+      draggable="true"
+      (dragstart)="onDragStart(item.type, $event)"
+      (dragend)="onDragEnd()"
+    >
+      <span class="component-icon" [ngClass]="item.type.toLowerCase()">
+        <span class="icon-leg left"></span>
+        <span class="icon-body" [style.background]="item.color"></span>
+        <span class="icon-leg right"></span>
+      </span>
+
+      <span>{{ item.label }}</span>
+    </div>
+
+    <hr />
+
     <div class="properties-panel" *ngIf="getSelectedComponent() as selComp">
-      <h4>Proprietăți: {{selComp.type}}</h4>
-      
+      <h4>Proprietăți: {{ selComp.type }}</h4>
+
       <div *ngIf="selComp.type === 'LED'">
         <label>Culoare LED:</label>
-        <input type="color" [ngModel]="selComp.state.color" (ngModelChange)="updateComponentState(selComp.id, {color: $event})">
-        <p *ngIf="selComp.state.isBurnt" style="color: red; font-weight: bold;">⚠️ LED ARS! Curent prea mare.</p>
-        <p *ngIf="!selComp.state.isBurnt">Curent: {{(selComp.state.current * 1000).toFixed(1)}} mA</p>
+
+        <input
+          type="color"
+          [ngModel]="selComp.state.color"
+          (ngModelChange)="updateComponentState(selComp.id, { color: $event })"
+        />
+
+        <p *ngIf="selComp.state.isBurnt" style="color: red; font-weight: bold">
+          ⚠️ LED ARS! Curent prea mare.
+        </p>
+
+        <p *ngIf="!selComp.state.isBurnt">
+          Curent: {{ (selComp.state.current * 1000).toFixed(1) }} mA
+        </p>
       </div>
 
       <div *ngIf="selComp.type === 'RESISTOR'">
         <label>Rezistență (Ohmi):</label>
-        <input type="number" [ngModel]="selComp.state.ohms" (ngModelChange)="updateComponentState(selComp.id, {ohms: $event})">
+
+        <input
+          type="number"
+          min="0"
+          [ngModel]="selComp.state.ohms"
+          (ngModelChange)="updateComponentState(selComp.id, { ohms: +$event })"
+        />
       </div>
 
       <div *ngIf="selComp.type === 'POTENTIOMETER'">
-        <label>Valoare Curentă: {{selComp.state.value}} Ω</label>
-        <input type="range" min="0" [max]="selComp.state.maxOhms" step="10" 
-               [ngModel]="selComp.state.value" 
-               (ngModelChange)="updateComponentState(selComp.id, {value: +$event})">
+        <label>Valoare Curentă: {{ selComp.state.value }} Ω</label>
+
+        <input
+          type="range"
+          min="0"
+          [max]="selComp.state.maxOhms"
+          step="10"
+          [ngModel]="selComp.state.value"
+          (ngModelChange)="updateComponentState(selComp.id, { value: +$event })"
+        />
       </div>
-      
-<button class="clear-btn" style="background: #ff4757; margin-top: 10px;" (click)="deleteComponent(selComp.id)">Șterge Piesa</button>    </div>
 
-    <hr *ngIf="getSelectedComponent()">
-
-    <button class="clear-btn" style="background: #2ed573; margin-bottom: 10px;" (click)="exportAsSVG()">📸 Exportă SVG</button>
-    <button class="clear-btn" (click)="wires.set([])">Șterge Firele</button>
-  </div>
-
-  <div class="simulator-container">
-    <div class="toolbar">
-      <div>
-        <h3>Simulator Breadboard Pro <span class="badge">9V Power</span></h3>
-        <small style="color: #666;">Selectează o piesă pt. proprietăți | Click-dreapta pt. ștergere</small>
+      <div *ngIf="selComp.type === 'BUTTON'">
+        <p>Butonul se apasă pe cercul roșu de pe breadboard.</p>
+        <p>Stare: <strong>{{ selComp.state.isPressed ? 'Apăsat' : 'Neapăsat' }}</strong></p>
       </div>
-    </div>
-    
-    <div class="svg-scroll-container">
-      <svg #breadboardSvg width="1400" height="500" (mousemove)="onMouseMove($event)" (mouseleave)="activeWireStartHole.set(null)">
-        
-        <rect x="0" y="0" width="1400" height="500" rx="15" fill="#f8f9fa" stroke="#e0e0e0"/>
-        
-        <rect x="20" y="210" width="1360" height="15" fill="#e9ecef" />
 
-        <circle *ngFor="let hole of allHoles()" [attr.cx]="hole.x" [attr.cy]="hole.y" r="3" fill="#ccc" class="hole"
-          [class.power-plus]="hole.id.includes('power-plus')" [class.power-minus]="hole.id.includes('power-minus')"
-          (mousedown)="onMouseDownHole(hole)" (mouseup)="onMouseUpHole(hole)" (dragover)="onDragOver($event)" (drop)="onDropOnHole(hole, $event)">
-          <title>{{hole.id}}</title>
-        </circle>
-        
-        <text *ngFor="let r of rowsTop; let i = index" x="20" [attr.y]="originY + (i * spacing) + 5" fill="#555" font-size="12" font-weight="bold">{{r}}</text>
-        <text *ngFor="let r of rowsBottom; let i = index" x="20" [attr.y]="(originY + 130) + (i * spacing) + 5" fill="#555" font-size="12" font-weight="bold">{{r}}</text>
+      <div *ngIf="selComp.type === 'SWITCH'">
+        <p>Click pe comutator pentru ON/OFF.</p>
+        <p>Stare: <strong>{{ selComp.state.isOn ? 'ON' : 'OFF' }}</strong></p>
+      </div>
 
-        <g *ngFor="let comp of components()" class="component" [class.selected]="comp.id === selectedComponentId()" (click)="selectComponent(comp.id)" (contextmenu)="onRightClickComponent($event, comp.id)">
-          
-          <ng-container *ngIf="comp.type === 'LED'">
-            <path *ngFor="let pin of comp.pini" [attr.d]="'M ' + getHoleById(pin.holeId)?.x + ' ' + getHoleById(pin.holeId)?.y + ' L ' + getHoleById(pin.holeId)?.x + ' ' + (getHoleById(pin.holeId)!.y - 15)" stroke="#999" stroke-width="2" fill="none"/>
-            <circle [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 10" [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 20" r="12" 
-              [attr.fill]="comp.state.isBurnt ? '#2d3436' : (comp.state.isOn ? comp.state.color : '#e0e0e0')"
-              [style.filter]="comp.state.isOn && !comp.state.isBurnt ? 'drop-shadow(0 0 ' + (comp.state.current * 1000) + 'px ' + comp.state.color + ')' : 'none'" />
-            <text *ngIf="comp.state.isBurnt" [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 4" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 16" font-size="14">🔥</text>
-          </ng-container>
+      <div *ngIf="selComp.type === 'MULTIMETER'">
+        <p>
+          Tensiune măsurată:
+          <strong>{{ selComp.state.readingV.toFixed(2) }} V</strong>
+        </p>
+      </div>
 
-          <ng-container *ngIf="comp.type === 'RESISTOR'">
-            <path [attr.d]="'M ' + getHoleById(comp.pini[0].holeId)?.x + ' ' + getHoleById(comp.pini[0].holeId)?.y + ' L ' + getHoleById(comp.pini[0].holeId)?.x + ' ' + (getHoleById(comp.pini[0].holeId)!.y - 20) + ' L ' + getHoleById(comp.pini[1].holeId)?.x + ' ' + (getHoleById(comp.pini[1].holeId)!.y - 20) + ' L ' + getHoleById(comp.pini[1].holeId)?.x + ' ' + getHoleById(comp.pini[1].holeId)?.y" stroke="#d2b48c" stroke-width="4" fill="none" stroke-linecap="round"/>
-            <rect [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 15" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 26" width="50" height="12" fill="#f5cd79" rx="3" />
-            <text [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 40" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 17" text-anchor="middle" font-size="8" fill="#333">{{comp.state.ohms}}Ω</text>
-          </ng-container>
+      <div *ngIf="selComp.type === 'CAPACITOR'">
+        <label>Capacitate (µF):</label>
 
-          <ng-container *ngIf="comp.type === 'POTENTIOMETER'">
-            <rect [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 10" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 40" width="60" height="30" fill="#34495e" rx="4"/>
-            <circle [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20" [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 25" r="10" fill="#bdc3c7"/>
-            <line [attr.x1]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20" [attr.y1]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 25" 
-                  [attr.x2]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20 + Math.cos((comp.state.value / comp.state.maxOhms) * Math.PI - Math.PI) * 10" 
-                  [attr.y2]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 25 + Math.sin((comp.state.value / comp.state.maxOhms) * Math.PI - Math.PI) * 10" stroke="white" stroke-width="2"/>
-          </ng-container>
+        <input
+          type="number"
+          min="1"
+          [ngModel]="selComp.state.capacitance"
+          (ngModelChange)="updateComponentState(selComp.id, { capacitance: +$event })"
+        />
+      </div>
 
-          <ng-container *ngIf="comp.type === 'BUTTON'">
-            <rect [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 5" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 30" width="50" height="25" fill="#bdc3c7" rx="2"/>
-            <circle [attr.cx]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 20" [attr.cy]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 17" r="8" 
-                    [attr.fill]="comp.state.isPressed ? '#c0392b' : '#e74c3c'" 
-                    (mousedown)="updateComponentState(comp.id, {isPressed: true})"
-                    (mouseup)="updateComponentState(comp.id, {isPressed: false})"
-                    (mouseleave)="updateComponentState(comp.id, {isPressed: false})"/>
-          </ng-container>
+      <div *ngIf="selComp.type === 'BUZZER'">
+        <p>Stare: <strong>{{ selComp.state.active ? 'Bâzâie' : 'Oprit' }}</strong></p>
+      </div>
 
-          <ng-container *ngIf="comp.type === 'MULTIMETER'">
-            <rect [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 10" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 80" width="80" height="60" fill="#f1c40f" rx="5" stroke="#333" stroke-width="2"/>
-            <rect [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 15" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 75" width="70" height="25" fill="#a4b0be"/>
-            <text [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) + 50" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 58" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="black">{{comp.state.readingV.toFixed(2)}} V</text>
-            <path [attr.d]="getWirePath(null, getHoleById(comp.pini[0].holeId), {x: (getHoleById(comp.pini[0].holeId)?.x || 0) + 30, y: (getHoleById(comp.pini[0].holeId)?.y || 0) - 20})" stroke="#e74c3c" fill="none" stroke-width="2"/>
-            <path [attr.d]="getWirePath(null, getHoleById(comp.pini[1].holeId), {x: (getHoleById(comp.pini[0].holeId)?.x || 0) + 70, y: (getHoleById(comp.pini[0].holeId)?.y || 0) - 20})" stroke="#2c3e50" fill="none" stroke-width="2"/>
-          </ng-container>
+      <div *ngIf="selComp.type === 'INDUCTOR'">
+        <label>Inductanță (mH):</label>
 
-          <rect *ngIf="comp.id === selectedComponentId()" [attr.x]="(getHoleById(comp.pini[0].holeId)?.x || 0) - 10" [attr.y]="(getHoleById(comp.pini[0].holeId)?.y || 0) - 50" width="100" height="60" fill="none" stroke="#3498db" stroke-width="2" stroke-dasharray="4" rx="5"/>
-        </g>
+        <input
+          type="number"
+          min="1"
+          [ngModel]="selComp.state.inductance"
+          (ngModelChange)="updateComponentState(selComp.id, { inductance: +$event })"
+        />
+      </div>
 
-        <path *ngFor="let w of wires()" [attr.d]="getWirePath(w)" [attr.stroke]="w.color" fill="none" stroke-width="3" stroke-linecap="round" opacity="0.8" style="cursor: pointer;" (contextmenu)="onRightClickWire($event, w.id)"/>
-        <path *ngIf="activeWireStartHole()" [attr.d]="getWirePath(null, activeWireStartHole(), mousePos())" stroke="#2ed573" fill="none" stroke-width="3" stroke-dasharray="4" stroke-linecap="round"/>
-      </svg>
+      <div *ngIf="selComp.type === 'DIODE'">
+        <p>Diodă cu anod A și catod K.</p>
+      </div>
+
+      <div *ngIf="selComp.type === 'TRANSISTOR_NPN'">
+        <p>Tranzistor NPN cu pini C, B, E.</p>
+      </div>
+
+      <div *ngIf="selComp.type === 'TRANSISTOR_PNP'">
+        <p>Tranzistor PNP cu pini E, B, C.</p>
+      </div>
+
+      <button class="clear-btn delete-piece-btn" (click)="deleteComponent(selComp.id)">
+        Șterge Piesa
+      </button>
     </div>
   </div>
+</div>
+
+<div
+  class="drag-preview"
+  *ngIf="dragPreview().visible"
+  [style.left.px]="dragPreview().x + 16"
+  [style.top.px]="dragPreview().y + 16"
+  [style.width.px]="getPreviewWidth(dragPreview().type)"
+>
+  <div class="drag-preview-label">
+    {{ getPreviewLabel(dragPreview().type) }}
+  </div>
+
+  <svg [attr.width]="getPreviewWidth(dragPreview().type)" height="100">
+    <ng-container [ngSwitch]="dragPreview().type">
+      <g *ngSwitchCase="'LED'">
+        <line x1="10" y1="60" x2="10" y2="35" class="preview-leg"></line>
+        <line x1="30" y1="60" x2="30" y2="35" class="preview-leg"></line>
+        <circle cx="20" cy="25" r="13" [attr.fill]="getPreviewColor(dragPreview().type)"></circle>
+        <text x="10" y="82" class="pin-text">A</text>
+        <text x="30" y="82" class="pin-text">K</text>
+      </g>
+
+      <g *ngSwitchCase="'RESISTOR'">
+        <line x1="10" y1="60" x2="10" y2="35" class="preview-leg"></line>
+        <line x1="90" y1="60" x2="90" y2="35" class="preview-leg"></line>
+        <line x1="10" y1="35" x2="90" y2="35" class="preview-wire"></line>
+        <rect x="30" y="25" width="40" height="20" rx="6" fill="#d2b48c" stroke="#8b5a2b"></rect>
+        <text x="10" y="82" class="pin-text">1</text>
+        <text x="90" y="82" class="pin-text">2</text>
+      </g>
+
+      <g *ngSwitchCase="'POTENTIOMETER'">
+        <line x1="10" y1="65" x2="10" y2="45" class="preview-leg"></line>
+        <line x1="50" y1="65" x2="50" y2="45" class="preview-leg"></line>
+        <rect x="0" y="15" width="60" height="35" rx="6" fill="#34495e"></rect>
+        <circle cx="30" cy="32" r="10" fill="#bdc3c7"></circle>
+        <text x="10" y="86" class="pin-text">1</text>
+        <text x="50" y="86" class="pin-text">2</text>
+      </g>
+
+      <g *ngSwitchCase="'BUTTON'">
+        <line x1="10" y1="65" x2="10" y2="45" class="preview-leg"></line>
+        <line x1="50" y1="65" x2="50" y2="45" class="preview-leg"></line>
+        <rect x="0" y="20" width="60" height="30" rx="5" fill="#bdc3c7"></rect>
+        <circle cx="30" cy="35" r="8" fill="#e74c3c"></circle>
+        <text x="10" y="86" class="pin-text">1</text>
+        <text x="50" y="86" class="pin-text">2</text>
+      </g>
+
+      <g *ngSwitchCase="'MULTIMETER'">
+        <line x1="10" y1="80" x2="35" y2="55" class="preview-red"></line>
+        <line x1="110" y1="80" x2="85" y2="55" class="preview-black"></line>
+        <rect x="30" y="10" width="70" height="50" rx="6" fill="#f1c40f" stroke="#333"></rect>
+        <rect x="38" y="18" width="54" height="18" fill="#a4b0be"></rect>
+        <text x="65" y="32" text-anchor="middle" font-size="10" font-family="monospace">
+          0.00V
+        </text>
+        <text x="10" y="90" class="pin-text">+</text>
+        <text x="110" y="90" class="pin-text">−</text>
+      </g>
+
+      <g *ngSwitchCase="'CAPACITOR'">
+        <line x1="10" y1="70" x2="10" y2="50" class="preview-leg"></line>
+        <line x1="50" y1="70" x2="50" y2="50" class="preview-leg"></line>
+        <ellipse cx="30" cy="35" rx="18" ry="24" fill="#1e5fa8" stroke="#16477d" stroke-width="2"></ellipse>
+        <path d="M19 20 C12 30 13 42 19 51" fill="none" stroke="#5dade2" stroke-width="2"></path>
+        <text x="10" y="90" class="pin-text">1</text>
+        <text x="50" y="90" class="pin-text">2</text>
+      </g>
+
+      <g *ngSwitchCase="'DIODE'">
+        <line x1="10" y1="65" x2="10" y2="45" class="preview-leg"></line>
+        <line x1="50" y1="65" x2="50" y2="45" class="preview-leg"></line>
+        <line x1="10" y1="45" x2="50" y2="45" class="preview-wire"></line>
+        <rect x="22" y="35" width="18" height="18" rx="2" fill="#2f3542"></rect>
+        <line x1="38" y1="35" x2="38" y2="53" stroke="white" stroke-width="3"></line>
+        <text x="10" y="86" class="pin-text">A</text>
+        <text x="50" y="86" class="pin-text">K</text>
+      </g>
+
+      <g *ngSwitchCase="'SWITCH'">
+        <line x1="10" y1="65" x2="10" y2="45" class="preview-leg"></line>
+        <line x1="50" y1="65" x2="50" y2="45" class="preview-leg"></line>
+        <circle cx="10" cy="42" r="4" fill="#555"></circle>
+        <circle cx="50" cy="42" r="4" fill="#555"></circle>
+        <line x1="10" y1="42" x2="44" y2="25" stroke="#2f3542" stroke-width="4" stroke-linecap="round"></line>
+        <text x="10" y="86" class="pin-text">1</text>
+        <text x="50" y="86" class="pin-text">2</text>
+      </g>
+
+      <g *ngSwitchCase="'BUZZER'">
+        <line x1="10" y1="70" x2="10" y2="50" class="preview-leg"></line>
+        <line x1="50" y1="70" x2="50" y2="50" class="preview-leg"></line>
+        <circle cx="30" cy="35" r="20" fill="#2f3542" stroke="#111" stroke-width="2"></circle>
+        <circle cx="30" cy="35" r="7" fill="#111"></circle>
+        <text x="10" y="90" class="pin-text">+</text>
+        <text x="50" y="90" class="pin-text">−</text>
+      </g>
+
+      <g *ngSwitchCase="'INDUCTOR'">
+        <line x1="10" y1="65" x2="10" y2="45" class="preview-leg"></line>
+        <line x1="90" y1="65" x2="90" y2="45" class="preview-leg"></line>
+
+        <path
+          *ngFor="let coil of [0,1,2,3,4,5,6,7]"
+          [attr.d]="
+            'M ' +
+            (18 + coil * 8) +
+            ' 45 C ' +
+            (18 + coil * 8) +
+            ' 25 ' +
+            (26 + coil * 8) +
+            ' 25 ' +
+            (26 + coil * 8) +
+            ' 45'
+          "
+          fill="none"
+          stroke="#b9770e"
+          stroke-width="4"
+          stroke-linecap="round"
+        ></path>
+
+        <text x="10" y="86" class="pin-text">1</text>
+        <text x="90" y="86" class="pin-text">2</text>
+      </g>
+
+      <g *ngSwitchCase="'TRANSISTOR_NPN'">
+        <line x1="15" y1="78" x2="15" y2="55" class="preview-leg"></line>
+        <line x1="35" y1="78" x2="35" y2="55" class="preview-leg"></line>
+        <line x1="55" y1="78" x2="55" y2="55" class="preview-leg"></line>
+        <path d="M8 55 L8 18 Q35 0 62 18 L62 55 Z" fill="#3d3d3d" stroke="#222" stroke-width="2"></path>
+        <path d="M12 18 Q35 8 58 18" fill="none" stroke="#6c6c6c" stroke-width="3"></path>
+        <text x="35" y="43" text-anchor="middle" font-size="24" fill="white" font-weight="bold">N</text>
+        <text x="15" y="58" text-anchor="middle" font-size="8" fill="#aaa">C</text>
+        <text x="35" y="58" text-anchor="middle" font-size="8" fill="#aaa">B</text>
+        <text x="55" y="58" text-anchor="middle" font-size="8" fill="#aaa">E</text>
+      </g>
+
+      <g *ngSwitchCase="'TRANSISTOR_PNP'">
+        <line x1="15" y1="78" x2="15" y2="55" class="preview-leg"></line>
+        <line x1="35" y1="78" x2="35" y2="55" class="preview-leg"></line>
+        <line x1="55" y1="78" x2="55" y2="55" class="preview-leg"></line>
+        <path d="M8 55 L8 18 Q35 0 62 18 L62 55 Z" fill="#3d3d3d" stroke="#222" stroke-width="2"></path>
+        <path d="M12 18 Q35 8 58 18" fill="none" stroke="#6c6c6c" stroke-width="3"></path>
+        <text x="35" y="43" text-anchor="middle" font-size="24" fill="white" font-weight="bold">P</text>
+        <text x="15" y="58" text-anchor="middle" font-size="8" fill="#aaa">E</text>
+        <text x="35" y="58" text-anchor="middle" font-size="8" fill="#aaa">B</text>
+        <text x="55" y="58" text-anchor="middle" font-size="8" fill="#aaa">C</text>
+      </g>
+    </ng-container>
+
+    <ng-container *ngFor="let pin of getPreviewPins(dragPreview().type)">
+      <circle
+        [attr.cx]="pin.x + 10"
+        [attr.cy]="pin.y + 20"
+        r="6"
+        class="preview-pin-target"
+      ></circle>
+    </ng-container>
+  </svg>
 </div>

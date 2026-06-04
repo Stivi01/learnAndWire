@@ -23,7 +23,7 @@
           <p>{{ course.Description | slice:0:100 }}{{ course.Description?.length > 100 ? '...' : '' }}</p>
         </div>
         <div class="course-meta">
-          <span class="badge">{{ course.modules?.length || 0 }} Capitole</span>
+          <span class="badge">{{ getModulesLabel(course.modules?.length || 0) }}</span>
           <div class="chevron-circle">
             <span class="toggle-icon">{{ expandedCourseId() === course.Id ? '▲' : '▼' }}</span>
           </div>

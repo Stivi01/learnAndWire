@@ -1,4 +1,3 @@
-/* Containerul general (Ocupă tot ecranul, centrează cardul) */
 .main-container {
   min-height: 100vh;
   display: flex;
@@ -16,21 +15,21 @@
   justify-content: center;
 }
 
-/* Cardul de Autentificare (Split Layout) */
 .auth-card {
   display: flex;
   background: #ffffff;
   border-radius: 24px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
   overflow: hidden;
-  max-width: 1000px;
+  max-width: 1250px;
   width: 100%;
-  min-height: 600px;
+  min-height: 760px;
 }
 
-/* --- PANOU STÂNGA (Ilustrație - Tema Dark) --- */
 .illustration-panel {
-  flex: 1;
+  width: 50%;
+  min-width: 50%;
+  max-width: 50%;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   padding: 3rem;
   display: flex;
@@ -39,29 +38,34 @@
   justify-content: center;
   position: relative;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .character-placeholder {
+  width: 440px;
+  height: 390px;
   z-index: 10;
   background: rgba(255, 255, 255, 0.03);
-  padding: 2.5rem;
+  padding: 3rem;
   border-radius: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
-/* Suprascriem verdele din SVG pentru a-l face Indigo */
-.character-placeholder svg {
-  stroke: #818cf8 !important; 
+.hero-logo {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  display: block;
   margin-bottom: 1.5rem;
-  width: 80px;
-  height: 80px;
+  flex-shrink: 0;
 }
 
-/* Suprascriem textul gri din HTML pentru a fi vizibil pe fundal închis */
 .character-placeholder p.text-gray-700 {
   color: #e2e8f0 !important;
   font-size: 1.05rem;
@@ -69,20 +73,21 @@
   margin: 0;
 }
 
-
-/* --- PANOU DREAPTA (Formular) --- */
 .form-panel {
-  flex: 1.2; /* Oferim puțin mai mult spațiu formularului de register deoarece are mai multe câmpuri */
+  width: 50%;
+  min-width: 50%;
+  max-width: 50%;
   padding: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .logo-area {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #6366f1; /* Accent Indigo */
+  color: #6366f1;
   margin-bottom: 1.5rem;
   letter-spacing: -0.5px;
 }
@@ -96,8 +101,6 @@
   letter-spacing: -0.5px;
 }
 
-/* --- GRID ȘI INPUT-URI --- */
-/* Suprascriem Tailwind-ul din HTML pentru a ne asigura că arată bine peste tot */
 .grid.grid-cols-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -108,7 +111,6 @@
   margin-bottom: 1.25rem;
 }
 
-/* Clasa de bază pentru input-uri */
 .input-field {
   width: 100%;
   padding: 0.85rem 1.25rem;
@@ -139,7 +141,6 @@
   cursor: not-allowed;
 }
 
-/* Mesaje eroare */
 .error-message {
   color: #e11d48;
   font-size: 0.85rem;
@@ -150,7 +151,6 @@
   gap: 0.2rem;
 }
 
-/* --- INDICATOR ROL --- */
 .role-indicator {
   background-color: #eef2ff;
   border: 1px solid #c7d2fe;
@@ -163,7 +163,6 @@
   margin-bottom: 1.25rem;
 }
 
-/* --- BUTON AUTENTIFICARE --- */
 .submit-button {
   width: 100%;
   background-color: #6366f1;
@@ -185,7 +184,6 @@
   transform: translateY(-1px);
 }
 
-/* Styling pentru disabled (inclusiv clasa ta .disabled-btn) */
 .submit-button:disabled,
 .submit-button.disabled-btn {
   background-color: #cbd5e1;
@@ -194,10 +192,8 @@
   box-shadow: none;
 }
 
-/* --- LINK-URI (Logare) --- */
-/* Suprascriem .text-green-600 din HTML cu !important pentru a forța nuanța de indigo */
 .form-panel a {
-  color: #6366f1 !important; 
+  color: #6366f1 !important;
   text-decoration: none;
   transition: color 0.2s;
   font-weight: 600;
@@ -217,25 +213,25 @@
   border-top: 1px solid #f1f5f9;
 }
 
-
-/* --- RESPONSIVITATE --- */
 @media (max-width: 900px) {
   .auth-card {
     flex-direction: column;
     min-height: auto;
   }
-  
+
   .illustration-panel {
     display: none;
   }
-  
+
   .form-panel {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     padding: 2.5rem;
   }
 }
 
 @media (max-width: 500px) {
-  /* Pe telefoane foarte mici, gridul cu 2 coloane devine o singură coloană */
   .grid.grid-cols-2 {
     grid-template-columns: 1fr;
   }

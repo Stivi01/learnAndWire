@@ -11,7 +11,12 @@ import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-teacher-profile',
-  imports: [CommonModule, FormsModule, RecoveryCodesSettings, ChangePasswordSettings],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RecoveryCodesSettings,
+    ChangePasswordSettings
+  ],
   standalone: true,
   templateUrl: './teacher-profile.html',
   styleUrl: './teacher-profile.scss',
@@ -29,12 +34,11 @@ export class TeacherProfile implements OnDestroy {
     email: '',
     academicYear: 0,
     avatar: '',
-    phone: '',   // Adăugat pentru siguranță
-    address: ''  // Adăugat pentru siguranță
+    phone: '',
+    address: ''
   });
 
   formatDateTime = formatRomanianDateTime;
-
   isLoading = signal(true);
 
   constructor() {
@@ -51,22 +55,27 @@ export class TeacherProfile implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log("Avatar value from server:", data.avatar);
-          this.profile.set(data);
+          this.profile.set({
+            ...data,
+            avatar: data.avatar || ''
+          });
+
           this.isLoading.set(false);
         },
         error: (err) => {
-          // Don't show error toast for 401 (token expired/invalidated) - interceptor handles logout
           if (err.status !== 401) {
             this.toastService.show('Eroare la încărcarea profilului.', 'error');
           }
+
           this.isLoading.set(false);
         }
       });
   }
 
-  uploadAvatar(event: any) {
-    const file = event.target.files[0];
+  uploadAvatar(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
     if (!file) return;
 
     const formData = new FormData();
@@ -76,7 +85,11 @@ export class TeacherProfile implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
-          this.profile.set({ ...this.profile(), avatar: res.avatar });
+          this.profile.set({
+            ...this.profile(),
+            avatar: res.avatar || ''
+          });
+
           this.authService.updateUserAvatar(res.avatar || '');
           this.toastService.show('Avatar actualizat!', 'success');
           this.loadProfile();
@@ -87,7 +100,6 @@ export class TeacherProfile implements OnDestroy {
       });
   }
 
-  // Opțional, poți primi form-ul aici ca parametru pentru o extra-verificare
   saveProfile(form?: NgForm) {
     if (form && form.invalid) {
       this.toastService.show('Te rugăm să corectezi erorile din formular.', 'error');

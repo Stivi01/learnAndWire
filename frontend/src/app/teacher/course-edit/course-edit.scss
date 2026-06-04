@@ -4,7 +4,12 @@
   padding: 20px;
   background: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.course-edit-container * {
+  font-family: inherit;
 }
 
 .course-edit-container h2 {
@@ -29,7 +34,27 @@
   padding: 8px 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
+  font-family: inherit;
   font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.error {
+  margin-top: 5px;
+  color: #dc2626;
+  font-size: 13px;
 }
 
 .checkbox-group {
@@ -40,6 +65,7 @@
 
 .checkbox-group label {
   margin-left: 0;
+  margin-bottom: 0;
 }
 
 .checkbox-group input {
@@ -82,6 +108,10 @@
   color: #9a3412;
 }
 
+.publish-warning p {
+  margin: 0 0 6px;
+}
+
 .publish-hint {
   margin: 8px 0 16px;
   font-size: 14px;
@@ -95,19 +125,24 @@
   color: #b45309;
 }
 
-button[type="submit"] {
+button[type='submit'] {
   display: block;
   width: 100%;
   padding: 10px;
-  background-color: #007bff;
+  background-color: #2563eb;
   color: white;
   border: none;
   border-radius: 5px;
+  font-family: inherit;
   font-size: 16px;
   cursor: pointer;
 }
 
-button[type="submit"]:disabled {
+button[type='submit']:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+button[type='submit']:disabled {
   background-color: #a0c4ff;
   cursor: not-allowed;
 }
@@ -115,6 +150,7 @@ button[type="submit"]:disabled {
 .loading {
   text-align: center;
   padding: 50px;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 18px;
   color: #555;
 }

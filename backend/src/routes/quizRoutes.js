@@ -433,16 +433,45 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
       }
 
       const quiz = accessResult.recordset[0];
-      const now = new Date();
-      const scheduledDate = new Date(quiz.ScheduledAt);
-      const closedDate = new Date(quiz.ClosedAt);
-
-      if (quiz.ScheduledAt && now < scheduledDate) {
-        return res.status(403).json({ message: 'Acest test nu a început încă.' });
+      
+      // Comparații de date - CORECTĂ: convertim la string SQL pentru comparație exactă
+      if (quiz.ScheduledAt) {
+        // SQL Server-ul stochează data ca DATETIME2 LOCAL
+        // Comparăm direct cu GETDATE() din DB pentru a evita timezone issues
+        const checkStartResult = await sqlPool.query`
+          SELECT CASE 
+                   WHEN GETDATE() < ScheduledAt THEN 1
+                   ELSE 0
+                 END AS NotStartedYet,
+                 CONVERT(VARCHAR, ScheduledAt, 120) AS ScheduledAtLocal
+          FROM CourseQuizzes
+          WHERE Id = ${quizId}
+        `;
+        
+        if (checkStartResult.recordset[0].NotStartedYet === 1) {
+          return res.status(403).json({ 
+            message: `Testul nu a început încă. Este programat pentru ${checkStartResult.recordset[0].ScheduledAtLocal}.`
+          });
+        }
       }
 
-      if (quiz.ClosedAt && now > closedDate) {
-        return res.status(403).json({ message: 'Termenul limită pentru susținerea acestui test a expirat.' });
+      if (quiz.ClosedAt) {
+        // Comparăm direct cu GETDATE() din DB
+        const checkEndResult = await sqlPool.query`
+          SELECT CASE 
+                   WHEN GETDATE() > ClosedAt THEN 1
+                   ELSE 0
+                 END AS IsExpired,
+                 CONVERT(VARCHAR, ClosedAt, 120) AS ClosedAtLocal
+          FROM CourseQuizzes
+          WHERE Id = ${quizId}
+        `;
+        
+        if (checkEndResult.recordset[0].IsExpired === 1) {
+          return res.status(403).json({ 
+            message: `Termenul limită pentru susținerea acestui test a expirat. Era până la ${checkEndResult.recordset[0].ClosedAtLocal}.`
+          });
+        }
       }
 
       const questionsResult = await sqlPool.query`
@@ -505,8 +534,37 @@ function registerQuizRoutes(app, { getSqlPool, protect, restrictTo, sql }) {
       }
 
       const quiz = accessResult.recordset[0];
-      if (quiz.ScheduledAt && new Date() < new Date(quiz.ScheduledAt)) {
-        return res.status(403).json({ message: 'Acest test nu a început încă.' });
+      
+      // Verificare corectă a datei de început - GETDATE() din SQL
+      if (quiz.ScheduledAt) {
+        const checkStartResult = await sqlPool.query`
+          SELECT CASE 
+                   WHEN GETDATE() < ScheduledAt THEN 1
+                   ELSE 0
+                 END AS NotStartedYet
+          FROM CourseQuizzes
+          WHERE Id = ${quizId}
+        `;
+        
+        if (checkStartResult.recordset[0].NotStartedYet === 1) {
+          return res.status(403).json({ message: 'Acest test nu a început încă.' });
+        }
+      }
+
+      // Verificare corectă a datei limită - GETDATE() din SQL
+      if (quiz.ClosedAt) {
+        const checkEndResult = await sqlPool.query`
+          SELECT CASE 
+                   WHEN GETDATE() > ClosedAt THEN 1
+                   ELSE 0
+                 END AS IsExpired
+          FROM CourseQuizzes
+          WHERE Id = ${quizId}
+        `;
+        
+        if (checkEndResult.recordset[0].IsExpired === 1) {
+          return res.status(403).json({ message: 'Termenul limită pentru susținerea acestui test a expirat.' });
+        }
       }
 
       const existingAttempt = await sqlPool.query`

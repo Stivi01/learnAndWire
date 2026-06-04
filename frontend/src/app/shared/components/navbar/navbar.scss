@@ -1,10 +1,9 @@
-/* Containerul Sidebar-ului */
 .sidebar {
   display: flex;
   flex-direction: column;
   width: 280px;
-  height: 100vh; /* Ocupă toată înălțimea ecranului */
-  background-color: #1e293b; /* Slate foarte închis pentru contrast premium */
+  height: 100vh;
+  background-color: #1e293b;
   color: #f8fafc;
   padding: 1.5rem;
   box-sizing: border-box;
@@ -14,29 +13,39 @@
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* --- LOGO --- */
 .logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   margin-bottom: 2.5rem;
-  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.navbar-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .logo-text {
   font-size: 1.75rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  /* Un gradient subtil pentru textul logo-ului */
   background: linear-gradient(to right, #818cf8, #c084fc);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* --- USER BOX --- */
+/* User */
 .user-box {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background-color: #1e293b; /* Fundal ușor diferențiat de restul meniului */
+  background-color: #1e293b;
   border-radius: 12px;
   margin-bottom: 2rem;
   border: 1px solid #334155;
@@ -47,14 +56,15 @@
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #6366f1; /* Accent indigo la fel ca în restul platformei */
-  background-color: #334155; /* Fallback color */
+  border: 2px solid #6366f1;
+  background-color: #334155;
+  flex-shrink: 0;
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Previne ieșirea textului lung din container */
+  overflow: hidden;
 }
 
 .user-info .name {
@@ -76,7 +86,7 @@
   letter-spacing: 0.5px;
 }
 
-/* --- MENIU --- */
+/* Meniu */
 .menu {
   list-style: none;
   padding: 0;
@@ -84,15 +94,15 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  flex: 1; /* Permite meniului să ocupe tot spațiul disponibil */
-  overflow-y: auto; /* Scroll intern dacă sunt prea multe elemente */
+  flex: 1;
+  overflow-y: auto;
 }
 
-/* Ascundem scrollbar-ul pentru un aspect mai curat, dar păstrăm funcționalitatea */
 .menu::-webkit-scrollbar {
   display: none;
   width: 4px;
 }
+
 .menu::-webkit-scrollbar-thumb {
   background-color: #334155;
   border-radius: 4px;
@@ -113,33 +123,32 @@
 
 .menu li i {
   font-size: 1.1rem;
-  width: 20px; /* Lățime fixă pentru iconițe ca textul să fie perfect aliniat */
+  width: 20px;
   text-align: center;
   color: #64748b;
   transition: color 0.2s;
 }
 
-/* Efecte la trecerea mouse-ului */
 .menu li:hover {
   background-color: #1e293b;
   color: #ffffff;
-  transform: translateX(4px); /* O mică mișcare spre dreapta pentru dinamism */
+  transform: translateX(4px);
 }
 
 .menu li:hover i {
-  color: #818cf8; /* Iconița se colorează în indigo la hover */
+  color: #818cf8;
 }
 
-/* --- LOGOUT --- */
+/* Logout */
 .logout-box {
-  margin-top: auto; /* Împinge butonul jos de tot */
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.875rem 1rem;
   border-radius: 8px;
   cursor: pointer;
-  color: #fca5a5; /* Un roșu stins */
+  color: #fca5a5;
   font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.2s ease-in-out;
@@ -152,6 +161,6 @@
 }
 
 .logout-box:hover {
-  background-color: rgba(248, 113, 113, 0.1); /* Fundal roșu transparent */
+  background-color: rgba(248, 113, 113, 0.1);
   color: #f87171;
 }

@@ -11,7 +11,12 @@ import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-student-profile',
-  imports: [CommonModule, FormsModule, RecoveryCodesSettings, ChangePasswordSettings],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RecoveryCodesSettings,
+    ChangePasswordSettings
+  ],
   standalone: true,
   templateUrl: './student-profile.html',
   styleUrl: './student-profile.scss',
@@ -28,11 +33,12 @@ export class StudentProfile implements OnDestroy {
     lastName: '',
     email: '',
     academicYear: 0,
-    avatar: ''
+    avatar: '',
+    phone: '',
+    address: ''
   });
 
   formatDateTime = formatRomanianDateTime;
-
   isLoading = signal(true);
 
   constructor() {
@@ -49,22 +55,27 @@ export class StudentProfile implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          console.log("Avatar value from server:", data.avatar);
-          this.profile.set(data);
+          this.profile.set({
+            ...data,
+            avatar: data.avatar || ''
+          });
+
           this.isLoading.set(false);
         },
         error: (err) => {
-          // Don't show error toast for 401 (token expired/invalidated) - interceptor handles logout
           if (err.status !== 401) {
             this.toastService.show('Eroare la încărcarea profilului.', 'error');
           }
+
           this.isLoading.set(false);
         }
       });
   }
 
-  uploadAvatar(event: any) {
-    const file = event.target.files[0];
+  uploadAvatar(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
     if (!file) return;
 
     const formData = new FormData();
@@ -74,7 +85,11 @@ export class StudentProfile implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
-          this.profile.set({ ...this.profile(), avatar: res.avatar });
+          this.profile.set({
+            ...this.profile(),
+            avatar: res.avatar || ''
+          });
+
           this.authService.updateUserAvatar(res.avatar || '');
           this.toastService.show('Avatar actualizat!', 'success');
           this.loadProfile();

@@ -7,8 +7,8 @@ import { Quiz } from '../../core/services/quiz';
 import { CourseSchedules } from '../../core/services/course-schedules';
 import { Subject, catchError, of, takeUntil } from 'rxjs';
 import { Router } from '@angular/router';
-import { parseLocalDateTime } from '../../shared/utils/date-utils';
 import { Homework } from '../../core/services/homework';
+import { parseLocalDateTime, formatAsSSMSDateOnly, formatAsSSMSTimeOnly } from '../../shared/utils/date-utils';
 
 interface Lesson {
   day: number;
@@ -18,7 +18,6 @@ interface Lesson {
 
 // Funcție ajutătoare pentru a genera stilul conic-gradient pentru gauge-uri
 function getGaugeStyle(percentage: number, color: string): string {
-  const rotation = percentage * 3.6; // 360 degrees / 100
   return `conic-gradient(${color} 0% ${percentage}%, #d1d5db ${percentage}% 100%)`;
 }
 
@@ -61,22 +60,33 @@ export class StudentDashboard implements OnDestroy {
   upcomingSchedules = signal<any[]>([]);
   upcomingHomeworks = signal<any[]>([]);
 
+  // GRADES
+  studentGrades = signal<any[]>([]);
+
   quizEvents = computed(() =>
     this.upcomingQuizzes().map(q => {
       const dateObj = parseLocalDateTime(q.scheduledAt) || new Date(q.scheduledAt);
+
       return {
         courseTitle: q.courseTitle,
         title: q.title,
-        date: dateObj.toLocaleDateString('ro-RO'),
-        time: dateObj.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+        date: formatAsSSMSDateOnly(q.scheduledAt),
+        time: formatAsSSMSTimeOnly(q.scheduledAt),
         emoji: this.getQuizEmoji(q.title),
         timestamp: dateObj.getTime()
       };
     })
   );
 
-  homeworkEvents = computed(() =>
-    this.upcomingHomeworks().map(hw => {
+homeworkEvents = computed(() => {
+  const now = new Date();
+
+  return this.upcomingHomeworks()
+    .filter(hw => {
+      const dueDate = new Date(hw.dueAt);
+      return dueDate >= now;
+    })
+    .map(hw => {
       const dateObj = new Date(hw.dueAt);
 
       let status = '';
@@ -87,14 +97,14 @@ export class StudentDashboard implements OnDestroy {
       return {
         courseTitle: hw.courseTitle,
         title: hw.title,
-        date: dateObj.toLocaleDateString('ro-RO'),
-        time: dateObj.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+        date: formatAsSSMSDateOnly(hw.dueAt),
+        time: formatAsSSMSTimeOnly(hw.dueAt),
         emoji: '📝',
         timestamp: dateObj.getTime(),
         status
       };
-    })
-  );
+    });
+});
 
   allEvents = computed(() =>
     [
@@ -117,6 +127,8 @@ export class StudentDashboard implements OnDestroy {
   onTimeRate = computed(() => {
     const total = this.upcomingHomeworks().length;
 
+    if (total === 0) return 0;
+
     const onTime = this.upcomingHomeworks().filter(h =>
       h.submissionId && !h.isLate
     ).length;
@@ -124,15 +136,24 @@ export class StudentDashboard implements OnDestroy {
     return Math.round((onTime / total) * 100);
   });
 
-  averageGrade = computed(() => {
-    const graded = this.upcomingHomeworks()
-      .filter(h => h.grade != null && h.maxPoints != null);
+averageGrade = computed(() => {
+  const allGrades = this.studentGrades()
+    .filter(g => g.score != null && g.maxScore != null)
+    .map(g => ({
+      score: Number(g.score),
+      maxScore: Number(g.maxScore)
+    }))
+    .filter(g =>
+      Number.isFinite(g.score) &&
+      Number.isFinite(g.maxScore) &&
+      g.maxScore > 0
+    );
 
-    const total = graded.reduce((sum, h) => sum + h.grade, 0);
-    const max = graded.reduce((sum, h) => sum + h.maxPoints, 0);
+  const totalScore = allGrades.reduce((sum, item) => sum + item.score, 0);
+  const totalMaxScore = allGrades.reduce((sum, item) => sum + item.maxScore, 0);
 
-    return max === 0 ? 0 : Math.round((total / max) * 100);
-  });
+  return totalMaxScore === 0 ? 0 : Math.round((totalScore / totalMaxScore) * 100);
+});
 
   pendingHomeworks = computed(() => {
     const now = new Date();
@@ -156,37 +177,6 @@ export class StudentDashboard implements OnDestroy {
     ).length;
   });
 
-  studentPerformanceScore = computed(() => {
-    const hw = this.upcomingHomeworks();
-
-    if (!hw.length) return 0;
-
-    // 1. completare teme
-    const completion = hw.filter(h => h.submissionId).length / hw.length;
-
-    // 2. punctualitate
-    const onTime = hw.filter(h => h.submissionId && !h.isLate).length;
-    const onTimeRate = hw.length ? onTime / hw.length : 0;
-
-    // 3. note (dacă există)
-    const graded = hw.filter(h => h.grade != null && h.maxPoints != null);
-
-    let gradeRate = 0;
-    if (graded.length) {
-      const total = graded.reduce((sum, h) => sum + h.grade, 0);
-      const max = graded.reduce((sum, h) => sum + h.maxPoints, 0);
-      gradeRate = max ? total / max : 0;
-    }
-
-    // scor ponderat
-    const score =
-      completion * 0.4 +
-      onTimeRate * 0.3 +
-      gradeRate * 0.3;
-
-    return Math.round(score * 100);
-  });
-
   eventDisplayLimit = 4;
   visibleQuizEvents = computed(() => this.allEvents().slice(0, this.eventDisplayLimit));
   hasMoreQuizEvents = computed(() => this.allEvents().length > this.eventDisplayLimit);
@@ -208,6 +198,7 @@ export class StudentDashboard implements OnDestroy {
     this.loadStudentSchedules();
     this.loadUpcomingSchedules();
     this.loadStudentHomeworks();
+    this.loadStudentGrades();
   }
 
   // --- TEACHERS ---
@@ -230,13 +221,33 @@ export class StudentDashboard implements OnDestroy {
         fullName: t.fullName,
         email: t.email,
         role: t.role,
-        avatarUrl: t.avatarUrl || 'assets/avatar-default.png',
+        avatarUrl: t.avatarUrl || '',
         phone: t.phone,
         course: t.course
       }));
+
       this.teachers.set(mapped);
     });
   }
+
+
+  getTeacherAvatarUrl(t: any): string {
+  const avatar = t?.avatarUrl;
+
+  if (!avatar) {
+    return '/assets/avatar-default.png';
+  }
+
+  if (
+    avatar.includes('avatar-default.png') ||
+    avatar.startsWith('/assets')
+  ) {
+    return avatar;
+  }
+
+  return `http://localhost:3000/${avatar}`;
+}
+
 
   openTeacherModal(t: Teacher) {
     this.selectedTeacher.set(t);
@@ -251,11 +262,13 @@ export class StudentDashboard implements OnDestroy {
   // --- EVENTS ---
   getQuizEmoji(title: string): string {
     const t = title.toLowerCase();
+
     if (t.includes('math')) return '📐';
     if (t.includes('code') || t.includes('c++') || t.includes('program')) return '💻';
     if (t.includes('robot')) return '🤖';
     if (t.includes('test')) return '📝';
     if (t.includes('exam')) return '📚';
+
     return '🧠';
   }
 
@@ -274,13 +287,16 @@ export class StudentDashboard implements OnDestroy {
       })
     ).subscribe(quizzes => {
       const now = new Date();
+
       const upcoming = quizzes
         .filter(q => q.scheduledAt && ((parseLocalDateTime(q.scheduledAt) || new Date(q.scheduledAt)) > now))
         .sort((a, b) => {
           const aDate = parseLocalDateTime(a.scheduledAt) || new Date(a.scheduledAt);
           const bDate = parseLocalDateTime(b.scheduledAt) || new Date(b.scheduledAt);
+
           return aDate.getTime() - bDate.getTime();
         });
+
       this.upcomingQuizzes.set(upcoming);
     });
   }
@@ -303,20 +319,39 @@ export class StudentDashboard implements OnDestroy {
     });
   }
 
+  loadStudentGrades() {
+    if (!this.auth.isLoggedIn()) return;
+
+    this.quizService.getMyGrades().pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        if (err.status === 401) {
+          this.auth.logout();
+          this.router.navigate(['/login']);
+        }
+        console.error('Failed to load student grades', err);
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.studentGrades.set(data);
+    });
+  }
+
   // --- CALENDAR & SCHEDULE ---
   generateCalendar(date: Date) {
     const year = date.getFullYear();
     const month = date.getMonth();
-    const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+    const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
 
     this.days = [];
-    const emptyDays = (firstDay + 6) % 7; // Luni=0
+    const emptyDays = (firstDay + 6) % 7;
+
     for (let i = 0; i < emptyDays; i++) this.days.push(0);
     for (let i = 1; i <= lastDate; i++) this.days.push(i);
 
-    // Selectăm ziua curentă dacă este luna curentă
     const today = new Date();
+
     if (today.getMonth() === month && today.getFullYear() === year) {
       this.selectedDay.set(today.getDate());
     } else {
@@ -326,6 +361,7 @@ export class StudentDashboard implements OnDestroy {
 
   prevMonth() {
     const d = new Date(this.currentMonth());
+
     d.setMonth(d.getMonth() - 1);
     this.currentMonth.set(d);
     this.generateCalendar(d);
@@ -334,6 +370,7 @@ export class StudentDashboard implements OnDestroy {
 
   nextMonth() {
     const d = new Date(this.currentMonth());
+
     d.setMonth(d.getMonth() + 1);
     this.currentMonth.set(d);
     this.generateCalendar(d);
@@ -341,7 +378,10 @@ export class StudentDashboard implements OnDestroy {
   }
 
   monthName(): string {
-    return this.currentMonth().toLocaleString('ro-RO', { month: 'long', year: 'numeric' });
+    return this.currentMonth().toLocaleString('ro-RO', {
+      month: 'long',
+      year: 'numeric'
+    });
   }
 
   selectDay(day: number) {
@@ -353,17 +393,23 @@ export class StudentDashboard implements OnDestroy {
 
   lessonsForSelectedDay() {
     if (!this.selectedDay()) return [];
+
     return this.studentSchedules().filter(s => {
       const d = new Date(s.Date);
-      return d.getDate() === this.selectedDay() && d.getMonth() === this.currentMonth().getMonth();
+
+      return d.getDate() === this.selectedDay() &&
+        d.getMonth() === this.currentMonth().getMonth();
     });
   }
 
   dayHasSchedule(day: number): boolean {
     if (day === 0) return false;
+
     const date = new Date(this.currentMonth());
     date.setDate(day);
+
     const weekday = date.getDay();
+
     return this.studentSchedules().some(s => s.DayOfWeek === weekday);
   }
 
@@ -387,8 +433,10 @@ export class StudentDashboard implements OnDestroy {
     ).subscribe(data => {
       const month = this.currentMonth().getMonth();
       const year = this.currentMonth().getFullYear();
+
       const parsed = data.flatMap((s: any) => {
         const dates = this.getDatesForDayInMonth(s.DayOfWeek, month, year);
+
         return dates.map(date => ({
           ...s,
           Date: date,
@@ -396,6 +444,7 @@ export class StudentDashboard implements OnDestroy {
           EndTimeLocal: this.parseTimeToDate(s.EndTime, date),
         }));
       });
+
       this.studentSchedules.set(parsed);
     });
   }
@@ -415,8 +464,10 @@ export class StudentDashboard implements OnDestroy {
       })
     ).subscribe(data => {
       const now = new Date();
+
       const parsed = data.map((s: any) => {
         const nextDate = this.getNextOccurrence(s.DayOfWeek, s.StartTime);
+
         return {
           courseTitle: s.CourseTitle,
           title: 'Curs',
@@ -425,7 +476,10 @@ export class StudentDashboard implements OnDestroy {
           emoji: '📘',
           timestamp: nextDate.getTime()
         };
-      }).filter(e => e.timestamp > now.getTime()).sort((a, b) => a.timestamp - b.timestamp);
+      })
+        .filter(e => e.timestamp > now.getTime())
+        .sort((a, b) => a.timestamp - b.timestamp);
+
       this.upcomingSchedules.set(parsed);
     });
   }
@@ -434,7 +488,9 @@ export class StudentDashboard implements OnDestroy {
   private parseTimeToDate(timeISO: string, day: Date): Date {
     const t = new Date(timeISO);
     const d = new Date(day);
+
     d.setHours(t.getUTCHours(), t.getUTCMinutes(), t.getUTCSeconds(), 0);
+
     return d;
   }
 
@@ -450,26 +506,36 @@ export class StudentDashboard implements OnDestroy {
   private getDatesForDayInMonth(dayOfWeek: number, month: number, year: number): Date[] {
     const dates: Date[] = [];
     const lastDay = new Date(year, month + 1, 0).getDate();
+
     for (let d = 1; d <= lastDay; d++) {
       const date = new Date(year, month, d);
       date.setHours(12, 0, 0, 0);
+
       const jsDay = date.getDay();
-      const mappedDay = jsDay === 0 ? 7 : jsDay; // 1=Monday
+      const mappedDay = jsDay === 0 ? 7 : jsDay;
+
       if (mappedDay === dayOfWeek) dates.push(date);
     }
+
     return dates;
   }
 
   private getNextOccurrence(dayOfWeek: number, time: string): Date {
     const now = new Date();
     const result = new Date();
+
     const currentDay = now.getDay() === 0 ? 7 : now.getDay();
+
     let diff = dayOfWeek - currentDay;
     if (diff < 0) diff += 7;
+
     result.setDate(now.getDate() + diff);
+
     const t = new Date(time);
     result.setHours(t.getUTCHours(), t.getUTCMinutes(), 0, 0);
+
     if (result < now) result.setDate(result.getDate() + 7);
+
     return result;
   }
 }

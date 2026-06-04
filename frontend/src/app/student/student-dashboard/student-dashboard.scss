@@ -100,6 +100,8 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #e2e8f0;
+  background-color: #f1f5f9;
+  flex-shrink: 0;
 }
 
 .t-name {
@@ -443,6 +445,7 @@
   display: block;
   object-fit: cover;
   border: 3px solid #e0e7ff;
+  background-color: #f1f5f9;
 }
 
 .modal h3 {

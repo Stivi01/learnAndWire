@@ -1,6 +1,5 @@
-/* Containerul Principal */
 .settings-page {
-  max-width: 800px; /* Lățime redusă pentru formulare mai ușor de citit */
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   font-family: 'Inter', system-ui, sans-serif;
@@ -18,7 +17,6 @@
   padding-bottom: 1rem;
 }
 
-/* Starea de încărcare */
 .settings-page > div[ngIf="isLoading()"] {
   padding: 3rem;
   text-align: center;
@@ -30,7 +28,7 @@
   font-size: 1.1rem;
 }
 
-/* --- SECȚIUNEA AVATAR --- */
+/* Avatar */
 .avatar-section {
   display: flex;
   align-items: center;
@@ -50,6 +48,7 @@
   object-fit: cover;
   border: 3px solid #e0e7ff;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background-color: #f1f5f9;
 }
 
 .avatar-section input[type="file"] {
@@ -74,7 +73,7 @@
   border-color: #94a3b8;
 }
 
-/* --- FORMULAR (Câmpuri Text) --- */
+/* Formular */
 .form-group {
   margin-bottom: 1.25rem;
   display: flex;
@@ -100,21 +99,28 @@
   box-sizing: border-box;
 }
 
-.form-group input:focus:not(:disabled) {
+.form-group input:focus:not(:disabled):not([readonly]) {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-.form-group input:disabled {
+.form-group input:disabled,
+.form-group input[readonly] {
   background-color: #f1f5f9;
-  color: #94a3b8;
+  color: #64748b;
   cursor: not-allowed;
   border-color: #e2e8f0;
 }
 
-/* --- BUTON SALVARE --- */
-.settings-page button:not(.close-btn) { /* Excludem eventuale butoane de close din sub-componente */
+/* Erori */
+.error-message {
+  color: #dc2626;
+  font-size: 0.8rem;
+}
+
+/* Buton salvare */
+.settings-page button:not(.close-btn) {
   background-color: #6366f1;
   color: white;
   border: none;
@@ -130,15 +136,20 @@
   width: 100%;
 }
 
-.settings-page button:hover {
+.settings-page button:not(.close-btn):hover:not(:disabled) {
   background-color: #4f46e5;
 }
 
-.settings-page button:active {
+.settings-page button:not(.close-btn):active {
   transform: translateY(1px);
 }
 
-/* --- DETALII META (Ultima logare / actualizare) --- */
+.settings-page button:not(.close-btn):disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* Detalii cont */
 .updated-at {
   font-size: 0.85rem;
   color: #64748b;
@@ -153,7 +164,7 @@
   font-size: 0.9rem;
 }
 
-/* --- SUB-COMPONENTE --- */
+/* Sub-componente */
 app-change-password-settings,
 app-recovery-codes-settings {
   display: block;
@@ -162,9 +173,8 @@ app-recovery-codes-settings {
   border-top: 2px solid #e2e8f0;
 }
 
-/* Pentru o organizare mai bună vizual, poți lăsa ecranele mari să aibă 2 coloane (Opțional, doar dacă pui câmpurile într-un wrapper "form-grid") */
 @media (min-width: 768px) {
   .settings-page button:not(.close-btn) {
-    width: auto; /* Pe ecrane mari butonul nu mai stă pe toată lățimea */
+    width: auto;
   }
 }

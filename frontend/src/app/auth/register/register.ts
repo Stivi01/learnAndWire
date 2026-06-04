@@ -89,9 +89,7 @@ export class Register {
 
     this.auth.register(data).subscribe({
       next: (res: AuthResponse) => {
-        this.auth.saveToken(res.token);
         this.toastService.show(res.message, 'success');
-
         // Show recovery codes modal
         if (res.recoveryCodes && res.recoveryCodes.length > 0) {
           this.recoveryCodes.set(res.recoveryCodes);

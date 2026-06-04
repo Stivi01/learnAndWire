@@ -1,11 +1,18 @@
 const sql = require('mssql');
 
+
 const config = {
-  user: 'db_user',
-  password: 'Licenta20252026',
-  server: 'NTZ\\SQLEXPRESS',
+  user: 'db_user', 
+  password: 'Lavinia19!',
+  server: '127.0.0.1', // Folosim IP-ul direct pentru a evita orice eroare de nume
   database: 'LAW',
-  options: { trustServerCertificate: true }
+  options: {
+    instanceName: 'SQLEXPRESS03', // Foarte important: Numele instanței tale noi
+    trustServerCertificate: true,
+    encrypt: false,               // Dezactivează SSL-ul care dădea eroare
+    enableArithAbort: true
+  },
+  port: 1433
 };
 
 let sqlPool;

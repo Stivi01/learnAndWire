@@ -3,7 +3,7 @@ import { Quiz } from '../../core/services/quiz';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../core/services/toast';
-import { parseLocalDateTime } from '../../shared/utils/date-utils';
+import { parseLocalDateTime, formatAsSSMS } from '../../shared/utils/date-utils';
 
 @Component({
   selector: 'app-quiz-list-student',
@@ -44,18 +44,16 @@ export class QuizListStudent {
 
   // --- METODA NOUĂ PENTRU VALIDARE START QUIZ ---
   startQuiz(quiz: any) {
-    const now = new Date();
+    const now = new Date(); // UTC internă (JavaScript)
 
     if (quiz.scheduledAt) {
       const scheduledDate = parseLocalDateTime(quiz.scheduledAt) || new Date(quiz.scheduledAt);
 
       // Dacă data curentă este mai mică (mai devreme) decât data programată
       if (now < scheduledDate) {
-        const formattedDate = scheduledDate.toLocaleString('ro-RO'); // Formatăm data frumos
+        const formattedDate = formatAsSSMS(quiz.scheduledAt);
         
-        // Aici adaptezi în funcție de cum ai metoda în ToastService
-        // Presupun că ai o metodă show() sau showError()
-        this.toastService.show(`Testul nu a început încă! Este programat pentru ${formattedDate}.`, 'error');
+        this.toastService.show(`Testul nu a început încă. Este programat pentru ${formattedDate}.`, 'error');
         return; // Oprim execuția, nu îl lăsăm să intre
       }
     }
@@ -65,8 +63,8 @@ export class QuizListStudent {
 
       // Dacă data curentă este mai mare decât data limită
       if (now > closedDate) {
-        const formattedDate = closedDate.toLocaleString('ro-RO');
-        this.toastService.show(`Termenul limită pentru susținerea acestui test a expirat! Era până la ${formattedDate}.`, 'error');
+        const formattedDate = formatAsSSMS(quiz.closedAt);
+        this.toastService.show(`Termenul limită pentru susținerea acestui test a expirat. Era până la ${formattedDate}.`, 'error');
         return;
       }
     }

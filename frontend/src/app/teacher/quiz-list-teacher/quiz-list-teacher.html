@@ -21,7 +21,7 @@
       Programat pentru: {{ q.scheduledAt | date:'dd.MM.yyyy HH:mm':'UTC' }}
     </p>
     <p *ngIf="q.closedAt">
-      Limiţă: {{ q.closedAt | date:'dd.MM.yyyy HH:mm':'UTC' }}
+      Limită: {{ q.closedAt | date:'dd.MM.yyyy HH:mm':'UTC' }}
     </p>
     <p *ngIf="calculateDuration(q)" class="duration">
       {{ calculateDuration(q) }}

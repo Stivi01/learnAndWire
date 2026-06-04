@@ -1,4 +1,3 @@
-/* Containerul general (Ocupă tot ecranul, centrează cardul) */
 .main-container {
   min-height: 100vh;
   display: flex;
@@ -16,21 +15,21 @@
   justify-content: center;
 }
 
-/* Cardul de Autentificare */
 .auth-card {
   display: flex;
   background: #ffffff;
   border-radius: 24px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
   overflow: hidden;
-  max-width: 1000px;
+  max-width: 1250px;
   width: 100%;
-  min-height: 600px;
+  min-height: 760px;
 }
 
-/* --- PANOU STÂNGA (Ilustrație - Tema Dark) --- */
 .illustration-panel {
-  flex: 1;
+  width: 50%;
+  min-width: 50%;
+  max-width: 50%;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   padding: 3rem;
   display: flex;
@@ -40,47 +39,34 @@
   position: relative;
   overflow: hidden;
   text-align: center;
+  box-sizing: border-box;
 }
 
-/* Elemente grafice (Emoticon-uri) animate */
-.clock-icon, .plant-icon {
-  font-size: 2.5rem;
-  position: absolute;
-  opacity: 0.9;
-  animation: float 6s ease-in-out infinite;
-}
-
-.clock-icon { top: 15%; left: 15%; }
-.plant-icon { bottom: 15%; right: 15%; animation-delay: 3s; }
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-  100% { transform: translateY(0px); }
-}
-
-/* Containerul central cu text de pe partea stângă */
 .character-placeholder {
+  width: 440px;
+  height: 390px;
   z-index: 10;
   background: rgba(255, 255, 255, 0.03);
-  padding: 2.5rem;
+  padding: 3rem;
   border-radius: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
-/* Suprascriem verdele din SVG pentru a-l face Indigo */
-.character-placeholder svg {
-  stroke: #818cf8 !important; 
+.hero-logo {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  display: block;
   margin-bottom: 1.5rem;
-  width: 80px;
-  height: 80px;
+  flex-shrink: 0;
 }
 
-/* Suprascriem textul gri din HTML pentru a fi vizibil pe fundal închis */
 .character-placeholder p.text-gray-700 {
   color: #e2e8f0 !important;
   font-size: 1.05rem;
@@ -88,20 +74,21 @@
   margin: 0;
 }
 
-
-/* --- PANOU DREAPTA (Formular) --- */
 .form-panel {
-  flex: 1;
+  width: 50%;
+  min-width: 50%;
+  max-width: 50%;
   padding: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .logo-area {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #6366f1; /* Accent Indigo */
+  color: #6366f1;
   margin-bottom: 2rem;
   letter-spacing: -0.5px;
 }
@@ -115,7 +102,6 @@
   letter-spacing: -0.5px;
 }
 
-/* Grupuri de input */
 .space-y-4 > div {
   margin-bottom: 1.25rem;
 }
@@ -144,7 +130,6 @@
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-/* Mesaje eroare */
 .error-message {
   color: #e11d48;
   font-size: 0.85rem;
@@ -155,7 +140,6 @@
   gap: 0.35rem;
 }
 
-/* --- BUTON AUTENTIFICARE --- */
 .submit-button {
   width: 100%;
   background-color: #6366f1;
@@ -183,10 +167,8 @@
   box-shadow: none;
 }
 
-/* --- LINK-URI (Reset & Register) --- */
-/* Suprascriem .text-green-600 din HTML cu !important pentru a forța nuanța de indigo a platformei */
 .form-panel a {
-  color: #6366f1 !important; 
+  color: #6366f1 !important;
   text-decoration: none;
   transition: color 0.2s;
   font-weight: 600;
@@ -212,20 +194,20 @@
   border-top: 1px solid #f1f5f9;
 }
 
-
-/* --- RESPONSIVITATE --- */
 @media (max-width: 900px) {
   .auth-card {
     flex-direction: column;
     min-height: auto;
   }
-  
-  /* Pe ecrane mici, ascundem panoul de ilustrație pentru a economisi spațiu, lăsând focusul pe formular */
+
   .illustration-panel {
     display: none;
   }
-  
+
   .form-panel {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     padding: 2.5rem;
   }
 }

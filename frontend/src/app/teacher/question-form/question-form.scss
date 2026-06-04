@@ -5,7 +5,11 @@
   background-color: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.question-form-container * {
+  font-family: inherit;
 }
 
 .question-form-container h2 {
@@ -32,24 +36,34 @@
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
   border: 1px solid #ccc;
-  font-size: 1rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background-color: #fafafa;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+  line-height: 1.4;
 }
 
 .form-group textarea:focus,
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.2);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+  background-color: #ffffff;
 }
 
 button {
   width: 100%;
   padding: 0.8rem;
-  background-color: #007bff;
+  background-color: #2563eb;
   color: #fff;
   font-size: 1rem;
+  font-family: inherit;
   font-weight: 600;
   border: none;
   border-radius: 8px;
@@ -58,5 +72,5 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #1d4ed8;
 }
